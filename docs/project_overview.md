@@ -1,4 +1,4 @@
-﻿# Prototype Zero
+# Project Diablo Next
 
 Prototype Zero 是一个以 Diablo II 为主要参考目标的动作角色扮演游戏原型项目。
 
@@ -58,11 +58,11 @@ Demo 会作为对外反馈收集版本，用于判断核心体验、系统方向
 
 ## 当前阶段
 
-项目目前处于第一阶段：Prototype。
+项目目前处于第2阶段：Demo。
 
 当前优先事项是完成一个小规模但闭环的战斗场景，用于验证基础玩法、操作手感和整体节奏。
 
-详细计划见 [PROTOTYPE_PLAN.md](PROTOTYPE_PLAN.md)。
+详细计划见 [README.md](README.md)。
 
 ## 设计原则
 

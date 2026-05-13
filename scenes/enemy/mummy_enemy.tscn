@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/enemy/mummy_enemy.gd" id="1_mummy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mummy"]
-size = Vector2(32, 24)
+size = Vector2(28, 54)
 
 [node name="MummyEnemy" type="CharacterBody2D"]
 collision_layer = 2
@@ -14,7 +14,7 @@ script = ExtResource("1_mummy")
 position = Vector2(0, -64)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -10)
+position = Vector2(0, -32)
 shape = SubResource("RectangleShape2D_mummy")
 
 [node name="HPBar" type="ProgressBar" parent="."]

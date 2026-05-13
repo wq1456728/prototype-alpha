@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://3pshe4diqlh8"]
 
-[ext_resource type="PackedScene" uid="uid://j5vur6exaaa2" path="res://scenes/player/warrior_player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/player/knight_player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemy/mummy_enemy.tscn" id="2_mummy"]
 [ext_resource type="Script" uid="uid://dydpyxnny88hp" path="res://scripts/main.gd" id="3_main"]
 
@@ -46,7 +46,7 @@ offset_right = 920.0
 offset_bottom = 530.0
 color = Color(0.19, 0.17, 0.13, 1)
 
-[node name="WarriorPlayer" parent="." unique_id=1881280669 instance=ExtResource("1_player")]
+[node name="KnightPlayer" parent="." unique_id=1881280669 instance=ExtResource("1_player")]
 
 [node name="MummyGrunt" parent="." unique_id=922510322 instance=ExtResource("2_mummy")]
 position = Vector2(500, 300)

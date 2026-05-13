@@ -15,8 +15,11 @@ const ATTACK_LOCK_TIME := 0.58
 const ATTACK_HIT_DELAY := 0.28
 const HURT_LOCK_TIME := 0.22
 const DEATH_CLEANUP_TIME := 1.6
-const SEPARATION_DISTANCE := 34.0
-const SEPARATION_FORCE := 90.0
+const PLAYER_SOFT_COLLISION_DISTANCE := 46.0
+const PLAYER_SOFT_COLLISION_FORCE := 135.0
+const ENEMY_SOFT_COLLISION_DISTANCE := 44.0
+const ENEMY_SOFT_COLLISION_FORCE := 115.0
+const MAX_SOFT_COLLISION_SPEED := 125.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
@@ -78,17 +81,17 @@ func _physics_process(delta: float) -> void:
 		_pick_ai_mode(distance)
 
 	if distance > detect_range:
-		velocity = Vector2.ZERO
+		velocity = _soft_collision_velocity()
 		_play("idle")
 	elif distance <= attack_range and attack_timer <= 0.0:
 		_start_attack()
 	elif ai_mode == "pause" or distance <= preferred_distance:
-		velocity = _separation_velocity(to_player, distance)
+		velocity = _soft_collision_velocity()
 		_update_facing(to_player)
 		_play("idle")
 	else:
 		var direction := _movement_direction(to_player, distance)
-		velocity = direction * move_speed + _separation_velocity(to_player, distance)
+		velocity = direction * move_speed + _soft_collision_velocity()
 		_update_facing(direction)
 		_play("walk")
 
@@ -135,12 +138,30 @@ func _movement_direction(to_player: Vector2, distance: float) -> Vector2:
 	return direction
 
 
-func _separation_velocity(to_player: Vector2, distance: float) -> Vector2:
-	if distance <= 0.01 or distance >= SEPARATION_DISTANCE:
+func _soft_collision_velocity() -> Vector2:
+	var push := Vector2.ZERO
+
+	if is_instance_valid(player):
+		push += _push_from_node(player, PLAYER_SOFT_COLLISION_DISTANCE, PLAYER_SOFT_COLLISION_FORCE)
+
+	for enemy in get_tree().get_nodes_in_group("enemy"):
+		if enemy == self or not is_instance_valid(enemy):
+			continue
+		var enemy_node := enemy as Node2D
+		if enemy_node == null:
+			continue
+		push += _push_from_node(enemy_node, ENEMY_SOFT_COLLISION_DISTANCE, ENEMY_SOFT_COLLISION_FORCE)
+
+	return push.limit_length(MAX_SOFT_COLLISION_SPEED)
+
+
+func _push_from_node(other: Node2D, distance_limit: float, force: float) -> Vector2:
+	var away := global_position - other.global_position
+	var distance := away.length()
+	if distance <= 0.01 or distance >= distance_limit:
 		return Vector2.ZERO
-	var away := -to_player.normalized()
-	var strength := 1.0 - distance / SEPARATION_DISTANCE
-	return away * SEPARATION_FORCE * strength
+	var strength := 1.0 - distance / distance_limit
+	return away.normalized() * force * strength
 
 
 func _pick_ai_mode(distance: float) -> void:
@@ -210,7 +231,7 @@ func _add_frames(frames: SpriteFrames, anim_name: StringName, prefix: String, co
 	frames.set_animation_speed(anim_name, speed)
 	frames.set_animation_loop(anim_name, loops)
 	for i in range(count):
-		var path := "res://assets/sprites/Enemy/5 Mummy/frames/%s_%02d.png" % [prefix, i]
+		var path := "res://assets/sprites/Enemy/Mummy/%s_%02d.png" % [prefix, i]
 		var texture: Resource = load(path)
 		if texture != null:
 			frames.add_frame(anim_name, texture)

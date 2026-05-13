@@ -1,0 +1,92 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://bimxwqbupfofg"]
+
+[ext_resource type="Texture2D" uid="uid://d1mskloqdunr1" path="res://assets/raw/Knight/without_outline/shield_charge_attack_sprite.png" id="1_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_01"]
+atlas = ExtResource("1_sheet")
+region = Rect2(52, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_02"]
+atlas = ExtResource("1_sheet")
+region = Rect2(104, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_03"]
+atlas = ExtResource("1_sheet")
+region = Rect2(156, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_04"]
+atlas = ExtResource("1_sheet")
+region = Rect2(208, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_05"]
+atlas = ExtResource("1_sheet")
+region = Rect2(260, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_06"]
+atlas = ExtResource("1_sheet")
+region = Rect2(312, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_07"]
+atlas = ExtResource("1_sheet")
+region = Rect2(364, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_08"]
+atlas = ExtResource("1_sheet")
+region = Rect2(416, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shield_charge_attack_09"]
+atlas = ExtResource("1_sheet")
+region = Rect2(468, 0, 52, 48)
+margin = Rect2(22, 20, 44, 36)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_01")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_02")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_03")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_04")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_05")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_06")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_07")
+}, {
+"duration": 2.5,
+"texture": SubResource("AtlasTexture_shield_charge_attack_08")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shield_charge_attack_09")
+}],
+"loop": false,
+"name": &"shield_charge_attack",
+"speed": 16.0
+}]

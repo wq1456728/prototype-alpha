@@ -220,7 +220,7 @@ func _add_frames(
 	frames.set_animation_loop(anim_name, loops)
 
 	for i in range(1, count + 1):
-		var path := "res://assets/sprites/Warrior/Individual Sprite/%s/%s" % [folder, file_pattern % i]
+		var path := "res://assets/sprites/Warrior/%s/%s" % [folder, file_pattern % i]
 		var texture: Resource = load(path)
 		if texture != null:
 			frames.add_frame(anim_name, texture)

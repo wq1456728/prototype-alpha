@@ -186,10 +186,18 @@ func _push_from_node(other: Node2D, distance_limit: float, force: float) -> Vect
 
 func _pick_ai_mode(distance: float) -> void:
 	ai_timer = randf_range(ai_min_think_time, ai_max_think_time)
-	if distance > detect_range * 0.7:
+	if distance > preferred_distance * 3.0:
 		ai_mode = "approach"
 		return
+
 	var roll := randf()
+	if distance > preferred_distance * 1.8:
+		if roll < 0.08:
+			ai_mode = "pause"
+		else:
+			ai_mode = "approach"
+		return
+
 	if roll < 0.18:
 		ai_mode = "pause"
 	elif roll < 0.56:

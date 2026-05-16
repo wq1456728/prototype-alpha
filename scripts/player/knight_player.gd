@@ -2,8 +2,8 @@ extends CharacterBody2D
 
 const SPRITE_ROOT := "res://assets/sprites/characters/knight"
 const SHIELD_CHARGE_FRAMES_RESOURCE := "res://assets/animations/knight_shield_charge_attack.tres"
-const SPRITE_FRAME_WIDTH := 128
-const SPRITE_FRAME_HEIGHT := 112
+const SPRITE_FRAME_WIDTH := 96
+const SPRITE_FRAME_HEIGHT := 84
 
 const WALK_SPEED := 130.0
 const RUN_SPEED := 220.0
@@ -46,6 +46,7 @@ var action_direction := Vector2.RIGHT
 var action_lock := 0.0
 var locked_velocity := Vector2.ZERO
 var key_was_down := {}
+var mouse_button_was_down := {}
 var hp := MAX_HP
 var dead := false
 var damage_bonus := 0
@@ -76,9 +77,9 @@ func _physics_process(delta: float) -> void:
 		return
 
 	shield_charge_cooldown = maxf(shield_charge_cooldown - delta, 0.0)
-	var light_attack_pressed := _consume_press(KEY_J)
-	var heavy_attack_pressed := _consume_press(KEY_K)
-	var shield_charge_pressed := _consume_press(KEY_L)
+	var light_attack_pressed := _consume_mouse_button_press(MOUSE_BUTTON_LEFT)
+	var heavy_attack_pressed := _consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
+	var shield_charge_pressed := _consume_press(KEY_V)
 	move_direction = _read_move_direction()
 	aim_direction = _read_aim_direction()
 
@@ -131,7 +132,8 @@ func _physics_process(delta: float) -> void:
 
 	var wants_run := _held(KEY_SHIFT)
 	var target_speed := RUN_SPEED if wants_run else WALK_SPEED
-	velocity = move_direction * target_speed + _soft_collision_velocity()
+	var soft_collision := _soft_collision_velocity() if move_direction != Vector2.ZERO else Vector2.ZERO
+	velocity = move_direction * target_speed + soft_collision
 	move_and_slide()
 
 	if move_direction == Vector2.ZERO:
@@ -336,6 +338,13 @@ func _consume_press(keycode: Key) -> bool:
 	var down := Input.is_key_pressed(keycode)
 	var was_down := bool(key_was_down.get(keycode, false))
 	key_was_down[keycode] = down
+	return down and not was_down
+
+
+func _consume_mouse_button_press(button: int) -> bool:
+	var down := Input.is_mouse_button_pressed(button)
+	var was_down := bool(mouse_button_was_down.get(button, false))
+	mouse_button_was_down[button] = down
 	return down and not was_down
 
 

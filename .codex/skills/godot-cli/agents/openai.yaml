@@ -1,0 +1,3 @@
+display_name: Godot CLI
+short_description: Run Godot CLI safely in this workspace.
+default_prompt: Use $godot-cli to run Godot CLI/headless checks for prototype-alpha.

@@ -27,7 +27,7 @@ func _process(_delta: float) -> void:
 
 func _spawn_wave() -> void:
 	_clear_enemies()
-	_spawn_mummy("MummyDummy", $EnemySpawns/DummySpawn.global_position, 25, 0.0, 0, 42.0, 36.0, 2.0, 2.6)
+	_spawn_mummy("MummyScout", $EnemySpawns/DummySpawn.global_position, 35, 42.0, 6, 46.0, 40.0, 1.25, 2.6)
 	_spawn_mummy("MummyGrunt", $EnemySpawns/GruntSpawn.global_position, 55, 68.0, 10, 54.0, 46.0, 1.1, 3.0)
 	_spawn_mummy("MummyBrute", $EnemySpawns/BruteSpawn.global_position, 95, 48.0, 18, 60.0, 52.0, 1.35, 3.35)
 

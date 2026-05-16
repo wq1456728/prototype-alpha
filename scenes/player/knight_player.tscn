@@ -14,7 +14,7 @@ collision_mask = 0
 script = ExtResource("1_knight")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=893404023]
-position = Vector2(0, -100)
+position = Vector2(0, -66)
 scale = Vector2(3, 3)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=331718101]
@@ -23,9 +23,9 @@ shape = SubResource("RectangleShape2D_knight")
 
 [node name="HPBar" type="ProgressBar" parent="." unique_id=920481168]
 offset_left = -42.0
-offset_top = -176.0
+offset_top = -132.0
 offset_right = 42.0
-offset_bottom = -166.0
+offset_bottom = -122.0
 theme_override_styles/fill = SubResource("StyleBoxFlat_knight_hp")
 show_percentage = false
 

@@ -92,61 +92,47 @@ Acceptance:
 - Enemy death is clear.
 - Combat remains slow enough for Diablo II-like pacing.
 
-## Milestone 3: First Loot And Growth Loop
+## Milestone 3: Vertical Item And Growth Loop
 
 Goal:
 
-Prove the smallest loot-driven power increase.
+Prove the smallest Diablo-like vertical progression chain with one class before expanding horizontally.
 
 Tasks:
 
-- Add one item drop from enemy death.
-- Add pickup behavior.
-- Add a simple equipment or stat application path.
-- Add one visible stat change, such as damage.
-- Add a simple UI readout or combat-visible effect.
+- Replace direct-stat pickup with item pickup into a small bag.
+- Add one equipment slot first: weapon.
+- Equip weapon to change attack damage.
+- Add simple item data: name, rarity, damage bonus, icon/color.
+- Add tiny drop roll logic for normal, magic, and rare weapons.
+- Add functional inventory/equipment UI.
+- Add XP and level growth.
+- Add one progression-based skill unlock.
+- Add a sandbox objective flow that uses combat, loot, equipment, XP, and skill unlock.
 
 Acceptance:
 
-- Enemy can drop an item.
-- Player can pick it up.
-- Player becomes stronger in a visible way.
-- Time-to-kill changes after the upgrade.
+- Enemy can drop weapon items.
+- Player can pick items into a small bag.
+- Player can equip a weapon.
+- Equipped weapon changes combat stats.
+- Player can gain XP and level up.
+- Player can unlock one new ability.
+- The sandbox has a short beginning-to-completion flow.
 
-## Milestone 4: Class Prototype Split
-
-Goal:
-
-Split the player into two playable class prototypes without building a full class framework.
-
-Tasks:
-
-- Paladin-style melee basic attack.
-- Paladin mobility skill: dash or dash strike.
-- Paladin area skill: holy shock, slam, or burst.
-- Mage basic projectile.
-- Mage mobility skill: blink.
-- Mage area or control skill: fireball, frost nova, or lightning chain.
-- Minimal class selection or test spawning.
-
-Acceptance:
-
-- Both classes can complete the combat sandbox loop.
-- Paladin and mage feel meaningfully different.
-- Shared systems are reused only where they reduce real duplication.
-
-## Milestone 5: Outdoor Map Greybox
+## Milestone 4: Outdoor Greybox
 
 Goal:
 
-Build the first outdoor region in greybox form before final art.
+Move the proven vertical sandbox loop into the first outdoor greybox.
 
 Tasks:
 
 - Create outdoor map layout.
 - Add spawn / camp area.
 - Add combat zones.
-- Add enemy groups.
+- Add first item drop moment.
+- Add first level-up or skill-unlock moment.
 - Add elite or tougher encounter.
 - Add dungeon entrance.
 - Add simple quest direction.
@@ -156,6 +142,26 @@ Acceptance:
 - Player can move from spawn to dungeon entrance.
 - Outdoor section supports about 5-10 minutes of play after tuning.
 - Player receives at least one early power gain.
+- Outdoor flow reuses the proven sandbox systems instead of inventing new ones.
+
+## Milestone 5: Horizontal Prototype Expansion
+
+Goal:
+
+Expand content after the vertical loop works.
+
+Tasks:
+
+- Plan and implement mage prototype.
+- Add second enemy family.
+- Add more equipment slots only after weapon slot works.
+- Add more skill variants.
+- Add more item stat types.
+
+Acceptance:
+
+- New class or enemy content uses existing item, XP, skill, and combat systems.
+- Horizontal additions do not force a rewrite of the vertical loop.
 
 ## Milestone 6: Dungeon And Small Boss
 

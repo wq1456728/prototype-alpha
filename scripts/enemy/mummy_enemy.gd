@@ -14,8 +14,8 @@ const DAMAGE_PICKUP_SCENE := preload("res://scenes/items/damage_pickup.tscn")
 @export var ai_max_think_time := 1.1
 @export var drops_loot := true
 
-const ATTACK_LOCK_TIME := 0.58
-const ATTACK_HIT_DELAY := 0.28
+const ATTACK_LOCK_TIME := 0.62
+const ATTACK_HIT_DELAY := 0.32
 const HURT_LOCK_TIME := 0.22
 const DEATH_CLEANUP_TIME := 1.6
 const PLAYER_SOFT_COLLISION_DISTANCE := 46.0

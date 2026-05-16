@@ -1,8 +1,6 @@
 extends SceneTree
 
 const SCENE_PATH := "res://scenes/maps/combat_sandbox.tscn"
-const SAMPLE_FRAMES := [1, 30, 90, 180]
-const LAST_FRAME := 180
 
 
 func _initialize() -> void:
@@ -15,39 +13,46 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	for frame in range(1, LAST_FRAME + 1):
-		await physics_frame
-		if SAMPLE_FRAMES.has(frame):
-			_print_sample(frame)
-	quit()
-
-
-func _print_sample(frame: int) -> void:
+	await physics_frame
 	var player := get_first_node_in_group("player") as Node2D
-	print("-- frame %d --" % frame)
-	if player != null:
-		print("player pos=%s hp=%s" % [_fmt_vec(player.global_position), player.get("hp")])
+	var enemies := get_nodes_in_group("enemy")
+	var debug_label := current_scene.get_node_or_null("DebugCanvas/DebugLabel")
+	var loot_root := current_scene.get_node_or_null("Loot")
+	if player == null or enemies.is_empty() or debug_label == null or loot_root == null:
+		print("combat_sandbox FAIL player=%s enemies=%d debug=%s loot=%s" % [player != null, enemies.size(), debug_label != null, loot_root != null])
+		quit(1)
+		return
 
-	for enemy in get_nodes_in_group("enemy"):
+	print("combat_sandbox launch ok: enemies=%d player_hp=%s damage=%s" % [enemies.size(), player.get("hp"), player.call("get_current_attack_damage")])
+	for enemy in enemies:
 		var enemy_node := enemy as CharacterBody2D
 		if enemy_node == null:
 			continue
-		var distance := 0.0
-		if player != null:
-			distance = enemy_node.global_position.distance_to(player.global_position)
-		print(
-			"%s pos=%s velocity=%s distance=%.1f move_speed=%s ai=%s action_lock=%.2f"
-			% [
-				enemy_node.name,
-				_fmt_vec(enemy_node.global_position),
-				_fmt_vec(enemy_node.velocity),
-				distance,
-				enemy_node.get("move_speed"),
-				enemy_node.get("ai_mode"),
-				float(enemy_node.get("action_lock")),
-			]
-		)
+		print("%s hp=%s speed=%s range=%s cooldown=%s preferred=%s" % [enemy_node.name, enemy_node.get("max_hp"), enemy_node.get("move_speed"), enemy_node.get("attack_range"), enemy_node.get("attack_cooldown"), enemy_node.get("preferred_distance")])
+
+	var target := enemies[0]
+	var before_damage := int(player.call("get_current_attack_damage"))
+	target.call("take_damage", int(target.get("max_hp")), player.global_position)
+	await physics_frame
+	var loot := _first_loot() as Area2D
+	if loot == null:
+		print("combat_sandbox FAIL loot_missing")
+		quit(1)
+		return
+	player.global_position = loot.global_position
+	await physics_frame
+	await physics_frame
+	await process_frame
+	await process_frame
+	for _i in range(110):
+		await physics_frame
+	var after_damage := int(player.call("get_current_attack_damage"))
+	print("combat_sandbox loot ok: damage %d -> %d loot_left=%d enemies_left=%d" % [before_damage, after_damage, get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size()])
+	quit(0)
 
 
-func _fmt_vec(value: Vector2) -> String:
-	return "(%.1f, %.1f)" % [value.x, value.y]
+func _first_loot() -> Node:
+	var loot_nodes := get_nodes_in_group("loot")
+	if loot_nodes.is_empty():
+		return null
+	return loot_nodes[0]

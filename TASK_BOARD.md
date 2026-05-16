@@ -40,9 +40,19 @@ WASD movement
 
 ### TASK-007: Combat Sandbox Feel Pass 1
 
-Status: ready
+Status: done
 
-Owner: unassigned
+Task agent status: done
+
+Owner: task agent
+
+Audit:
+
+- 2026-05-16 feel pass completed.
+- Runtime wrapper validation passed for `scenes/maps/combat_sandbox.tscn`.
+- Player can kill a mummy, spawn damage loot, pick it up, and increase displayed attack damage.
+- Light player hit timing and mummy attack timing were nudged later to better match visible active frames.
+- Mummy attack lock now covers the full visible attack animation.
 
 Goal:
 
@@ -77,7 +87,7 @@ Acceptance:
 
 ### TASK-008: Runtime Smoke Test Script
 
-Status: blocked by TASK-007
+Status: ready
 
 Goal:
 

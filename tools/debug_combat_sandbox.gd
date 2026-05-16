@@ -49,6 +49,22 @@ func _run() -> void:
 		print("combat_sandbox FAIL inventory_visible_by_default")
 		quit(1)
 		return
+	if current_scene.has_method("is_skill_tree_visible") and bool(current_scene.call("is_skill_tree_visible")):
+		print("combat_sandbox FAIL skill_tree_visible_by_default")
+		quit(1)
+		return
+	if _loadout_slot_count(player) != 6 or str(player.call("get_loadout_skill", "lmb")) != "light_attack" or not str(player.call("get_loadout_skill", "rmb")).is_empty():
+		print("combat_sandbox FAIL loadout_defaults count=%d lmb=%s rmb=%s" % [_loadout_slot_count(player), player.call("get_loadout_skill", "lmb"), player.call("get_loadout_skill", "rmb")])
+		quit(1)
+		return
+	if bool(player.call("assign_skill_to_slot", "shield_charge", "v")):
+		print("combat_sandbox FAIL unlearned_skill_assigned")
+		quit(1)
+		return
+	if bool(player.call("assign_skill_to_slot", "shield_training", "q")):
+		print("combat_sandbox FAIL passive_skill_assigned")
+		quit(1)
+		return
 	if current_scene.has_method("toggle_inventory_visibility"):
 		current_scene.call("toggle_inventory_visibility")
 		await process_frame
@@ -60,6 +76,19 @@ func _run() -> void:
 		await process_frame
 		if bool(current_scene.call("is_inventory_visible")):
 			print("combat_sandbox FAIL inventory_toggle_hide")
+			quit(1)
+			return
+	if current_scene.has_method("toggle_skill_tree_visibility"):
+		current_scene.call("toggle_skill_tree_visibility")
+		await process_frame
+		if not bool(current_scene.call("is_skill_tree_visible")):
+			print("combat_sandbox FAIL skill_tree_toggle_show")
+			quit(1)
+			return
+		current_scene.call("toggle_skill_tree_visibility")
+		await process_frame
+		if bool(current_scene.call("is_skill_tree_visible")):
+			print("combat_sandbox FAIL skill_tree_toggle_hide")
 			quit(1)
 			return
 
@@ -196,6 +225,10 @@ func _run() -> void:
 		print("combat_sandbox FAIL shield_charge_unlock")
 		quit(1)
 		return
+	if not bool(current_scene.call("assign_skill_to_loadout", "shield_charge", "v")) or str(player.call("get_loadout_skill", "v")) != "shield_charge":
+		print("combat_sandbox FAIL shield_charge_assign slot_v=%s" % player.call("get_loadout_skill", "v"))
+		quit(1)
+		return
 	if int(player.call("get_available_skill_points")) >= after_skill_points:
 		print("combat_sandbox FAIL shield_charge_cost_not_spent before=%d after=%d" % [after_skill_points, int(player.call("get_available_skill_points"))])
 		quit(1)
@@ -247,6 +280,11 @@ func _filled_bag_count(player: Node) -> int:
 		if item is Dictionary and not item.is_empty():
 			count += 1
 	return count
+
+
+func _loadout_slot_count(player: Node) -> int:
+	var slots: Array = player.call("get_loadout_slots")
+	return slots.size()
 
 
 func _wait_for_scene() -> bool:

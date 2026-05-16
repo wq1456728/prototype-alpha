@@ -1,0 +1,55 @@
+{
+  "basic_skills": [
+    {
+      "id": "light_attack",
+      "name": "Light Attack",
+      "description": "Default basic attack. This is not a skill-tree node.",
+      "skill_type": "active",
+      "baseline": true
+    }
+  ],
+  "slots": [
+    {
+      "id": "lmb",
+      "label": "LMB",
+      "input_type": "mouse",
+      "input": "left",
+      "default_skill_id": "light_attack"
+    },
+    {
+      "id": "rmb",
+      "label": "RMB",
+      "input_type": "mouse",
+      "input": "right",
+      "default_skill_id": ""
+    },
+    {
+      "id": "q",
+      "label": "Q",
+      "input_type": "key",
+      "input": "q",
+      "default_skill_id": ""
+    },
+    {
+      "id": "e",
+      "label": "E",
+      "input_type": "key",
+      "input": "e",
+      "default_skill_id": ""
+    },
+    {
+      "id": "r",
+      "label": "R",
+      "input_type": "key",
+      "input": "r",
+      "default_skill_id": ""
+    },
+    {
+      "id": "v",
+      "label": "V",
+      "input_type": "key",
+      "input": "v",
+      "default_skill_id": ""
+    }
+  ]
+}

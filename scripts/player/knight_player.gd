@@ -7,6 +7,7 @@ const FOOTSTEPS_SFX := preload("res://assets/audio/sfx/player_footsteps_run_loop
 const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const PROGRESSION_STATE := preload("res://scripts/progression/progression_state.gd")
 const SKILL_TREE_STATE := preload("res://scripts/skills/skill_tree_state.gd")
+const SKILL_LOADOUT_STATE := preload("res://scripts/skills/skill_loadout_state.gd")
 const SPRITE_ROOT := "res://assets/sprites/characters/knight"
 const SHIELD_CHARGE_FRAMES_RESOURCE := "res://assets/animations/knight_shield_charge_attack.tres"
 const SPRITE_FRAME_WIDTH := 96
@@ -70,6 +71,7 @@ var dead := false
 var damage_bonus := 0
 var progression: RefCounted = PROGRESSION_STATE.new()
 var skill_tree: RefCounted = SKILL_TREE_STATE.new()
+var skill_loadout: RefCounted = SKILL_LOADOUT_STATE.new()
 var inventory_items: Array[Dictionary] = []
 var equipment_slots := {}
 var equipped_weapon: Dictionary = {}
@@ -111,17 +113,11 @@ func _physics_process(delta: float) -> void:
 	shield_charge_cooldown = maxf(shield_charge_cooldown - delta, 0.0)
 	attack_input_suppression_time = maxf(attack_input_suppression_time - delta, 0.0)
 	var attacks_blocked := _is_attack_input_blocked()
-	var light_attack_pressed := false
-	var heavy_attack_pressed := false
-	var shield_charge_pressed := false
+	var triggered_skill := ""
 	if attacks_blocked:
-		_consume_mouse_button_press(MOUSE_BUTTON_LEFT)
-		_consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
-		_consume_press(KEY_V)
+		_consume_loadout_inputs()
 	else:
-		light_attack_pressed = _consume_mouse_button_press(MOUSE_BUTTON_LEFT)
-		heavy_attack_pressed = _consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
-		shield_charge_pressed = _consume_press(KEY_V)
+		triggered_skill = _consume_loadout_skill()
 	_handle_inventory_input()
 	move_direction = _read_move_direction()
 	aim_direction = _read_aim_direction()
@@ -166,17 +162,12 @@ func _physics_process(delta: float) -> void:
 	else:
 		movement_time_since_light_attack = 0.0
 
-	if shield_charge_pressed and shield_charge_cooldown <= 0.0 and is_skill_unlocked("shield_charge"):
+	if triggered_skill == "shield_charge" and shield_charge_cooldown <= 0.0:
 		_start_shield_charge()
-	elif heavy_attack_pressed:
+	elif triggered_skill == "heavy_attack":
 		_start_attack("attack_3", HEAVY_ATTACK_LOCK_TIME, HEAVY_ATTACK_DAMAGE, HEAVY_ATTACK_HIT_DELAY, HEAVY_ATTACK_FORWARD_RANGE, HEAVY_ATTACK_SIDE_RANGE, aim_direction, HEAVY_ATTACK_SFX, 0.12, -11.0, 0.9)
-	elif light_attack_pressed:
-		var anim_name := StringName("attack_%d" % next_light_attack)
-		var hit_delay := LIGHT_ATTACK_1_HIT_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_HIT_DELAY
-		var sfx_delay := LIGHT_ATTACK_1_SFX_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_SFX_DELAY
-		next_light_attack = 2 if next_light_attack == 1 else 1
-		movement_time_since_light_attack = 0.0
-		_start_attack(anim_name, LIGHT_ATTACK_LOCK_TIME, LIGHT_ATTACK_DAMAGE, hit_delay, LIGHT_ATTACK_FORWARD_RANGE, LIGHT_ATTACK_SIDE_RANGE, aim_direction, LIGHT_ATTACK_SFX, sfx_delay, -15.0, 1.18)
+	elif triggered_skill == "light_attack":
+		_start_light_attack()
 
 	if action_lock > 0.0:
 		move_and_slide()
@@ -242,6 +233,15 @@ func _start_attack(
 	hit_enemies.clear()
 	_schedule_sfx(sfx_stream, sfx_delay, sfx_volume_db, sfx_pitch_scale)
 	_play(anim_name, true)
+
+
+func _start_light_attack() -> void:
+	var anim_name := StringName("attack_%d" % next_light_attack)
+	var hit_delay := LIGHT_ATTACK_1_HIT_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_HIT_DELAY
+	var sfx_delay := LIGHT_ATTACK_1_SFX_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_SFX_DELAY
+	next_light_attack = 2 if next_light_attack == 1 else 1
+	movement_time_since_light_attack = 0.0
+	_start_attack(anim_name, LIGHT_ATTACK_LOCK_TIME, LIGHT_ATTACK_DAMAGE, hit_delay, LIGHT_ATTACK_FORWARD_RANGE, LIGHT_ATTACK_SIDE_RANGE, aim_direction, LIGHT_ATTACK_SFX, sfx_delay, -15.0, 1.18)
 
 
 func _apply_attack_hit() -> void:
@@ -410,6 +410,43 @@ func unlock_skill(skill_id: String) -> bool:
 	return spend_skill_points(int(result.get("cost", 0)))
 
 
+func get_skill_tree_skill_ids() -> Array[String]:
+	return skill_tree.get_skill_ids()
+
+
+func get_skill_definition(skill_id: String) -> Dictionary:
+	if skill_loadout.is_basic_skill(skill_id):
+		return skill_loadout.get_basic_skill(skill_id)
+	return skill_tree.get_skill_definition(skill_id)
+
+
+func get_loadout_slots() -> Array[Dictionary]:
+	return skill_loadout.get_slots()
+
+
+func get_loadout_skill(slot_id: String) -> String:
+	return skill_loadout.get_assigned_skill(slot_id)
+
+
+func can_assign_skill_to_slot(skill_id: String, slot_id: String) -> bool:
+	if not skill_loadout.has_slot(slot_id):
+		return false
+	if skill_loadout.is_basic_skill(skill_id):
+		return true
+	var skill: Dictionary = skill_tree.get_skill_definition(skill_id)
+	if skill.is_empty():
+		return false
+	if str(skill.get("skill_type", "")) != "active" or not bool(skill.get("active", false)):
+		return false
+	return skill_tree.is_unlocked(skill_id)
+
+
+func assign_skill_to_slot(skill_id: String, slot_id: String) -> bool:
+	if not can_assign_skill_to_slot(skill_id, slot_id):
+		return false
+	return skill_loadout.assign_skill(slot_id, skill_id)
+
+
 func equip_bag_slot(slot_index: int) -> bool:
 	if dead:
 		return false
@@ -516,9 +553,7 @@ func set_item_cursor_blocks_attacks(blocked: bool) -> void:
 
 func suppress_attack_inputs(duration: float = 0.12) -> void:
 	attack_input_suppression_time = maxf(attack_input_suppression_time, duration)
-	_consume_mouse_button_press(MOUSE_BUTTON_LEFT)
-	_consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
-	_consume_press(KEY_V)
+	_consume_loadout_inputs()
 
 
 func is_attack_input_blocked() -> bool:
@@ -552,6 +587,51 @@ func _is_valid_bag_slot(slot_index: int) -> bool:
 
 func _is_attack_input_blocked() -> bool:
 	return item_cursor_blocks_attacks or attack_input_suppression_time > 0.0
+
+
+func _consume_loadout_inputs() -> void:
+	for slot in skill_loadout.get_slots():
+		_consume_loadout_slot_press(slot)
+
+
+func _consume_loadout_skill() -> String:
+	for slot in skill_loadout.get_slots():
+		if not _consume_loadout_slot_press(slot):
+			continue
+		var skill_id: String = skill_loadout.get_assigned_skill(str(slot.get("id", "")))
+		if skill_id.is_empty():
+			continue
+		if can_assign_skill_to_slot(skill_id, str(slot.get("id", ""))):
+			return skill_id
+	return ""
+
+
+func _consume_loadout_slot_press(slot: Dictionary) -> bool:
+	var input_type := str(slot.get("input_type", ""))
+	var input := str(slot.get("input", ""))
+	if input_type == "mouse":
+		if input == "left":
+			return _consume_mouse_button_press(MOUSE_BUTTON_LEFT)
+		if input == "right":
+			return _consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
+	if input_type == "key":
+		var keycode := _loadout_keycode(input)
+		if keycode != KEY_NONE:
+			return _consume_press(keycode)
+	return false
+
+
+func _loadout_keycode(input: String) -> Key:
+	match input.to_lower():
+		"q":
+			return KEY_Q
+		"e":
+			return KEY_E
+		"r":
+			return KEY_R
+		"v":
+			return KEY_V
+	return KEY_NONE
 
 
 func _handle_inventory_input() -> void:

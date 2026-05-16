@@ -17,8 +17,9 @@ func _run() -> void:
 		print("player_inputs FAIL scene_not_ready")
 		quit(1)
 		return
+	_validate_default_loadout()
 	await _test_mouse_button("left_mouse", MOUSE_BUTTON_LEFT)
-	await _test_mouse_button("right_mouse", MOUSE_BUTTON_RIGHT)
+	await _test_empty_mouse_button("right_mouse_empty", MOUSE_BUTTON_RIGHT)
 	await _test_locked_shield_charge()
 	await _unlock_shield_charge()
 	await _test_key("shield_charge_v", KEY_V)
@@ -34,6 +35,20 @@ func _test_mouse_button(label: String, button: MouseButton) -> void:
 	await physics_frame
 	_print_player_state(label, player)
 	_clear_player_action(player)
+
+
+func _test_empty_mouse_button(label: String, button: MouseButton) -> void:
+	var player := get_first_node_in_group("player")
+	_send_mouse(button, true)
+	await process_frame
+	await physics_frame
+	_send_mouse(button, false)
+	await physics_frame
+	if float(player.get("action_lock")) > 0.0:
+		print("%s FAIL action_lock=%.2f" % [label, float(player.get("action_lock"))])
+		quit(1)
+		return
+	print("%s ok" % label)
 
 
 func _test_key(label: String, keycode: Key) -> void:
@@ -66,7 +81,20 @@ func _unlock_shield_charge() -> void:
 		print("shield_charge_unlock FAIL level=%d points=%d" % [int(player.call("get_level")), int(player.call("get_available_skill_points"))])
 		quit(1)
 		return
+	if not bool(player.call("assign_skill_to_slot", "shield_charge", "v")):
+		print("shield_charge_assign FAIL")
+		quit(1)
+		return
 	print("shield_charge_unlock ok")
+
+
+func _validate_default_loadout() -> void:
+	var player := get_first_node_in_group("player")
+	if str(player.call("get_loadout_skill", "lmb")) != "light_attack" or not str(player.call("get_loadout_skill", "rmb")).is_empty():
+		print("loadout_default FAIL lmb=%s rmb=%s" % [player.call("get_loadout_skill", "lmb"), player.call("get_loadout_skill", "rmb")])
+		quit(1)
+		return
+	print("loadout_default ok")
 
 
 func _send_mouse(button: MouseButton, pressed: bool) -> void:

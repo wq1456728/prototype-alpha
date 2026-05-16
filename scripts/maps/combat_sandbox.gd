@@ -44,11 +44,17 @@ var selected_damage_label: Label
 var progression_level_label: Label
 var progression_xp_label: Label
 var progression_skill_points_label: Label
-var skill_status_label: Label
-var skill_unlock_button: Button
 var equip_button: Button
 var cursor_item_icon: TextureRect
 var cursor_status_label: Label
+var skill_tree_panel: Control
+var skill_points_panel_label: Label
+var skill_node_labels := {}
+var skill_unlock_buttons := {}
+var skill_assign_buttons := {}
+var loadout_bar: Control
+var loadout_slot_buttons := {}
+var selected_skill_id := "shield_charge"
 var collision_debug_overlay: Node2D
 var selected_slot_index := -1
 var cursor_item: Dictionary = {}
@@ -58,12 +64,16 @@ var icon_cache := {}
 func _ready() -> void:
 	_setup_collision_debug_overlay()
 	_build_inventory_ui()
+	_build_skill_tree_ui()
+	_build_loadout_ui()
 	_spawn_wave()
 
 
 func _process(_delta: float) -> void:
 	_update_debug_label()
 	_update_inventory_ui()
+	_update_skill_tree_ui()
+	_update_loadout_ui()
 	_update_cursor_item_ui()
 	if respawn_pending:
 		return
@@ -78,7 +88,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
-			if _is_screen_point_in_inventory(mouse_event.position):
+			if _is_screen_point_in_inventory(mouse_event.position) or _is_screen_point_in_skill_tree(mouse_event.position) or _is_screen_point_in_loadout(mouse_event.position):
 				_suppress_player_attack_input()
 				return
 			if _handle_world_left_click():
@@ -90,6 +100,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		var key_event := event as InputEventKey
 		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_P:
 			toggle_collision_debug_visibility()
+			get_viewport().set_input_as_handled()
+		elif key_event.pressed and not key_event.echo and key_event.keycode == KEY_K:
+			toggle_skill_tree_visibility()
 			get_viewport().set_input_as_handled()
 		elif key_event.pressed and not key_event.echo and key_event.keycode == KEY_B:
 			toggle_inventory_visibility()
@@ -105,6 +118,17 @@ func toggle_inventory_visibility() -> void:
 
 func is_inventory_visible() -> bool:
 	return inventory_panel != null and inventory_panel.visible
+
+
+func toggle_skill_tree_visibility() -> void:
+	if skill_tree_panel == null:
+		return
+	skill_tree_panel.visible = not skill_tree_panel.visible
+	_update_skill_tree_ui()
+
+
+func is_skill_tree_visible() -> bool:
+	return skill_tree_panel != null and skill_tree_panel.visible
 
 
 func toggle_collision_debug_visibility() -> void:
@@ -147,6 +171,15 @@ func click_equipment_slot() -> void:
 
 func click_empty_world(world_position: Vector2) -> void:
 	_drop_cursor_item(world_position)
+
+
+func assign_skill_to_loadout(skill_id: String, slot_id: String) -> bool:
+	if not is_instance_valid(player) or not player.has_method("assign_skill_to_slot"):
+		return false
+	var assigned := bool(player.assign_skill_to_slot(skill_id, slot_id))
+	_update_loadout_ui()
+	_update_skill_tree_ui()
+	return assigned
 
 
 func get_world_item_parent() -> Node2D:
@@ -323,18 +356,6 @@ func _build_inventory_ui() -> void:
 	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 224), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
 	inventory_panel.add_child(cursor_status_label)
 
-	var skill_title_label := _make_label("Skill Tree", Vector2(10, 184), Vector2(120, 20), 15, LABEL_COLOR)
-	inventory_panel.add_child(skill_title_label)
-	skill_status_label = _make_label("Shield Charge: Locked", Vector2(10, 207), Vector2(170, 20), 13, LABEL_COLOR)
-	inventory_panel.add_child(skill_status_label)
-	skill_unlock_button = Button.new()
-	skill_unlock_button.text = "Unlock"
-	skill_unlock_button.position = Vector2(190, 204)
-	skill_unlock_button.size = Vector2(86, 28)
-	skill_unlock_button.disabled = true
-	skill_unlock_button.pressed.connect(_unlock_shield_charge_skill)
-	inventory_panel.add_child(skill_unlock_button)
-
 	for i in range(10):
 		var slot := Control.new()
 		slot.position = Vector2(10 + i * 58, 126)
@@ -385,6 +406,73 @@ func _build_inventory_ui() -> void:
 	debug_canvas.add_child(cursor_item_icon)
 
 
+func _build_skill_tree_ui() -> void:
+	skill_tree_panel = Control.new()
+	skill_tree_panel.name = "SkillTreePanel"
+	skill_tree_panel.position = Vector2(770, 150)
+	skill_tree_panel.size = Vector2(430, 350)
+	skill_tree_panel.visible = false
+	debug_canvas.add_child(skill_tree_panel)
+
+	var background := ColorRect.new()
+	background.color = PANEL_COLOR
+	background.size = skill_tree_panel.size
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	skill_tree_panel.add_child(background)
+
+	var title := _make_label("Skill Tree", Vector2(14, 10), Vector2(190, 24), 18, LABEL_COLOR)
+	skill_tree_panel.add_child(title)
+	skill_points_panel_label = _make_label("Skill Points: 0", Vector2(270, 13), Vector2(145, 20), 14, LABEL_COLOR)
+	skill_tree_panel.add_child(skill_points_panel_label)
+
+	_add_skill_node("shield_charge", Vector2(28, 58))
+	_add_skill_node("shield_training", Vector2(28, 178))
+
+
+func _add_skill_node(skill_id: String, position: Vector2) -> void:
+	var label := _make_label("", position, Vector2(260, 82), 13, LABEL_COLOR)
+	skill_tree_panel.add_child(label)
+	skill_node_labels[skill_id] = label
+
+	var unlock_button := Button.new()
+	unlock_button.text = "Unlock"
+	unlock_button.position = position + Vector2(282, 4)
+	unlock_button.size = Vector2(98, 28)
+	unlock_button.focus_mode = Control.FOCUS_NONE
+	unlock_button.pressed.connect(_unlock_skill_from_panel.bind(skill_id))
+	skill_tree_panel.add_child(unlock_button)
+	skill_unlock_buttons[skill_id] = unlock_button
+
+	var assign_button := Button.new()
+	assign_button.text = "Assign V"
+	assign_button.position = position + Vector2(282, 40)
+	assign_button.size = Vector2(98, 28)
+	assign_button.focus_mode = Control.FOCUS_NONE
+	assign_button.pressed.connect(_assign_skill_from_panel.bind(skill_id, "v"))
+	skill_tree_panel.add_child(assign_button)
+	skill_assign_buttons[skill_id] = assign_button
+
+
+func _build_loadout_ui() -> void:
+	loadout_bar = Control.new()
+	loadout_bar.name = "SkillLoadoutBar"
+	loadout_bar.position = Vector2(408, 644)
+	loadout_bar.size = Vector2(464, 66)
+	debug_canvas.add_child(loadout_bar)
+	if not is_instance_valid(player) or not player.has_method("get_loadout_slots"):
+		return
+	var slots: Array = player.get_loadout_slots()
+	for i in range(slots.size()):
+		var slot: Dictionary = slots[i]
+		var button := Button.new()
+		button.position = Vector2(i * 74, 0)
+		button.size = Vector2(68, 62)
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_click_loadout_slot.bind(str(slot.get("id", ""))))
+		loadout_bar.add_child(button)
+		loadout_slot_buttons[str(slot.get("id", ""))] = button
+
+
 func _update_inventory_ui() -> void:
 	if not is_instance_valid(player):
 		return
@@ -411,7 +499,6 @@ func _update_inventory_ui() -> void:
 		progression_xp_label.text = "XP: %d / %d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
 	if progression_skill_points_label != null and player.has_method("get_available_skill_points"):
 		progression_skill_points_label.text = "Skill Points: %d" % int(player.get_available_skill_points())
-	_update_skill_ui()
 
 	var items: Array = player.get_inventory_items()
 	if selected_slot_index >= items.size() or (selected_slot_index >= 0 and items[selected_slot_index].is_empty()):
@@ -523,28 +610,81 @@ func _item_color(item: Dictionary) -> Color:
 	return item.get("color", RARITY_COLORS.get(rarity, LABEL_COLOR))
 
 
-func _update_skill_ui() -> void:
-	if skill_status_label == null or not is_instance_valid(player):
+func _update_skill_tree_ui() -> void:
+	if skill_tree_panel == null or not is_instance_valid(player):
 		return
-	var unlocked := player.has_method("is_skill_unlocked") and bool(player.is_skill_unlocked("shield_charge"))
-	var can_unlock := player.has_method("can_unlock_skill") and bool(player.can_unlock_skill("shield_charge"))
-	if unlocked:
-		skill_status_label.text = "Shield Charge: Rank 1"
-		skill_status_label.add_theme_color_override("font_color", LABEL_COLOR)
-		skill_unlock_button.text = "Unlocked"
-		skill_unlock_button.disabled = true
-	else:
-		skill_status_label.text = "Shield Charge: Locked"
-		skill_status_label.add_theme_color_override("font_color", EMPTY_LABEL_COLOR)
-		skill_unlock_button.text = "Unlock"
-		skill_unlock_button.disabled = not can_unlock
+	if skill_points_panel_label != null and player.has_method("get_available_skill_points"):
+		skill_points_panel_label.text = "Skill Points: %d" % int(player.get_available_skill_points())
+	for skill_id in skill_node_labels.keys():
+		var skill: Dictionary = player.get_skill_definition(str(skill_id)) if player.has_method("get_skill_definition") else {}
+		var rank := int(player.get_skill_rank(str(skill_id))) if player.has_method("get_skill_rank") else 0
+		var can_unlock := bool(player.can_unlock_skill(str(skill_id))) if player.has_method("can_unlock_skill") else false
+		var unlocked := rank > 0
+		var required_level := int(skill.get("required_level", 1))
+		var cost := int(skill.get("unlock_cost", 1))
+		var prereq_text := "None"
+		var prereqs: Array = skill.get("required_skill_ids", [])
+		if not prereqs.is_empty():
+			var prereq_names := PackedStringArray()
+			for prereq in prereqs:
+				prereq_names.append(str(prereq))
+			prereq_text = ", ".join(prereq_names)
+		var label: Label = skill_node_labels[skill_id]
+		label.text = "%s\nRank: %d/%d  Cost: %d\nRequired: L%d  Prereq: %s\n%s" % [
+			str(skill.get("name", skill_id)),
+			rank,
+			int(skill.get("max_rank", 1)),
+			cost,
+			required_level,
+			prereq_text,
+			str(skill.get("description", "")),
+		]
+		label.add_theme_color_override("font_color", LABEL_COLOR if unlocked or can_unlock else EMPTY_LABEL_COLOR)
+		var unlock_button: Button = skill_unlock_buttons[skill_id]
+		unlock_button.text = "Ranked" if unlocked else "Unlock"
+		unlock_button.disabled = unlocked or not can_unlock
+		var assign_button: Button = skill_assign_buttons[skill_id]
+		assign_button.visible = str(skill.get("skill_type", "")) == "active"
+		assign_button.disabled = true
+		if player.has_method("can_assign_skill_to_slot"):
+			assign_button.disabled = not bool(player.can_assign_skill_to_slot(str(skill_id), "v"))
 
 
-func _unlock_shield_charge_skill() -> void:
+func _update_loadout_ui() -> void:
+	if loadout_bar == null or not is_instance_valid(player) or not player.has_method("get_loadout_slots"):
+		return
+	var slots: Array = player.get_loadout_slots()
+	for slot in slots:
+		var slot_id := str(slot.get("id", ""))
+		var button: Button = loadout_slot_buttons.get(slot_id, null)
+		if button == null:
+			continue
+		var skill_id := str(player.get_loadout_skill(slot_id))
+		var skill: Dictionary = player.get_skill_definition(skill_id) if not skill_id.is_empty() and player.has_method("get_skill_definition") else {}
+		var skill_name := "-" if skill_id.is_empty() else str(skill.get("name", skill_id))
+		button.text = "%s\n%s" % [str(slot.get("label", slot_id)).to_upper(), skill_name]
+
+
+func _unlock_skill_from_panel(skill_id: String) -> void:
 	_suppress_player_attack_input()
 	if is_instance_valid(player) and player.has_method("unlock_skill"):
-		player.unlock_skill("shield_charge")
-	_update_inventory_ui()
+		player.unlock_skill(skill_id)
+	selected_skill_id = skill_id
+	_update_skill_tree_ui()
+	_update_loadout_ui()
+
+
+func _assign_skill_from_panel(skill_id: String, slot_id: String) -> void:
+	_suppress_player_attack_input()
+	selected_skill_id = skill_id
+	assign_skill_to_loadout(skill_id, slot_id)
+
+
+func _click_loadout_slot(slot_id: String) -> void:
+	_suppress_player_attack_input()
+	if selected_skill_id.is_empty():
+		return
+	assign_skill_to_loadout(selected_skill_id, slot_id)
 
 
 func _click_inventory_slot(slot_index: int) -> void:
@@ -674,6 +814,14 @@ func _suppress_player_attack_input() -> void:
 
 func _is_screen_point_in_inventory(screen_position: Vector2) -> bool:
 	return inventory_panel != null and inventory_panel.visible and inventory_panel.get_global_rect().has_point(screen_position)
+
+
+func _is_screen_point_in_skill_tree(screen_position: Vector2) -> bool:
+	return skill_tree_panel != null and skill_tree_panel.visible and skill_tree_panel.get_global_rect().has_point(screen_position)
+
+
+func _is_screen_point_in_loadout(screen_position: Vector2) -> bool:
+	return loadout_bar != null and loadout_bar.get_global_rect().has_point(screen_position)
 
 
 func _slot_key_text(index: int) -> String:

@@ -3,7 +3,7 @@
     {
       "id": "shield_charge",
       "name": "Shield Charge",
-      "description": "Unlocks the V-key shield charge attack.",
+      "description": "Unlocks Shield Charge for assignment to an active skill slot.",
       "skill_type": "active",
       "required_level": 2,
       "required_skill_ids": [],

@@ -18,6 +18,7 @@ func _run() -> void:
 	var player := current_scene.get_node_or_null("KnightPlayer")
 	var enemies := get_nodes_in_group("enemy")
 	var debug_label := current_scene.get_node_or_null("DebugCanvas/DebugLabel")
+	var inventory_panel := current_scene.get_node_or_null("DebugCanvas/InventoryPanel")
 	var loot_root := current_scene.get_node_or_null("Loot")
 	var missing := PackedStringArray()
 
@@ -27,6 +28,8 @@ func _run() -> void:
 		missing.append("enemies")
 	if debug_label == null:
 		missing.append("debug_label")
+	if inventory_panel == null:
+		missing.append("inventory_panel")
 	if loot_root == null:
 		missing.append("loot_root")
 
@@ -35,5 +38,5 @@ func _run() -> void:
 		quit(1)
 		return
 
-	print("CombatSandbox smoke: PASS player=%s enemies=%d debug_label=ok loot_root=ok" % [player.name, enemies.size()])
+	print("CombatSandbox smoke: PASS player=%s enemies=%d debug_label=ok inventory_panel=ok loot_root=ok" % [player.name, enemies.size()])
 	quit(0)

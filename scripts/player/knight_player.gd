@@ -41,6 +41,8 @@ const SHIELD_CHARGE_COOLDOWN := 1.25
 const ENEMY_SOFT_COLLISION_DISTANCE := 48.0
 const ENEMY_SOFT_COLLISION_FORCE := 120.0
 const MAX_SOFT_COLLISION_SPEED := 95.0
+const BAG_SLOT_COUNT := 10
+const EQUIP_SLOT_KEYS := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0]
 const DEBUG_ATTACK_AREA_COLOR := Color(1.0, 0.18, 0.12, 0.22)
 const DEBUG_ATTACK_AREA_OUTLINE := Color(1.0, 0.28, 0.16, 0.8)
 
@@ -62,6 +64,8 @@ var mouse_button_was_down := {}
 var hp := MAX_HP
 var dead := false
 var damage_bonus := 0
+var inventory_items: Array[Dictionary] = []
+var equipped_weapon: Dictionary = {}
 var next_light_attack := 1
 var movement_time_since_light_attack := 0.0
 var pending_hit_time := -1.0
@@ -98,6 +102,7 @@ func _physics_process(delta: float) -> void:
 	var light_attack_pressed := _consume_mouse_button_press(MOUSE_BUTTON_LEFT)
 	var heavy_attack_pressed := _consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
 	var shield_charge_pressed := _consume_press(KEY_V)
+	_handle_inventory_input()
 	move_direction = _read_move_direction()
 	aim_direction = _read_aim_direction()
 
@@ -306,10 +311,13 @@ func heal_fraction(fraction: float) -> void:
 	hp_bar.value = hp
 
 
-func add_damage_bonus(amount: int) -> void:
+func pickup_weapon_item(item_data: Dictionary) -> bool:
 	if dead:
-		return
-	damage_bonus += amount
+		return false
+	if inventory_items.size() >= BAG_SLOT_COUNT:
+		return false
+	inventory_items.append(item_data.duplicate(true))
+	return true
 
 
 func get_damage_bonus() -> int:
@@ -318,6 +326,60 @@ func get_damage_bonus() -> int:
 
 func get_current_attack_damage() -> int:
 	return LIGHT_ATTACK_DAMAGE + damage_bonus
+
+
+func equip_bag_slot(slot_index: int) -> bool:
+	if dead:
+		return false
+	if slot_index < 0 or slot_index >= inventory_items.size():
+		return false
+	var item := inventory_items[slot_index]
+	if str(item.get("type", "")) != "weapon":
+		return false
+	var previous_weapon := equipped_weapon.duplicate(true)
+	equipped_weapon = item.duplicate(true)
+	if previous_weapon.is_empty():
+		inventory_items.remove_at(slot_index)
+	else:
+		inventory_items[slot_index] = previous_weapon
+	_refresh_equipment_stats()
+	return true
+
+
+func get_inventory_items() -> Array[Dictionary]:
+	var items: Array[Dictionary] = []
+	for item in inventory_items:
+		items.append(item.duplicate(true))
+	return items
+
+
+func get_equipped_weapon() -> Dictionary:
+	return equipped_weapon.duplicate(true)
+
+
+func get_equipped_weapon_name() -> String:
+	if equipped_weapon.is_empty():
+		return "None"
+	return str(equipped_weapon.get("name", "Weapon"))
+
+
+func get_equipped_weapon_damage_bonus() -> int:
+	return damage_bonus
+
+
+func get_bag_slot_count() -> int:
+	return BAG_SLOT_COUNT
+
+
+func _handle_inventory_input() -> void:
+	for i in range(EQUIP_SLOT_KEYS.size()):
+		if _consume_press(EQUIP_SLOT_KEYS[i]):
+			equip_bag_slot(i)
+			return
+
+
+func _refresh_equipment_stats() -> void:
+	damage_bonus = int(equipped_weapon.get("damage_bonus", 0))
 
 
 func _start_hurt(knockback: Vector2) -> void:

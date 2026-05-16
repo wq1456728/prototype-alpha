@@ -19,97 +19,242 @@ If older notes conflict with these files, the files above win.
 
 ## Current Phase
 
-Next playable-loop expansion after the first combat sandbox loop.
+Vertical systems pass after the first combat sandbox loop.
 
 ## Current Goal
 
-The first combat-growth loop is functionally present. The next goal is to make the sandbox feel better, verify it through Godot runtime checks, and prepare the next prototype slice:
+The first combat-growth loop is functionally present. The next goal is to build the smallest Diablo-like vertical progression chain before adding more classes, enemies, or skills:
 
 ```text
-WASD movement
--> mouse-aim attack / cast
--> hit enemy
--> enemy reacts and dies
--> enemy drops loot
--> player equips or gains power
--> combat gets easier or changes
--> combat feel is tuned enough to support class and map work
+kill enemy
+-> item drops
+-> item goes into bag
+-> player equips item
+-> stats change
+-> player kills faster
+-> player gains XP
+-> player levels up
+-> player unlocks one new ability
+-> sandbox objective completes
 ```
 
 ## Active Task
 
-### TASK-011: Enemy Pressure Pass 1
+### TASK-011: Minimal Inventory And Equipment Proof
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 implemented the first equipment loop.
+- Enemy death now drops a visible weapon item instead of direct-stat damage pickup.
+- Player pickup adds the weapon to a 10-slot bag and does not immediately change attack damage.
+- Equipping the weapon from the bag updates attack damage from 24 to 32 in the sandbox validation.
+- CombatSandbox now shows equipped weapon, current damage, and bag slots using accepted item/UI icons.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
 
 Goal:
 
-Make the current mummy enemies create basic pressure without overwhelming the player.
+Replace the temporary direct-stat pickup with the smallest Diablo-like item loop: enemy drops an item, player picks it into a bag, player equips it, and combat stats change.
 
 Focus on:
 
-- Dummy enemy remains useful for testing.
-- Grunt enemy pressures the player.
-- Brute enemy is slower but more threatening.
-- Tune enemy HP, speed, cooldown, and attack ranges.
-- Preserve simple AI.
+- Keep the bag small and simple, such as 8-12 slots.
+- One item type is enough at first: weapon.
+- One equipment slot is enough at first: weapon.
+- Item data can be simple: name, icon/color, rarity, damage bonus.
+- Enemy drop should create a visible world item.
+- Picking up should add the item to the bag instead of immediately changing stats.
+- Equipping the item should update player damage.
+- UI can be basic and functional; no drag-and-drop required if a click/key equip is faster.
+- Show current equipped weapon and current attack damage somewhere in the sandbox.
+- Do not build full inventory sorting, stash, vendor, economy, crafting, item comparison, or a large item framework.
 
 Acceptance:
 
-- Player can kite and reposition.
-- Enemies do not clump into unreadable overlap.
-- Brute is meaningfully different from grunt.
+- Enemy can drop a weapon item.
+- Player can pick the weapon into a small bag.
+- Player can equip the weapon.
+- Equipped weapon changes attack damage.
+- The current equipped weapon and damage value are visible.
+- The implementation remains small enough to replace or extend later.
+- Completed task entry includes `Task agent status: done`.
 
 ## Backlog
 
-### TASK-012: Loot Feedback And Minimal Item Variety
+### TASK-012: Item Data And Drop Roll v1
 
 Status: ready
 
 Goal:
 
-Expand the current damage pickup into a slightly clearer demo-stage loot proof.
+Replace fixed damage pickup behavior with simple generated weapon item data.
 
 Focus on:
 
-- Keep pickup logic simple.
-- Add visible pickup label, color, or icon if useful.
-- Consider one additional stat pickup only if it is cheap: health restore, cooldown, or movement.
-- Do not build inventory yet.
-
-Acceptance:
-
-- Loot is visible.
-- Pickup effect is obvious.
-- No inventory or large item framework is introduced.
-
-### TASK-013: Mage Prototype Plan
-
-Status: ready
-
-Goal:
-
-Plan the ranged class prototype before implementation.
-
-Focus on:
-
-- Reuse current player movement/facing rules.
-- Define basic projectile attack.
-- Define one mobility expression, likely blink.
-- Define one simple area spell.
-- List required placeholder assets.
-- Keep implementation scope similar to the current knight sandbox.
+- Generate a weapon item when an enemy drops loot.
+- Keep item data small: name, rarity, damage bonus, icon/color.
+- Use a tiny rarity set: normal, magic, rare.
+- Use simple damage ranges per rarity.
+- Keep drop rates easy to tune.
+- Do not build a full affix system yet.
 
 Expected output:
 
-- Mage scene/script strategy.
-- Required assets.
-- Minimal test plan.
-- Risks before implementation.
+- Item data shape.
+- Drop roll behavior.
+- Updated sandbox debug or UI display if needed.
+- Runtime validation result.
 
 Acceptance:
 
-- Plan is concrete enough for a worker to implement without re-deciding class direction.
+- Enemy drops produce item data, not only a fixed pickup.
+- Different drops can have different names, rarity colors, and damage values.
+- Implementation remains small and local to the current sandbox loop.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-013: Inventory UI Pass 1
+
+Status: ready
+
+Goal:
+
+Make the minimum bag/equipment flow visible and usable.
+
+Focus on:
+
+- Show 8-12 bag slots.
+- Show one equipped weapon slot.
+- Show selected item name, rarity, and damage bonus.
+- Allow equipping a weapon from the bag through a simple click or key action.
+- Show current attack damage.
+- Keep UI functional, not final.
+- Do not add drag-and-drop unless it is cheaper than the simpler interaction.
+
+Acceptance:
+
+- Player can see what is in the bag.
+- Player can see equipped weapon.
+- Player can equip a weapon and see damage update.
+- UI is small enough for the combat sandbox.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-014: XP And Level Growth v1
+
+Status: ready
+
+Goal:
+
+Add the first non-item growth layer.
+
+Focus on:
+
+- Enemies grant XP on death.
+- Player has level and current XP.
+- Level up increases one useful stat, such as max HP or base damage.
+- Show level and XP in simple sandbox UI.
+- Keep XP curve tiny and tunable.
+
+Acceptance:
+
+- Player gains XP by killing enemies.
+- Player can level up in the sandbox.
+- Level up changes a visible stat.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-015: Skill Unlock v1
+
+Status: blocked by TASK-014
+
+Goal:
+
+Unlock one new ability through vertical progression.
+
+Focus on:
+
+- Unlock one existing or simple new ability at a low level or sandbox objective.
+- Prefer a knight ability already close to current code, such as shield charge, dash strike, or a small area slam.
+- Show locked/unlocked state in simple UI.
+- Do not build a skill tree.
+
+Acceptance:
+
+- Player starts without the ability or with it visibly locked.
+- Progression unlocks the ability.
+- The ability changes combat behavior.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-016: Sandbox Objective Flow
+
+Status: blocked by TASK-015
+
+Goal:
+
+Turn the sandbox into a short vertical-slice objective sequence.
+
+Focus on:
+
+- Start with a clear objective.
+- Require killing enemies.
+- Require picking up and equipping a weapon.
+- Require reaching a level or unlocking the first skill.
+- End with defeating a stronger enemy or completing a simple objective.
+- Keep it in the sandbox; do not build the outdoor map yet.
+
+Acceptance:
+
+- Sandbox has a beginning, middle, and completion state.
+- The player experiences combat, loot, equipment, XP, and skill unlock in one flow.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-017: First Outdoor Greybox Plan
+
+Status: blocked by TASK-016
+
+Goal:
+
+Plan the first outdoor map only after the vertical sandbox loop is proven.
+
+Focus on:
+
+- Translate the sandbox objective flow into a small outdoor route.
+- Define spawn/camp, combat zones, first item drop moment, level-up moment, and dungeon entrance.
+- Keep this as a plan before implementation.
+
+Acceptance:
+
+- Plan shows how the vertical loop becomes a 5-10 minute outdoor segment.
+- Plan does not require adding a second class first.
+
+## Later / Horizontal Expansion
+
+These are intentionally delayed until the vertical loop works with one class.
+
+### LATER-001: Mage Prototype Plan
+
+Reason:
+
+Second class work is horizontal expansion. Do it after inventory, equipment, XP, skill unlock, and a short objective flow work for the knight.
+
+### LATER-002: Second Enemy Family
+
+Reason:
+
+Add more enemies after the current loop proves item and XP pacing.
+
+### LATER-003: More Equipment Slots
+
+Reason:
+
+Add armor/accessory after the weapon slot proves the item loop.
+
+### LATER-004: Dungeon Greybox
+
+Reason:
+
+Build the dungeon after the outdoor segment has a proven combat-growth route.
 
 ## Completed Task Archive
 

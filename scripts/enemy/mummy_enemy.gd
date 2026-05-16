@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-const DAMAGE_PICKUP_SCENE := preload("res://scenes/items/damage_pickup.tscn")
+const WEAPON_PICKUP_SCENE := preload("res://scenes/items/weapon_pickup.tscn")
 const FLOATING_FEEDBACK_SCENE := preload("res://scenes/ui/floating_feedback.tscn")
 const HIT_IMPACT_SFX := preload("res://assets/audio/sfx/enemy_hit_impact.mp3")
 const DEATH_SFX := preload("res://assets/audio/sfx/enemy_mummy_death.mp3")
@@ -239,13 +239,27 @@ func _heal_player_on_death() -> void:
 func _drop_loot() -> void:
 	if not drops_loot:
 		return
-	var loot := DAMAGE_PICKUP_SCENE.instantiate()
+	var loot := WEAPON_PICKUP_SCENE.instantiate()
+	if loot.has_method("setup_item"):
+		loot.setup_item(_make_weapon_drop())
 	loot.global_position = global_position
 	var loot_root := get_tree().current_scene.get_node_or_null("Loot") as Node2D
 	if loot_root == null:
 		get_parent().add_child(loot)
 	else:
 		loot_root.add_child(loot)
+
+
+func _make_weapon_drop() -> Dictionary:
+	return {
+		"type": "weapon",
+		"id": "rusty_short_sword",
+		"name": "Rusty Short Sword",
+		"rarity": "normal",
+		"damage_bonus": 8,
+		"icon": "res://assets/sprites/items/item_weapon_rusty_short_sword_icon.png",
+		"color": Color(0.82, 0.78, 0.68, 1.0),
+	}
 
 
 func _spawn_feedback(text: String, color: Color, offset: Vector2) -> void:

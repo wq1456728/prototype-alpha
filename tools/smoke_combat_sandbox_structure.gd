@@ -51,17 +51,20 @@ func _run() -> void:
 		print("CombatSandbox smoke: FAIL collision_debug_should_start_hidden")
 		quit(1)
 		return
-	if current_scene.has_method("toggle_collision_debug_visibility"):
-		current_scene.call("toggle_collision_debug_visibility")
+	if current_scene.has_method("_unhandled_input"):
+		var collision_toggle_event := InputEventKey.new()
+		collision_toggle_event.pressed = true
+		collision_toggle_event.keycode = KEY_P
+		current_scene.call("_unhandled_input", collision_toggle_event)
 		await process_frame
 		if not collision_debug_overlay.visible:
-			print("CombatSandbox smoke: FAIL collision_debug_toggle_show")
+			print("CombatSandbox smoke: FAIL collision_debug_p_toggle_show")
 			quit(1)
 			return
-		current_scene.call("toggle_collision_debug_visibility")
+		current_scene.call("_unhandled_input", collision_toggle_event)
 		await process_frame
 		if collision_debug_overlay.visible:
-			print("CombatSandbox smoke: FAIL collision_debug_toggle_hide")
+			print("CombatSandbox smoke: FAIL collision_debug_p_toggle_hide")
 			quit(1)
 			return
 

@@ -6,6 +6,7 @@ const SHIELD_IMPACT_SFX := preload("res://assets/audio/sfx/player_shield_impact.
 const FOOTSTEPS_SFX := preload("res://assets/audio/sfx/player_footsteps_run_loop.mp3")
 const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const PROGRESSION_STATE := preload("res://scripts/progression/progression_state.gd")
+const SKILL_TREE_STATE := preload("res://scripts/skills/skill_tree_state.gd")
 const SPRITE_ROOT := "res://assets/sprites/characters/knight"
 const SHIELD_CHARGE_FRAMES_RESOURCE := "res://assets/animations/knight_shield_charge_attack.tres"
 const SPRITE_FRAME_WIDTH := 96
@@ -68,6 +69,7 @@ var hp := MAX_HP
 var dead := false
 var damage_bonus := 0
 var progression: RefCounted = PROGRESSION_STATE.new()
+var skill_tree: RefCounted = SKILL_TREE_STATE.new()
 var inventory_items: Array[Dictionary] = []
 var equipment_slots := {}
 var equipped_weapon: Dictionary = {}
@@ -164,7 +166,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		movement_time_since_light_attack = 0.0
 
-	if shield_charge_pressed and shield_charge_cooldown <= 0.0:
+	if shield_charge_pressed and shield_charge_cooldown <= 0.0 and is_skill_unlocked("shield_charge"):
 		_start_shield_charge()
 	elif heavy_attack_pressed:
 		_start_attack("attack_3", HEAVY_ATTACK_LOCK_TIME, HEAVY_ATTACK_DAMAGE, HEAVY_ATTACK_HIT_DELAY, HEAVY_ATTACK_FORWARD_RANGE, HEAVY_ATTACK_SIDE_RANGE, aim_direction, HEAVY_ATTACK_SFX, 0.12, -11.0, 0.9)
@@ -387,6 +389,25 @@ func get_available_skill_points() -> int:
 
 func spend_skill_points(amount: int) -> bool:
 	return progression.spend_skill_points(amount)
+
+
+func get_skill_rank(skill_id: String) -> int:
+	return skill_tree.get_rank(skill_id)
+
+
+func is_skill_unlocked(skill_id: String) -> bool:
+	return skill_tree.is_unlocked(skill_id)
+
+
+func can_unlock_skill(skill_id: String) -> bool:
+	return skill_tree.can_unlock(skill_id, get_level(), get_available_skill_points())
+
+
+func unlock_skill(skill_id: String) -> bool:
+	var result: Dictionary = skill_tree.unlock(skill_id, get_level(), get_available_skill_points())
+	if not bool(result.get("ok", false)):
+		return false
+	return spend_skill_points(int(result.get("cost", 0)))
 
 
 func equip_bag_slot(slot_index: int) -> bool:

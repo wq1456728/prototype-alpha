@@ -188,8 +188,20 @@ func _run() -> void:
 		print("combat_sandbox FAIL skill_points_not_awarded points %d -> %d" % [before_skill_points, after_skill_points])
 		quit(1)
 		return
+	if not bool(player.call("can_unlock_skill", "shield_charge")):
+		print("combat_sandbox FAIL shield_charge_should_be_unlockable level=%d points=%d" % [after_level, after_skill_points])
+		quit(1)
+		return
+	if not bool(player.call("unlock_skill", "shield_charge")) or not bool(player.call("is_skill_unlocked", "shield_charge")):
+		print("combat_sandbox FAIL shield_charge_unlock")
+		quit(1)
+		return
+	if int(player.call("get_available_skill_points")) >= after_skill_points:
+		print("combat_sandbox FAIL shield_charge_cost_not_spent before=%d after=%d" % [after_skill_points, int(player.call("get_available_skill_points"))])
+		quit(1)
+		return
 	print("combat_sandbox loot ok: damage %d -> walkover %d -> equip %d weapon=%s bag=%d cursor=%s loot_left=%d enemies_left=%d feedback_after_hit=%d" % [before_damage, after_pickup_damage, after_equip_damage, weapon_name, _filled_bag_count(player), current_scene.call("has_cursor_item"), get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size(), feedback_after_hit])
-	print("combat_sandbox progression ok: xp %d -> %d level %d -> %d damage %d -> %d skill_points %d -> %d" % [before_xp, after_kill_xp, before_level, after_level, before_level_damage, after_level_damage, before_skill_points, after_skill_points])
+	print("combat_sandbox progression ok: xp %d -> %d level %d -> %d damage %d -> %d skill_points %d -> %d shield_charge=unlocked" % [before_xp, after_kill_xp, before_level, after_level, before_level_damage, after_level_damage, before_skill_points, after_skill_points])
 	quit(0)
 
 

@@ -1,0 +1,26 @@
+{
+  "skills": [
+    {
+      "id": "shield_charge",
+      "name": "Shield Charge",
+      "description": "Unlocks the V-key shield charge attack.",
+      "skill_type": "active",
+      "required_level": 2,
+      "required_skill_ids": [],
+      "max_rank": 1,
+      "unlock_cost": 1,
+      "active": true
+    },
+    {
+      "id": "shield_training",
+      "name": "Shield Training",
+      "description": "Placeholder low-tier passive for the later tree.",
+      "skill_type": "passive",
+      "required_level": 3,
+      "required_skill_ids": ["shield_charge"],
+      "max_rank": 1,
+      "unlock_cost": 1,
+      "active": false
+    }
+  ]
+}

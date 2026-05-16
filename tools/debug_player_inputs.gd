@@ -19,6 +19,8 @@ func _run() -> void:
 		return
 	await _test_mouse_button("left_mouse", MOUSE_BUTTON_LEFT)
 	await _test_mouse_button("right_mouse", MOUSE_BUTTON_RIGHT)
+	await _test_locked_shield_charge()
+	await _unlock_shield_charge()
 	await _test_key("shield_charge_v", KEY_V)
 	quit()
 
@@ -42,6 +44,29 @@ func _test_key(label: String, keycode: Key) -> void:
 	await physics_frame
 	_print_player_state(label, player)
 	_clear_player_action(player)
+
+
+func _test_locked_shield_charge() -> void:
+	var player := get_first_node_in_group("player")
+	_send_key(KEY_V, true)
+	await physics_frame
+	_send_key(KEY_V, false)
+	await physics_frame
+	if float(player.get("action_lock")) > 0.0:
+		print("shield_charge_locked FAIL action_lock=%.2f" % float(player.get("action_lock")))
+		quit(1)
+		return
+	print("shield_charge_locked ok")
+
+
+func _unlock_shield_charge() -> void:
+	var player := get_first_node_in_group("player")
+	player.call("gain_xp", int(player.call("get_xp_to_next_level")))
+	if not bool(player.call("unlock_skill", "shield_charge")):
+		print("shield_charge_unlock FAIL level=%d points=%d" % [int(player.call("get_level")), int(player.call("get_available_skill_points"))])
+		quit(1)
+		return
+	print("shield_charge_unlock ok")
 
 
 func _send_mouse(button: MouseButton, pressed: bool) -> void:

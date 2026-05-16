@@ -206,7 +206,18 @@ Acceptance:
 
 ### TASK-015: Minimal Skill Tree Skeleton
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 added `data/skills/knight_skills.json` with `shield_charge` and a placeholder dependent passive.
+- Added `SkillTreeState` for data-driven skill definitions, prerequisites, rank state, unlock cost, and requirement checks.
+- Player can spend progression skill points to unlock `shield_charge`.
+- `V` shield charge is now locked until the configured skill is unlocked, then changes combat behavior by enabling the existing shield-charge attack.
+- Inventory panel includes a minimal skill-tree block with shield-charge status and an unlock button.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_combat_sandbox.gd`, and `tools/debug_player_inputs.gd`; input validation confirms shield charge is blocked before unlock and works after unlock.
 
 Goal:
 
@@ -232,7 +243,7 @@ Acceptance:
 
 ### TASK-016: Sandbox Objective Flow
 
-Status: blocked by TASK-015
+Status: ready
 
 Goal:
 

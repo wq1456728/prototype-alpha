@@ -44,6 +44,8 @@ var selected_damage_label: Label
 var progression_level_label: Label
 var progression_xp_label: Label
 var progression_skill_points_label: Label
+var skill_status_label: Label
+var skill_unlock_button: Button
 var equip_button: Button
 var cursor_item_icon: TextureRect
 var cursor_status_label: Label
@@ -321,6 +323,18 @@ func _build_inventory_ui() -> void:
 	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 224), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
 	inventory_panel.add_child(cursor_status_label)
 
+	var skill_title_label := _make_label("Skill Tree", Vector2(10, 184), Vector2(120, 20), 15, LABEL_COLOR)
+	inventory_panel.add_child(skill_title_label)
+	skill_status_label = _make_label("Shield Charge: Locked", Vector2(10, 207), Vector2(170, 20), 13, LABEL_COLOR)
+	inventory_panel.add_child(skill_status_label)
+	skill_unlock_button = Button.new()
+	skill_unlock_button.text = "Unlock"
+	skill_unlock_button.position = Vector2(190, 204)
+	skill_unlock_button.size = Vector2(86, 28)
+	skill_unlock_button.disabled = true
+	skill_unlock_button.pressed.connect(_unlock_shield_charge_skill)
+	inventory_panel.add_child(skill_unlock_button)
+
 	for i in range(10):
 		var slot := Control.new()
 		slot.position = Vector2(10 + i * 58, 126)
@@ -397,6 +411,7 @@ func _update_inventory_ui() -> void:
 		progression_xp_label.text = "XP: %d / %d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
 	if progression_skill_points_label != null and player.has_method("get_available_skill_points"):
 		progression_skill_points_label.text = "Skill Points: %d" % int(player.get_available_skill_points())
+	_update_skill_ui()
 
 	var items: Array = player.get_inventory_items()
 	if selected_slot_index >= items.size() or (selected_slot_index >= 0 and items[selected_slot_index].is_empty()):
@@ -506,6 +521,30 @@ func _set_item_detail_labels(item: Dictionary, source_label: String) -> void:
 func _item_color(item: Dictionary) -> Color:
 	var rarity := str(item.get("rarity", "normal"))
 	return item.get("color", RARITY_COLORS.get(rarity, LABEL_COLOR))
+
+
+func _update_skill_ui() -> void:
+	if skill_status_label == null or not is_instance_valid(player):
+		return
+	var unlocked := player.has_method("is_skill_unlocked") and bool(player.is_skill_unlocked("shield_charge"))
+	var can_unlock := player.has_method("can_unlock_skill") and bool(player.can_unlock_skill("shield_charge"))
+	if unlocked:
+		skill_status_label.text = "Shield Charge: Rank 1"
+		skill_status_label.add_theme_color_override("font_color", LABEL_COLOR)
+		skill_unlock_button.text = "Unlocked"
+		skill_unlock_button.disabled = true
+	else:
+		skill_status_label.text = "Shield Charge: Locked"
+		skill_status_label.add_theme_color_override("font_color", EMPTY_LABEL_COLOR)
+		skill_unlock_button.text = "Unlock"
+		skill_unlock_button.disabled = not can_unlock
+
+
+func _unlock_shield_charge_skill() -> void:
+	_suppress_player_attack_input()
+	if is_instance_valid(player) and player.has_method("unlock_skill"):
+		player.unlock_skill("shield_charge")
+	_update_inventory_ui()
 
 
 func _click_inventory_slot(slot_index: int) -> void:

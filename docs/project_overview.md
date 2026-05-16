@@ -1,73 +1,68 @@
-# Project Diablo Next
+# Project Overview
 
-Prototype Zero 是一个以 Diablo II 为主要参考目标的动作角色扮演游戏原型项目。
+Prototype Alpha is a Godot 4.6 2D dark fantasy ARPG demo.
 
-项目当前的核心方向不是泛化的“暗黑 Like”，也不是对标 Diablo III、Diablo IV 或其他现代同类作品，而是尽量贴近 Diablo II 的风格、节奏和战斗体验：更克制的战斗节奏、更清晰的角色成长、更重视装备驱动和 Build 选择，以及偏黑暗奇幻的整体氛围。
+The project is not trying to clone Diablo II's 45-degree isometric presentation. The design target is Diablo II-like loot pacing and long-term motivation, combined with Chronicon-like WASD control and pseudo top-down pixel-art readability.
 
-## 项目目标
+## Current Stage
 
-本项目计划分为三个阶段推进：Prototype、Demo 和完整可发售版本。
+The project is in the demo / vertical-slice stage.
 
-### 第一阶段：Prototype
+The current goal is a 15-20 minute first-map demo for Windows:
 
-目标是完成一个可以验证核心战斗体验的原型。
+- One outdoor area.
+- One enterable dungeon.
+- One small boss.
+- One light quest thread.
+- Two class prototypes: paladin-style melee and mage-style ranged.
+- Equipment, loot, level growth, and skill unlocks.
+- Enough UI to make the loop understandable.
 
-这一阶段不追求内容量，而是优先确认游戏最基础、最重要的交互是否成立：
+## Experience Target
 
-- 一个可游玩的基础场景
-- 一个可控制的 Player
-- 若干种基础敌人
-- 尽量完整的战斗交互
-- 基础移动、攻击、受击、死亡等核心反馈
-- 初步验证 Diablo II 风格的战斗节奏是否成立
+The player should feel this loop quickly:
 
-这一阶段的重点是“手感”和“节奏”，而不是完整系统。
+```text
+move
+-> attack / cast
+-> hit feedback
+-> defeat enemies
+-> gain experience and loot
+-> equip or unlock power
+-> continue fighting
+```
 
-### 第二阶段：Demo
+The demo should create two clear power jumps:
 
-目标是制作一个可以对外发布并收集反馈的 Demo。
+- An early skill or level gain.
+- A later equipment or skill upgrade before the boss.
 
-Demo 阶段会尽量包含完整游戏的主要系统雏形，但内容规模会保持较小：
+## Frozen Decisions
 
-- 装备系统
-- 掉落系统
-- 战斗系统
-- 任务系统
-- 少量地图场景
-- 少量装备内容
-- 初步 Build 系统
+- Engine: Godot 4.6.
+- Platform: Windows first.
+- Movement: WASD.
+- Aim: mouse direction for attacks and skills.
+- Default facing: movement direction.
+- Action facing: mouse direction during attack or cast.
+- View: Chronicon-like pseudo top-down, not Diablo II 45-degree isometric.
+- Art source: mainly external AI generation, validated before import.
+- Combat rhythm: slower and more deliberate than high-speed action roguelites.
 
-这一阶段的重点是验证完整游戏循环：战斗、掉落、装备、更换 Build、继续挑战。
+## Source Of Truth
 
-Demo 会作为对外反馈收集版本，用于判断核心体验、系统方向和内容设计是否值得继续扩展。
+Use these documents for current planning:
 
-### 第三阶段：完整游戏
+- [Demo Scope](DEMO_SCOPE.md)
+- [Control And Combat Rules](CONTROL_AND_COMBAT.md)
+- [Art Pipeline](ART_PIPELINE.md)
 
-目标是完成一个完整、可发售的游戏版本。
+If older notes conflict with these documents, the frozen documents win.
 
-在这一阶段，项目会基于 Prototype 和 Demo 阶段收集到的结果，扩展完整内容并打磨整体体验：
+## Design Principles
 
-- 更完整的地图和关卡
-- 更丰富的敌人和 Boss
-- 更完整的装备、词缀和掉落设计
-- 更深入的角色成长与 Build 系统
-- 更完整的任务、叙事和世界结构
-- 更稳定的性能、操作体验和整体完成度
-
-这一阶段的目标是从可验证的 Demo 扩展为真正可以发布的完整游戏。
-
-## 当前阶段
-
-项目目前处于第2阶段：Demo。
-
-当前优先事项是完成一个小规模但闭环的战斗场景，用于验证基础玩法、操作手感和整体节奏。
-
-详细计划见 [README.md](README.md)。
-
-## 设计原则
-
-- 参考 Diablo II 的风格和节奏，而不是 Diablo III、Diablo IV 或其他现代暗黑 Like。
-- 先验证核心战斗体验，再扩展系统复杂度。
-- 内容规模可以小，但核心交互要尽量完整。
-- 每个阶段都应产出可玩的版本，而不是只做技术积累。
-- Demo 阶段要能真实暴露玩家反馈，而不是只展示概念。
+- Build a playable loop before expanding systems.
+- Prefer combat feel, readable feedback, and short-term growth over large architecture.
+- Keep the demo small enough for fast solo iteration.
+- Use equipment and skill gains to create real power jumps.
+- Avoid large systems until the core loop proves itself in a playable build.

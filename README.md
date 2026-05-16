@@ -1,149 +1,74 @@
-# Prototype Alpha v0.1 - 打卡清单
+# Prototype Alpha
 
-## 🎯 目标
-- [ ] 玩家可以连续玩10–15分钟
-- [ ] 战斗有手感
-- [ ] 掉落有期待
-- [ ] 变强是明显的
-- [ ] 玩家产生“想继续玩”的感觉
+Prototype Alpha is a Godot 4.6 2D dark fantasy ARPG demo.
 
----
+The current target is a 15-20 minute Windows vertical slice with Diablo II-like loot and progression rhythm, Chronicon-like WASD controls, and a pseudo top-down pixel-art presentation.
 
-## 🔁 核心循环
-- [ ] 进入地图
-- [ ] 战斗
-- [ ] 掉装备
-- [ ] 装备提升属性
-- [ ] 变强
-- [ ] 继续战斗
+## Frozen Planning Docs
 
-### 副循环
-- [ ] 出现卡关
-- [ ] 通过技能或装备变强
-- [ ] 明显跃迁
-- [ ] 回到循环
+These documents are the current source of truth:
 
----
+- [Task Board](TASK_BOARD.md)
+- [Demo Scope](docs/DEMO_SCOPE.md)
+- [Control And Combat Rules](docs/CONTROL_AND_COMBAT.md)
+- [Art Pipeline](docs/ART_PIPELINE.md)
+- [Project Plan](docs/PROJECT_PLAN.md)
+- [Project Overview](docs/project_overview.md)
 
-## ⚙️ 玩家
+If older notes conflict with these files, the frozen documents win.
 
-- [ ] 近战职业
-- [ ] 远程职业
+## Current Demo Target
 
-### 每个职业
-- [ ] 平A
-- [ ] 单体技能
-- [ ] AOE技能
+- One outdoor map.
+- One enterable dungeon.
+- One small boss.
+- One light quest thread.
+- Two class prototypes: paladin-style melee and mage-style ranged.
+- WASD movement with mouse-aimed attacks and skills.
+- Loot, equipment, level growth, skill unlocks, and enough UI to support the loop.
 
----
+## Core Loop
 
-## ⚔️ 战斗
+```text
+move
+-> attack / cast
+-> hit feedback
+-> defeat enemies
+-> gain experience and loot
+-> equip or unlock power
+-> push deeper
+```
 
-- [ ] 实时战斗
-- [ ] 敌人会移动并攻击
-- [ ] 攻击可以命中敌人
-- [ ] 敌人有血量并会死亡
-- [ ] 有基础受击反馈（闪一下/粒子）
+## Current Priorities
 
----
+- Combat feel.
+- Readable movement and facing.
+- Stable sprite animation.
+- Satisfying hit feedback.
+- Enemy pressure.
+- Short-term power growth.
+- Loot clarity.
+- Fast in-game iteration.
 
-## 🗺️ 地图
+## Scope Control
 
-- [ ] 1张地图
-- [ ] 地图可反复刷
-- [ ] 规模控制在3–5屏
-- [ ] 持续有怪物
+Do not build these unless the demo is explicitly re-scoped:
 
----
+- Multiplayer.
+- Procedural dungeon generation.
+- Full save/load architecture.
+- Large skill trees.
+- Rune systems.
+- Crafting.
+- Economy.
+- Large UI frameworks.
+- Broad architecture rewrites.
 
-## 👾 敌人
+## Daily Check
 
-- [ ] 普通怪A（近战）
-- [ ] 普通怪B（变化行为，如远程或冲锋）
-- [ ] 精英怪（更强）
+Before adding a feature, ask:
 
----
-
-## 🧟 Boss
-
-- [ ] 1个Boss
-- [ ] 有基础攻击逻辑
-- [ ] 能卡住玩家
-- [ ] 击杀后掉关键装备
-
----
-
-## 🎁 掉落系统
-
-- [ ] 普通怪有掉落
-- [ ] 精英怪掉落更高
-- [ ] Boss必掉装备
-
-### 装备
-- [ ] 白装
-- [ ] 蓝装
-- [ ] 随机属性（攻击 / 生命）
-
-### 掉落体验
-- [ ] 掉落能看见（颜色/发光）
-- [ ] 至少出现一次“明显变强”的装备
-
----
-
-## 📈 成长
-
-- [ ] 装备能直接提升战斗力
-
-### 成长节点
-- [ ] 技能强化（前期）
-- [ ] 装备跃迁（中期）
-
----
-
-## ⏱️ 15分钟节奏（核心验证）
-
-### 前期
-- [ ] 0–3分钟：战斗偏吃力
-
-### 第一次跃迁
-- [ ] 3–5分钟：AOE明显变强
-
-### 中期压力
-- [ ] 5–10分钟：精英开始有威胁
-
-### 第二次跃迁
-- [ ] 8–12分钟：装备带来明显提升
-
-### 后期状态
-- [ ] 12–15分钟：想继续玩
-
----
-
-## 🚫 不做（必须克制）
-
-- [ ] 不做技能树
-- [ ] 不做符文系统
-- [ ] 不做制作系统
-- [ ] 不做经济系统
-- [ ] 不做多人
-- [ ] 不做复杂UI
-- [ ] 不做剧情/任务
-
----
-
-## 🔧 当前重点（每日自检）
-
-- [ ] 战斗是否更爽了一点
-- [ ] 技能是否更有反馈
-- [ ] 掉落是否更有吸引力
-- [ ] 成长是否更明显
-
----
-
-## 📌 最终规则（每天问自己）
-
-- [ ] 今天的改动是否提升了“战斗”
-- [ ] 是否提升了“掉落”
-- [ ] 是否提升了“成长”
-
-如果没有 → 不做
+- Does it improve combat?
+- Does it improve loot?
+- Does it improve growth?
+- Can it be tested quickly in-game?

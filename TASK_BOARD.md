@@ -129,7 +129,7 @@ Expected output:
 
 ### TASK-004: Player Facing Prototype
 
-Status: ready
+Status: done
 
 Goal:
 
@@ -141,7 +141,7 @@ Implement the frozen facing rules:
 
 ### TASK-005: Basic Hit Loop
 
-Status: blocked by TASK-004
+Status: ready
 
 Goal:
 

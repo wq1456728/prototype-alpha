@@ -39,12 +39,15 @@ const MAX_SOFT_COLLISION_SPEED := 95.0
 @onready var hp_bar: ProgressBar = $HPBar
 
 var facing := Vector2.RIGHT
+var move_direction := Vector2.ZERO
+var aim_direction := Vector2.RIGHT
+var facing_direction := Vector2.RIGHT
+var action_direction := Vector2.RIGHT
 var action_lock := 0.0
 var locked_velocity := Vector2.ZERO
 var key_was_down := {}
 var hp := MAX_HP
 var dead := false
-var attack_facing_x := 1.0
 var next_light_attack := 1
 var movement_time_since_light_attack := 0.0
 var pending_hit_time := -1.0
@@ -75,8 +78,11 @@ func _physics_process(delta: float) -> void:
 	var light_attack_pressed := _consume_press(KEY_J)
 	var heavy_attack_pressed := _consume_press(KEY_K)
 	var shield_charge_pressed := _consume_press(KEY_L)
+	move_direction = _read_move_direction()
+	aim_direction = _read_aim_direction()
 
 	if action_lock > 0.0:
+		_set_facing_direction(action_direction)
 		action_lock -= delta
 		if pending_hit_time >= 0.0:
 			pending_hit_time -= delta
@@ -95,14 +101,12 @@ func _physics_process(delta: float) -> void:
 			pending_hit_time = -1.0
 			pending_second_hit_time = -1.0
 			hit_enemies.clear()
+			if move_direction != Vector2.ZERO:
+				_set_facing_direction(move_direction)
 		return
 
-	var direction := _read_move_direction()
-	if direction != Vector2.ZERO:
-		facing = direction
-		if absf(facing.x) > 0.01:
-			sprite.flip_h = facing.x < 0
-			attack_facing_x = -1.0 if facing.x < 0.0 else 1.0
+	if move_direction != Vector2.ZERO:
+		_set_facing_direction(move_direction)
 		if next_light_attack != 1:
 			movement_time_since_light_attack += delta
 			if movement_time_since_light_attack >= LIGHT_COMBO_MOVE_RESET_TIME:
@@ -113,12 +117,12 @@ func _physics_process(delta: float) -> void:
 	if shield_charge_pressed and shield_charge_cooldown <= 0.0:
 		_start_shield_charge()
 	elif heavy_attack_pressed:
-		_start_attack("attack_3", HEAVY_ATTACK_LOCK_TIME, HEAVY_ATTACK_DAMAGE, HEAVY_ATTACK_HIT_DELAY, HEAVY_ATTACK_FORWARD_RANGE, HEAVY_ATTACK_SIDE_RANGE)
+		_start_attack("attack_3", HEAVY_ATTACK_LOCK_TIME, HEAVY_ATTACK_DAMAGE, HEAVY_ATTACK_HIT_DELAY, HEAVY_ATTACK_FORWARD_RANGE, HEAVY_ATTACK_SIDE_RANGE, aim_direction)
 	elif light_attack_pressed:
 		var anim_name := StringName("attack_%d" % next_light_attack)
 		next_light_attack = 2 if next_light_attack == 1 else 1
 		movement_time_since_light_attack = 0.0
-		_start_attack(anim_name, LIGHT_ATTACK_LOCK_TIME, LIGHT_ATTACK_DAMAGE, LIGHT_ATTACK_HIT_DELAY, LIGHT_ATTACK_FORWARD_RANGE, LIGHT_ATTACK_SIDE_RANGE)
+		_start_attack(anim_name, LIGHT_ATTACK_LOCK_TIME, LIGHT_ATTACK_DAMAGE, LIGHT_ATTACK_HIT_DELAY, LIGHT_ATTACK_FORWARD_RANGE, LIGHT_ATTACK_SIDE_RANGE, aim_direction)
 
 	if action_lock > 0.0:
 		move_and_slide()
@@ -126,10 +130,10 @@ func _physics_process(delta: float) -> void:
 
 	var wants_run := _held(KEY_SHIFT)
 	var target_speed := RUN_SPEED if wants_run else WALK_SPEED
-	velocity = direction * target_speed + _soft_collision_velocity()
+	velocity = move_direction * target_speed + _soft_collision_velocity()
 	move_and_slide()
 
-	if direction == Vector2.ZERO:
+	if move_direction == Vector2.ZERO:
 		_play("idle")
 	elif wants_run:
 		_play("run")
@@ -143,11 +147,14 @@ func _start_attack(
 	damage: int,
 	hit_delay: float,
 	forward_range: float,
-	side_range: float
+	side_range: float,
+	attack_direction: Vector2
 ) -> void:
 	action_lock = duration
 	locked_velocity = Vector2.ZERO
 	velocity = Vector2.ZERO
+	action_direction = _valid_direction_or_facing(attack_direction)
+	_set_facing_direction(action_direction)
 	pending_hit_damage = damage
 	pending_hit_time = hit_delay
 	pending_second_hit_time = -1.0
@@ -181,6 +188,8 @@ func _start_shield_charge() -> void:
 	action_lock = SHIELD_CHARGE_LOCK_TIME
 	locked_velocity = Vector2.ZERO
 	velocity = Vector2.ZERO
+	action_direction = _valid_direction_or_facing(aim_direction)
+	_set_facing_direction(action_direction)
 	pending_hit_damage = SHIELD_CHARGE_DAMAGE
 	pending_hit_time = SHIELD_CHARGE_HIT_DELAY
 	pending_second_hit_time = SHIELD_CHARGE_SECOND_HIT_DELAY
@@ -193,8 +202,10 @@ func _start_shield_charge() -> void:
 func _is_in_attack_area(offset: Vector2) -> bool:
 	if offset == Vector2.ZERO:
 		return true
-	var forward_distance := offset.x * attack_facing_x
-	var side_distance := absf(offset.y)
+	var forward := _valid_direction_or_facing(action_direction)
+	var right := Vector2(-forward.y, forward.x)
+	var forward_distance := offset.dot(forward)
+	var side_distance := absf(offset.dot(right))
 	return forward_distance >= -18.0 and forward_distance <= pending_forward_range and side_distance <= pending_side_range
 
 
@@ -242,6 +253,7 @@ func heal_fraction(fraction: float) -> void:
 func _start_hurt(knockback: Vector2) -> void:
 	action_lock = HURT_LOCK_TIME
 	locked_velocity = knockback
+	action_direction = facing_direction
 	pending_hit_time = -1.0
 	if sprite.sprite_frames.has_animation("hurt"):
 		_play("hurt", true)
@@ -271,6 +283,34 @@ func _read_move_direction() -> Vector2:
 	if Input.is_action_pressed("ui_down") or _held(KEY_S):
 		direction.y += 1.0
 	return direction.normalized()
+
+
+func _read_aim_direction() -> Vector2:
+	var direction := get_global_mouse_position() - global_position
+	if direction.length_squared() <= 0.01:
+		return aim_direction
+	return direction.normalized()
+
+
+func _valid_direction_or_facing(direction: Vector2) -> Vector2:
+	if direction.length_squared() <= 0.01:
+		return facing_direction
+	return direction.normalized()
+
+
+func _set_facing_direction(direction: Vector2) -> void:
+	facing_direction = _valid_direction_or_facing(direction)
+	facing = facing_direction
+	if absf(facing_direction.x) > 0.01:
+		sprite.flip_h = facing_direction.x < 0.0
+
+
+func get_facing_direction() -> Vector2:
+	return facing_direction
+
+
+func get_action_direction() -> Vector2:
+	return action_direction
 
 
 func _held(keycode: Key) -> bool:

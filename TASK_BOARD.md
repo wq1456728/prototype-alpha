@@ -168,7 +168,17 @@ Acceptance:
 
 ### TASK-014: Progression System Skeleton
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 added `data/progression/progression_config.json` for XP thresholds, level damage bonus, and skill-point rewards.
+- Added `ProgressionState` to hold level, current XP, XP-to-next-level, and available skill points outside direct combat code.
+- Player XP gain now flows through `ProgressionState`; level-up still updates visible damage and now awards skill points.
+- Sandbox debug text and inventory panel show available skill points.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd` and `tools/debug_combat_sandbox.gd`; debug confirmed level 1 -> 2, damage 24 -> 27, skill points 0 -> 1.
 
 Goal:
 
@@ -196,7 +206,7 @@ Acceptance:
 
 ### TASK-015: Minimal Skill Tree Skeleton
 
-Status: blocked by TASK-014
+Status: ready
 
 Goal:
 

@@ -5,6 +5,7 @@ const HEAVY_ATTACK_SFX := preload("res://assets/audio/sfx/player_attack_heavy_sl
 const SHIELD_IMPACT_SFX := preload("res://assets/audio/sfx/player_shield_impact.mp3")
 const FOOTSTEPS_SFX := preload("res://assets/audio/sfx/player_footsteps_run_loop.mp3")
 const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
+const PROGRESSION_STATE := preload("res://scripts/progression/progression_state.gd")
 const SPRITE_ROOT := "res://assets/sprites/characters/knight"
 const SHIELD_CHARGE_FRAMES_RESOURCE := "res://assets/animations/knight_shield_charge_attack.tres"
 const SPRITE_FRAME_WIDTH := 96
@@ -44,9 +45,6 @@ const ENEMY_SOFT_COLLISION_FORCE := 120.0
 const MAX_SOFT_COLLISION_SPEED := 95.0
 const BAG_SLOT_COUNT := 10
 const EQUIP_SLOT_KEYS := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0]
-const LEVEL_1_XP_TO_NEXT := 40
-const XP_TO_NEXT_LEVEL_STEP := 25
-const DAMAGE_PER_LEVEL := 3
 const LEVEL_UP_HEAL_FRACTION := 0.25
 const DEBUG_ATTACK_AREA_COLOR := Color(1.0, 0.18, 0.12, 0.22)
 const DEBUG_ATTACK_AREA_OUTLINE := Color(1.0, 0.28, 0.16, 0.8)
@@ -69,10 +67,7 @@ var mouse_button_was_down := {}
 var hp := MAX_HP
 var dead := false
 var damage_bonus := 0
-var level := 1
-var current_xp := 0
-var xp_to_next_level := LEVEL_1_XP_TO_NEXT
-var level_damage_bonus := 0
+var progression: RefCounted = PROGRESSION_STATE.new()
 var inventory_items: Array[Dictionary] = []
 var equipment_slots := {}
 var equipped_weapon: Dictionary = {}
@@ -353,7 +348,7 @@ func get_damage_bonus() -> int:
 
 
 func get_total_damage_bonus() -> int:
-	return damage_bonus + level_damage_bonus
+	return damage_bonus + get_level_damage_bonus()
 
 
 func get_current_attack_damage() -> int:
@@ -363,14 +358,7 @@ func get_current_attack_damage() -> int:
 func gain_xp(amount: int) -> bool:
 	if dead or amount <= 0:
 		return false
-	current_xp += amount
-	var leveled_up := false
-	while current_xp >= xp_to_next_level:
-		current_xp -= xp_to_next_level
-		level += 1
-		level_damage_bonus += DAMAGE_PER_LEVEL
-		xp_to_next_level += XP_TO_NEXT_LEVEL_STEP
-		leveled_up = true
+	var leveled_up: bool = progression.gain_xp(amount)
 	if leveled_up:
 		hp = mini(hp + int(round(MAX_HP * LEVEL_UP_HEAL_FRACTION)), MAX_HP)
 		hp_bar.value = hp
@@ -378,19 +366,27 @@ func gain_xp(amount: int) -> bool:
 
 
 func get_level() -> int:
-	return level
+	return int(progression.level)
 
 
 func get_current_xp() -> int:
-	return current_xp
+	return int(progression.current_xp)
 
 
 func get_xp_to_next_level() -> int:
-	return xp_to_next_level
+	return progression.get_xp_to_next_level()
 
 
 func get_level_damage_bonus() -> int:
-	return level_damage_bonus
+	return progression.get_damage_bonus()
+
+
+func get_available_skill_points() -> int:
+	return int(progression.available_skill_points)
+
+
+func spend_skill_points(amount: int) -> bool:
+	return progression.spend_skill_points(amount)
 
 
 func equip_bag_slot(slot_index: int) -> bool:

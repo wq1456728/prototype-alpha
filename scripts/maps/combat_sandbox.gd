@@ -43,6 +43,7 @@ var selected_slot_label: Label
 var selected_damage_label: Label
 var progression_level_label: Label
 var progression_xp_label: Label
+var progression_skill_points_label: Label
 var equip_button: Button
 var cursor_item_icon: TextureRect
 var cursor_status_label: Label
@@ -196,6 +197,7 @@ func _update_debug_label() -> void:
 	var weapon_text := "?"
 	var level_text := "?"
 	var xp_text := "?/?"
+	var skill_points_text := "?"
 	var facing_text := "?"
 	var action_text := "?"
 	var cursor_text := "None"
@@ -209,6 +211,8 @@ func _update_debug_label() -> void:
 			level_text = str(player.get_level())
 		if player.has_method("get_current_xp") and player.has_method("get_xp_to_next_level"):
 			xp_text = "%d/%d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
+		if player.has_method("get_available_skill_points"):
+			skill_points_text = str(player.get_available_skill_points())
 		if player.has_method("get_equipped_weapon_name"):
 			weapon_text = str(player.get_equipped_weapon_name())
 		if player.has_method("get_facing_direction"):
@@ -219,7 +223,7 @@ func _update_debug_label() -> void:
 		cursor_text = str(cursor_item.get("name", "Item"))
 	if is_collision_debug_visible():
 		collision_text = "On"
-	debug_label.text = "Enemies: %d\nHP: %s\nLevel: %s\nXP: %s\nDamage: %s\nWeapon: %s\nCursor: %s\nCollision: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, level_text, xp_text, damage_text, weapon_text, cursor_text, collision_text, facing_text, action_text]
+	debug_label.text = "Enemies: %d\nHP: %s\nLevel: %s\nXP: %s\nSkill Points: %s\nDamage: %s\nWeapon: %s\nCursor: %s\nCollision: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, level_text, xp_text, skill_points_text, damage_text, weapon_text, cursor_text, collision_text, facing_text, action_text]
 
 
 func _setup_collision_debug_overlay() -> void:
@@ -303,6 +307,8 @@ func _build_inventory_ui() -> void:
 	inventory_panel.add_child(progression_level_label)
 	progression_xp_label = _make_label("XP: 0 / 40", Vector2(330, 185), Vector2(160, 20), 14, LABEL_COLOR)
 	inventory_panel.add_child(progression_xp_label)
+	progression_skill_points_label = _make_label("Skill Points: 0", Vector2(330, 206), Vector2(160, 20), 13, LABEL_COLOR)
+	inventory_panel.add_child(progression_skill_points_label)
 
 	equip_button = Button.new()
 	equip_button.text = "Equip"
@@ -312,7 +318,7 @@ func _build_inventory_ui() -> void:
 	equip_button.pressed.connect(_equip_selected_slot)
 	inventory_panel.add_child(equip_button)
 
-	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 210), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
+	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 224), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
 	inventory_panel.add_child(cursor_status_label)
 
 	for i in range(10):
@@ -389,6 +395,8 @@ func _update_inventory_ui() -> void:
 		progression_level_label.text = "Level: %d" % int(player.get_level())
 	if progression_xp_label != null and player.has_method("get_current_xp") and player.has_method("get_xp_to_next_level"):
 		progression_xp_label.text = "XP: %d / %d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
+	if progression_skill_points_label != null and player.has_method("get_available_skill_points"):
+		progression_skill_points_label.text = "Skill Points: %d" % int(player.get_available_skill_points())
 
 	var items: Array = player.get_inventory_items()
 	if selected_slot_index >= items.size() or (selected_slot_index >= 0 and items[selected_slot_index].is_empty()):

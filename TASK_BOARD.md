@@ -98,6 +98,7 @@ Audit Status:
 - Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
 - 2026-05-16 follow-up requirement added: current implementation is not enough for Diablo II-like mouse item handling; TASK-013 should be extended before treating the inventory UI as final for the demo loop.
 - 2026-05-16 follow-up completed: ground items now require left-click pickup, open inventory picks items onto the cursor, bag/equipment clicks support cursor-held swapping, cursor-held items block attacks, and cursor-held items can be dropped back into the world.
+- 2026-05-16 input-priority fix: world item left-click handling moved earlier in the input chain so pickup can preempt player attack polling; inventory UI clicks also suppress attack input.
 - Runtime wrapper validation passed again for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
 
 Goal:

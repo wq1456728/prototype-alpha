@@ -62,17 +62,23 @@ func _process(_delta: float) -> void:
 		respawn_pending = false
 
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
+			if _is_screen_point_in_inventory(mouse_event.position):
+				_suppress_player_attack_input()
+				return
+			if _handle_world_left_click():
+				get_viewport().set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
 		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_B:
 			toggle_inventory_visibility()
 			get_viewport().set_input_as_handled()
-	elif event is InputEventMouseButton:
-		var mouse_event := event as InputEventMouseButton
-		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
-			if _handle_world_left_click():
-				get_viewport().set_input_as_handled()
 
 
 func toggle_inventory_visibility() -> void:
@@ -543,6 +549,10 @@ func _update_cursor_item_ui() -> void:
 func _suppress_player_attack_input() -> void:
 	if is_instance_valid(player) and player.has_method("suppress_attack_inputs"):
 		player.suppress_attack_inputs()
+
+
+func _is_screen_point_in_inventory(screen_position: Vector2) -> bool:
+	return inventory_panel != null and inventory_panel.visible and inventory_panel.get_global_rect().has_point(screen_position)
 
 
 func _slot_key_text(index: int) -> String:

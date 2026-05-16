@@ -8,6 +8,7 @@ const RESPAWN_DELAY := 4.0
 const SLOT_SIZE := Vector2(48, 48)
 const ITEM_ICON_SIZE := Vector2(32, 32)
 const WORLD_ITEM_CLICK_RADIUS := 36.0
+const CURSOR_DROP_DISTANCE := 42.0
 const PANEL_COLOR := Color(0.055, 0.058, 0.052, 0.82)
 const SELECTED_SLOT_COLOR := Color(0.95, 0.78, 0.24, 0.34)
 const CURSOR_SLOT_COLOR := Color(0.36, 0.64, 1.0, 0.24)
@@ -527,7 +528,7 @@ func _drop_cursor_item(world_position: Vector2) -> void:
 	var loot := WEAPON_PICKUP_SCENE.instantiate()
 	if loot.has_method("setup_item"):
 		loot.setup_item(cursor_item)
-	loot.global_position = world_position
+	loot.global_position = _cursor_drop_position(world_position)
 	var loot_root := get_node_or_null("Loot") as Node2D
 	if loot_root == null:
 		add_child(loot)
@@ -537,6 +538,19 @@ func _drop_cursor_item(world_position: Vector2) -> void:
 	selected_slot_index = -1
 	_update_inventory_ui()
 	_update_cursor_item_ui()
+
+
+func _cursor_drop_position(target_position: Vector2) -> Vector2:
+	if not is_instance_valid(player):
+		return target_position
+	var origin := player.global_position
+	var direction := target_position - origin
+	if direction.length_squared() <= 0.01:
+		if player.has_method("get_facing_direction"):
+			direction = player.get_facing_direction()
+		else:
+			direction = Vector2.RIGHT
+	return origin + direction.normalized() * CURSOR_DROP_DISTANCE
 
 
 func _find_ground_item_at(world_position: Vector2) -> Node:

@@ -124,13 +124,18 @@ func _run() -> void:
 		quit(1)
 		return
 	var loot_before_drop := get_nodes_in_group("loot").size()
-	current_scene.call("click_empty_world", player.global_position + Vector2(72, 0))
+	var requested_drop_position := player.global_position + Vector2(72, 0)
+	current_scene.call("click_empty_world", requested_drop_position)
 	await process_frame
 	if bool(current_scene.call("has_cursor_item")) or get_nodes_in_group("loot").size() <= loot_before_drop:
 		print("combat_sandbox FAIL cursor_drop cursor=%s loot_before=%d loot_after=%d" % [current_scene.call("has_cursor_item"), loot_before_drop, get_nodes_in_group("loot").size()])
 		quit(1)
 		return
 	var dropped_loot := _first_loot()
+	if dropped_loot == null or (dropped_loot as Node2D).global_position.distance_to(player.global_position) > 50.0:
+		print("combat_sandbox FAIL cursor_drop_too_far drop=%s player=%s requested=%s" % [(dropped_loot as Node2D).global_position if dropped_loot != null else null, player.global_position, requested_drop_position])
+		quit(1)
+		return
 	current_scene.call("click_ground_item", dropped_loot)
 	await process_frame
 	if not bool(current_scene.call("has_cursor_item")):

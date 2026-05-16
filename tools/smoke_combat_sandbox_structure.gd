@@ -22,6 +22,7 @@ func _run() -> void:
 	var enemies := get_nodes_in_group("enemy")
 	var debug_label := current_scene.get_node_or_null("DebugCanvas/DebugLabel")
 	var inventory_panel := current_scene.get_node_or_null("DebugCanvas/InventoryPanel")
+	var collision_debug_overlay := current_scene.get_node_or_null("CollisionDebugOverlay")
 	var loot_root := current_scene.get_node_or_null("Loot")
 	var missing := PackedStringArray()
 
@@ -33,6 +34,8 @@ func _run() -> void:
 		missing.append("debug_label")
 	if inventory_panel == null:
 		missing.append("inventory_panel")
+	if collision_debug_overlay == null:
+		missing.append("collision_debug_overlay")
 	if loot_root == null:
 		missing.append("loot_root")
 
@@ -44,8 +47,25 @@ func _run() -> void:
 		print("CombatSandbox smoke: FAIL inventory_panel_should_start_hidden")
 		quit(1)
 		return
+	if collision_debug_overlay.visible:
+		print("CombatSandbox smoke: FAIL collision_debug_should_start_hidden")
+		quit(1)
+		return
+	if current_scene.has_method("toggle_collision_debug_visibility"):
+		current_scene.call("toggle_collision_debug_visibility")
+		await process_frame
+		if not collision_debug_overlay.visible:
+			print("CombatSandbox smoke: FAIL collision_debug_toggle_show")
+			quit(1)
+			return
+		current_scene.call("toggle_collision_debug_visibility")
+		await process_frame
+		if collision_debug_overlay.visible:
+			print("CombatSandbox smoke: FAIL collision_debug_toggle_hide")
+			quit(1)
+			return
 
-	print("CombatSandbox smoke: PASS player=%s enemies=%d debug_label=ok inventory_panel=hidden loot_root=ok" % [player.name, enemies.size()])
+	print("CombatSandbox smoke: PASS player=%s enemies=%d debug_label=ok inventory_panel=hidden collision_debug=ok loot_root=ok" % [player.name, enemies.size()])
 	quit(0)
 
 

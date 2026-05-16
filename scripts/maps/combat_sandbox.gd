@@ -2,6 +2,7 @@ extends Node2D
 
 const MUMMY_SCENE := preload("res://scenes/enemy/mummy_enemy.tscn")
 const WEAPON_PICKUP_SCENE := preload("res://scenes/items/weapon_pickup.tscn")
+const COLLISION_DEBUG_OVERLAY_SCRIPT := preload("res://scripts/debug/collision_debug_overlay.gd")
 const INVENTORY_SLOT_TEXTURE := preload("res://assets/ui/inventory_slot.png")
 const EQUIPMENT_SLOT_TEXTURE := preload("res://assets/ui/equipment_weapon_slot.png")
 const RESPAWN_DELAY := 4.0
@@ -42,12 +43,14 @@ var progression_xp_label: Label
 var equip_button: Button
 var cursor_item_icon: TextureRect
 var cursor_status_label: Label
+var collision_debug_overlay: Node2D
 var selected_slot_index := -1
 var cursor_item: Dictionary = {}
 var icon_cache := {}
 
 
 func _ready() -> void:
+	_setup_collision_debug_overlay()
 	_build_inventory_ui()
 	_spawn_wave()
 
@@ -79,7 +82,10 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
-		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_B:
+		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_F9:
+			toggle_collision_debug_visibility()
+			get_viewport().set_input_as_handled()
+		elif key_event.pressed and not key_event.echo and key_event.keycode == KEY_B:
 			toggle_inventory_visibility()
 			get_viewport().set_input_as_handled()
 
@@ -93,6 +99,16 @@ func toggle_inventory_visibility() -> void:
 
 func is_inventory_visible() -> bool:
 	return inventory_panel != null and inventory_panel.visible
+
+
+func toggle_collision_debug_visibility() -> void:
+	if collision_debug_overlay == null:
+		return
+	collision_debug_overlay.visible = not collision_debug_overlay.visible
+
+
+func is_collision_debug_visible() -> bool:
+	return collision_debug_overlay != null and collision_debug_overlay.visible
 
 
 func select_inventory_slot(slot_index: int) -> void:
@@ -175,6 +191,7 @@ func _update_debug_label() -> void:
 	var facing_text := "?"
 	var action_text := "?"
 	var cursor_text := "None"
+	var collision_text := "Off"
 	if is_instance_valid(player):
 		var hp_value = player.get("hp")
 		hp_text = str(hp_value) if hp_value != null else "?"
@@ -192,7 +209,15 @@ func _update_debug_label() -> void:
 			action_text = _format_vector(player.get_action_direction())
 	if not cursor_item.is_empty():
 		cursor_text = str(cursor_item.get("name", "Item"))
-	debug_label.text = "Enemies: %d\nHP: %s\nLevel: %s\nXP: %s\nDamage: %s\nWeapon: %s\nCursor: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, level_text, xp_text, damage_text, weapon_text, cursor_text, facing_text, action_text]
+	if is_collision_debug_visible():
+		collision_text = "On"
+	debug_label.text = "Enemies: %d\nHP: %s\nLevel: %s\nXP: %s\nDamage: %s\nWeapon: %s\nCursor: %s\nCollision: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, level_text, xp_text, damage_text, weapon_text, cursor_text, collision_text, facing_text, action_text]
+
+
+func _setup_collision_debug_overlay() -> void:
+	collision_debug_overlay = COLLISION_DEBUG_OVERLAY_SCRIPT.new()
+	collision_debug_overlay.name = "CollisionDebugOverlay"
+	add_child(collision_debug_overlay)
 
 
 func _build_inventory_ui() -> void:

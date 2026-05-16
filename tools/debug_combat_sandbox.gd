@@ -229,6 +229,20 @@ func _run() -> void:
 		print("combat_sandbox FAIL shield_charge_assign slot_v=%s" % player.call("get_loadout_skill", "v"))
 		quit(1)
 		return
+	player.call("_start_shield_charge")
+	await process_frame
+	var brute := _enemy_by_name("MummyBrute")
+	if brute == null:
+		print("combat_sandbox FAIL brute_missing")
+		quit(1)
+		return
+	brute.call("take_damage", int(brute.get("max_hp")), player.global_position)
+	await physics_frame
+	await process_frame
+	if not bool(current_scene.call("is_objective_complete")):
+		print("combat_sandbox FAIL objective_not_complete stage=%d" % int(current_scene.call("get_objective_stage")))
+		quit(1)
+		return
 	if int(player.call("get_available_skill_points")) >= after_skill_points:
 		print("combat_sandbox FAIL shield_charge_cost_not_spent before=%d after=%d" % [after_skill_points, int(player.call("get_available_skill_points"))])
 		quit(1)
@@ -243,6 +257,13 @@ func _first_loot() -> Node:
 	if loot_nodes.is_empty():
 		return null
 	return loot_nodes[0]
+
+
+func _enemy_by_name(enemy_name: String) -> Node:
+	for enemy in get_nodes_in_group("enemy"):
+		if enemy.name == enemy_name:
+			return enemy
+	return null
 
 
 func _validate_drop_roll(enemy: Node) -> bool:

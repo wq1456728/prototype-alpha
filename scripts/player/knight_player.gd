@@ -90,6 +90,7 @@ var pending_side_range := 0.0
 var shield_charge_cooldown := 0.0
 var pending_second_hit_time := -1.0
 var hit_enemies := {}
+var skill_use_counts := {}
 
 
 func _ready() -> void:
@@ -236,6 +237,7 @@ func _start_attack(
 
 
 func _start_light_attack() -> void:
+	_record_skill_use("light_attack")
 	var anim_name := StringName("attack_%d" % next_light_attack)
 	var hit_delay := LIGHT_ATTACK_1_HIT_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_HIT_DELAY
 	var sfx_delay := LIGHT_ATTACK_1_SFX_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_SFX_DELAY
@@ -264,6 +266,7 @@ func _apply_attack_hit() -> void:
 func _start_shield_charge() -> void:
 	if not sprite.sprite_frames.has_animation("shield_charge"):
 		return
+	_record_skill_use("shield_charge")
 	shield_charge_cooldown = SHIELD_CHARGE_COOLDOWN
 	action_lock = SHIELD_CHARGE_LOCK_TIME
 	locked_velocity = Vector2.ZERO
@@ -445,6 +448,10 @@ func assign_skill_to_slot(skill_id: String, slot_id: String) -> bool:
 	if not can_assign_skill_to_slot(skill_id, slot_id):
 		return false
 	return skill_loadout.assign_skill(slot_id, skill_id)
+
+
+func get_skill_use_count(skill_id: String) -> int:
+	return int(skill_use_counts.get(skill_id, 0))
 
 
 func equip_bag_slot(slot_index: int) -> bool:
@@ -656,6 +663,10 @@ func _can_use_equipment_slot(slot_id: String) -> bool:
 		return false
 	var slot := ITEM_DATABASE.get_equipment_slot(slot_id)
 	return bool(slot.get("active", false))
+
+
+func _record_skill_use(skill_id: String) -> void:
+	skill_use_counts[skill_id] = int(skill_use_counts.get(skill_id, 0)) + 1
 
 
 func _start_hurt(knockback: Vector2) -> void:

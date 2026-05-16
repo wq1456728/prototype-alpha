@@ -20,6 +20,16 @@ const RARITY_COLORS := {
 	"magic": Color(0.36, 0.64, 1.0, 1.0),
 	"rare": Color(1.0, 0.78, 0.25, 1.0),
 }
+const OBJECTIVE_STEPS := [
+	"Kill a mummy",
+	"Pick up a dropped item",
+	"Equip a weapon",
+	"Reach level 2",
+	"Unlock Shield Charge",
+	"Assign Shield Charge to V",
+	"Use Shield Charge from the loadout",
+	"Defeat the brute"
+]
 
 @onready var world_entities_root: Node2D = $WorldEntities
 @onready var player: Node2D = $WorldEntities/KnightPlayer
@@ -55,6 +65,12 @@ var skill_assign_buttons := {}
 var loadout_bar: Control
 var loadout_slot_buttons := {}
 var selected_skill_id := "shield_charge"
+var objective_panel: Control
+var objective_title_label: Label
+var objective_step_label: Label
+var objective_detail_label: Label
+var objective_stage := 0
+var objective_complete := false
 var collision_debug_overlay: Node2D
 var selected_slot_index := -1
 var cursor_item: Dictionary = {}
@@ -66,6 +82,7 @@ func _ready() -> void:
 	_build_inventory_ui()
 	_build_skill_tree_ui()
 	_build_loadout_ui()
+	_build_objective_ui()
 	_spawn_wave()
 
 
@@ -74,6 +91,7 @@ func _process(_delta: float) -> void:
 	_update_inventory_ui()
 	_update_skill_tree_ui()
 	_update_loadout_ui()
+	_update_objective_flow()
 	_update_cursor_item_ui()
 	if respawn_pending:
 		return
@@ -180,6 +198,14 @@ func assign_skill_to_loadout(skill_id: String, slot_id: String) -> bool:
 	_update_loadout_ui()
 	_update_skill_tree_ui()
 	return assigned
+
+
+func get_objective_stage() -> int:
+	return objective_stage
+
+
+func is_objective_complete() -> bool:
+	return objective_complete
 
 
 func get_world_item_parent() -> Node2D:
@@ -471,6 +497,117 @@ func _build_loadout_ui() -> void:
 		button.pressed.connect(_click_loadout_slot.bind(str(slot.get("id", ""))))
 		loadout_bar.add_child(button)
 		loadout_slot_buttons[str(slot.get("id", ""))] = button
+
+
+func _build_objective_ui() -> void:
+	objective_panel = Control.new()
+	objective_panel.name = "ObjectivePanel"
+	objective_panel.position = Vector2(16, 220)
+	objective_panel.size = Vector2(330, 96)
+	debug_canvas.add_child(objective_panel)
+
+	var background := ColorRect.new()
+	background.color = PANEL_COLOR
+	background.size = objective_panel.size
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	objective_panel.add_child(background)
+
+	objective_title_label = _make_label("Objective", Vector2(10, 8), Vector2(190, 20), 16, LABEL_COLOR)
+	objective_panel.add_child(objective_title_label)
+	objective_step_label = _make_label("", Vector2(10, 33), Vector2(300, 20), 14, LABEL_COLOR)
+	objective_panel.add_child(objective_step_label)
+	objective_detail_label = _make_label("", Vector2(10, 58), Vector2(310, 30), 12, EMPTY_LABEL_COLOR)
+	objective_panel.add_child(objective_detail_label)
+
+
+func _update_objective_flow() -> void:
+	if objective_complete or not is_instance_valid(player):
+		_update_objective_ui()
+		return
+	var advanced := true
+	while advanced and not objective_complete:
+		advanced = false
+		if _is_objective_stage_done(objective_stage):
+			objective_stage += 1
+			advanced = true
+			if objective_stage >= OBJECTIVE_STEPS.size():
+				objective_complete = true
+	_update_objective_ui()
+
+
+func _is_objective_stage_done(stage: int) -> bool:
+	match stage:
+		0:
+			return get_tree().get_nodes_in_group("enemy").size() < 3 or int(player.get_current_xp()) > 0
+		1:
+			return _player_has_any_item()
+		2:
+			return player.has_method("get_equipped_weapon") and not player.get_equipped_weapon().is_empty()
+		3:
+			return player.has_method("get_level") and int(player.get_level()) >= 2
+		4:
+			return player.has_method("is_skill_unlocked") and bool(player.is_skill_unlocked("shield_charge"))
+		5:
+			return player.has_method("get_loadout_skill") and str(player.get_loadout_skill("v")) == "shield_charge"
+		6:
+			return player.has_method("get_skill_use_count") and int(player.get_skill_use_count("shield_charge")) > 0
+		7:
+			return not _is_enemy_named_alive("MummyBrute")
+	return false
+
+
+func _update_objective_ui() -> void:
+	if objective_step_label == null:
+		return
+	if objective_complete:
+		objective_title_label.text = "Objective Complete"
+		objective_step_label.text = "Vertical sandbox loop complete"
+		objective_detail_label.text = "Combat, loot, equip, XP, skill unlock, loadout, and skill use passed."
+		return
+	var step_text := str(OBJECTIVE_STEPS[clampi(objective_stage, 0, OBJECTIVE_STEPS.size() - 1)])
+	objective_title_label.text = "Objective %d/%d" % [objective_stage + 1, OBJECTIVE_STEPS.size()]
+	objective_step_label.text = step_text
+	objective_detail_label.text = _objective_detail_text(objective_stage)
+
+
+func _objective_detail_text(stage: int) -> String:
+	match stage:
+		0:
+			return "Defeat any mummy to start the growth loop."
+		1:
+			return "Click the dropped item; inventory-open pickup may hold it on cursor."
+		2:
+			return "Place a weapon into the active weapon slot."
+		3:
+			return "Earn XP until level 2."
+		4:
+			return "Open K and spend a skill point on Shield Charge."
+		5:
+			return "Assign Shield Charge to the V loadout slot."
+		6:
+			return "Press V after assignment to use Shield Charge."
+		7:
+			return "Finish by defeating MummyBrute."
+	return ""
+
+
+func _player_has_any_item() -> bool:
+	if not cursor_item.is_empty():
+		return true
+	if player.has_method("get_equipped_weapon") and not player.get_equipped_weapon().is_empty():
+		return true
+	if player.has_method("get_inventory_items"):
+		for item in player.get_inventory_items():
+			if item is Dictionary and not item.is_empty():
+				return true
+	return false
+
+
+func _is_enemy_named_alive(enemy_name: String) -> bool:
+	for enemy in get_tree().get_nodes_in_group("enemy"):
+		if is_instance_valid(enemy) and enemy.name == enemy_name:
+			return true
+	return false
 
 
 func _update_inventory_ui() -> void:

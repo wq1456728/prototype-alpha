@@ -107,7 +107,17 @@ Acceptance:
 
 ### TASK-017: Sandbox Objective Flow
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-17 added a sandbox objective tracker panel.
+- Objective flow now guides the player through: kill a mummy, pick up loot, equip a weapon, reach level 2, unlock Shield Charge, assign it to `V`, use it from the loadout, and defeat `MummyBrute`.
+- Objective completion is tracked in code through `get_objective_stage()` and `is_objective_complete()`.
+- Runtime validation exercises the complete chain through item pickup/equip, XP level-up, skill unlock, loadout assignment, shield-charge use, and brute defeat.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
 
 Goal:
 
@@ -132,7 +142,7 @@ Acceptance:
 
 ### TASK-018: First Outdoor Greybox Plan
 
-Status: blocked by TASK-017
+Status: ready
 
 Goal:
 

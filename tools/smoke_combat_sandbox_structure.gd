@@ -25,6 +25,7 @@ func _run() -> void:
 	var inventory_panel := current_scene.get_node_or_null("DebugCanvas/InventoryPanel")
 	var skill_tree_panel := current_scene.get_node_or_null("DebugCanvas/SkillTreePanel")
 	var loadout_bar := current_scene.get_node_or_null("DebugCanvas/SkillLoadoutBar")
+	var objective_panel := current_scene.get_node_or_null("DebugCanvas/ObjectivePanel")
 	var collision_debug_overlay := current_scene.get_node_or_null("CollisionDebugOverlay")
 	var loot_root := current_scene.get_node_or_null("Loot")
 	var missing := PackedStringArray()
@@ -43,6 +44,8 @@ func _run() -> void:
 		missing.append("skill_tree_panel")
 	if loadout_bar == null:
 		missing.append("loadout_bar")
+	if objective_panel == null:
+		missing.append("objective_panel")
 	if collision_debug_overlay == null:
 		missing.append("collision_debug_overlay")
 	if loot_root == null:
@@ -113,7 +116,7 @@ func _run() -> void:
 			quit(1)
 			return
 
-	print("CombatSandbox smoke: PASS player=%s enemies=%d world_entities_y_sort=ok debug_label=ok inventory_panel=hidden skill_tree=ok loadout=ok collision_debug=ok loot_root=ok" % [player.name, enemies.size()])
+	print("CombatSandbox smoke: PASS player=%s enemies=%d world_entities_y_sort=ok debug_label=ok inventory_panel=hidden skill_tree=ok loadout=ok objective=ok collision_debug=ok loot_root=ok" % [player.name, enemies.size()])
 	quit(0)
 
 

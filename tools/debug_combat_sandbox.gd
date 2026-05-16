@@ -21,11 +21,21 @@ func _run() -> void:
 	var enemies := get_nodes_in_group("enemy")
 	var debug_label := current_scene.get_node_or_null("DebugCanvas/DebugLabel")
 	var inventory_panel := current_scene.get_node_or_null("DebugCanvas/InventoryPanel")
+	var world_entities_root := current_scene.get_node_or_null("WorldEntities")
 	var loot_root := current_scene.get_node_or_null("Loot")
-	if player == null or enemies.is_empty() or debug_label == null or inventory_panel == null or loot_root == null:
-		print("combat_sandbox FAIL player=%s enemies=%d debug=%s inventory=%s loot=%s" % [player != null, enemies.size(), debug_label != null, inventory_panel != null, loot_root != null])
+	if player == null or enemies.is_empty() or debug_label == null or inventory_panel == null or world_entities_root == null or loot_root == null:
+		print("combat_sandbox FAIL player=%s enemies=%d debug=%s inventory=%s world_entities=%s loot=%s" % [player != null, enemies.size(), debug_label != null, inventory_panel != null, world_entities_root != null, loot_root != null])
 		quit(1)
 		return
+	if player.get_parent() != world_entities_root:
+		print("combat_sandbox FAIL player_parent=%s world_entities=%s" % [player.get_parent().name, world_entities_root.name])
+		quit(1)
+		return
+	for enemy in enemies:
+		if enemy.get_parent() != world_entities_root:
+			print("combat_sandbox FAIL enemy_parent name=%s parent=%s" % [enemy.name, enemy.get_parent().name])
+			quit(1)
+			return
 	if current_scene.has_method("is_inventory_visible") and bool(current_scene.call("is_inventory_visible")):
 		print("combat_sandbox FAIL inventory_visible_by_default")
 		quit(1)
@@ -68,6 +78,10 @@ func _run() -> void:
 	var loot := _first_loot() as Area2D
 	if loot == null:
 		print("combat_sandbox FAIL loot_missing")
+		quit(1)
+		return
+	if loot.get_parent() != world_entities_root:
+		print("combat_sandbox FAIL loot_parent=%s world_entities=%s" % [loot.get_parent().name, world_entities_root.name])
 		quit(1)
 		return
 	if loot.get("item_data") == null or not _validate_item_shape(loot.get("item_data")):

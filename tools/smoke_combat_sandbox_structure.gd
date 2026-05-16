@@ -18,7 +18,8 @@ func _run() -> void:
 		quit(1)
 		return
 
-	var player := current_scene.get_node_or_null("KnightPlayer")
+	var world_entities_root := current_scene.get_node_or_null("WorldEntities")
+	var player := current_scene.get_node_or_null("WorldEntities/KnightPlayer")
 	var enemies := get_nodes_in_group("enemy")
 	var debug_label := current_scene.get_node_or_null("DebugCanvas/DebugLabel")
 	var inventory_panel := current_scene.get_node_or_null("DebugCanvas/InventoryPanel")
@@ -28,6 +29,8 @@ func _run() -> void:
 
 	if player == null:
 		missing.append("player")
+	if world_entities_root == null:
+		missing.append("world_entities")
 	if enemies.is_empty():
 		missing.append("enemies")
 	if debug_label == null:
@@ -43,6 +46,19 @@ func _run() -> void:
 		print("CombatSandbox smoke: FAIL missing=%s enemies=%d" % [",".join(missing), enemies.size()])
 		quit(1)
 		return
+	if not world_entities_root.y_sort_enabled:
+		print("CombatSandbox smoke: FAIL world_entities_y_sort_disabled")
+		quit(1)
+		return
+	if player.get_parent() != world_entities_root:
+		print("CombatSandbox smoke: FAIL player_not_in_world_entities")
+		quit(1)
+		return
+	for enemy in enemies:
+		if enemy.get_parent() != world_entities_root:
+			print("CombatSandbox smoke: FAIL enemy_not_in_world_entities name=%s parent=%s" % [enemy.name, enemy.get_parent().name])
+			quit(1)
+			return
 	if inventory_panel.visible:
 		print("CombatSandbox smoke: FAIL inventory_panel_should_start_hidden")
 		quit(1)
@@ -68,7 +84,7 @@ func _run() -> void:
 			quit(1)
 			return
 
-	print("CombatSandbox smoke: PASS player=%s enemies=%d debug_label=ok inventory_panel=hidden collision_debug=ok loot_root=ok" % [player.name, enemies.size()])
+	print("CombatSandbox smoke: PASS player=%s enemies=%d world_entities_y_sort=ok debug_label=ok inventory_panel=hidden collision_debug=ok loot_root=ok" % [player.name, enemies.size()])
 	quit(0)
 
 

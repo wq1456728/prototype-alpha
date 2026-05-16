@@ -21,8 +21,8 @@ const RARITY_COLORS := {
 	"rare": Color(1.0, 0.78, 0.25, 1.0),
 }
 
-@onready var player: Node2D = $KnightPlayer
-@onready var enemies_root: Node2D = $Enemies
+@onready var world_entities_root: Node2D = $WorldEntities
+@onready var player: Node2D = $WorldEntities/KnightPlayer
 @onready var debug_canvas: CanvasLayer = $DebugCanvas
 @onready var debug_label: Label = $DebugCanvas/DebugLabel
 
@@ -143,6 +143,10 @@ func click_empty_world(world_position: Vector2) -> void:
 	_drop_cursor_item(world_position)
 
 
+func get_world_item_parent() -> Node2D:
+	return world_entities_root if is_instance_valid(world_entities_root) else self
+
+
 func _spawn_wave() -> void:
 	_clear_enemies()
 	_spawn_mummy("MummyScout", $EnemySpawns/DummySpawn.global_position, 35, 42.0, 6, 46.0, 40.0, 1.25, 2.6, 20)
@@ -151,8 +155,9 @@ func _spawn_wave() -> void:
 
 
 func _clear_enemies() -> void:
-	for child in enemies_root.get_children():
-		child.queue_free()
+	for enemy in get_tree().get_nodes_in_group("enemy"):
+		if is_instance_valid(enemy):
+			enemy.queue_free()
 
 
 func _spawn_mummy(
@@ -178,7 +183,7 @@ func _spawn_mummy(
 	enemy.attack_cooldown = attack_cooldown
 	enemy.display_scale = display_scale
 	enemy.xp_reward = xp_reward
-	enemies_root.add_child(enemy)
+	get_world_item_parent().add_child(enemy)
 
 
 func _update_debug_label() -> void:
@@ -554,11 +559,7 @@ func _drop_cursor_item(world_position: Vector2) -> void:
 	if loot.has_method("setup_item"):
 		loot.setup_item(cursor_item)
 	loot.global_position = _cursor_drop_position(world_position)
-	var loot_root := get_node_or_null("Loot") as Node2D
-	if loot_root == null:
-		add_child(loot)
-	else:
-		loot_root.add_child(loot)
+	get_world_item_parent().add_child(loot)
 	cursor_item = {}
 	selected_slot_index = -1
 	_update_inventory_ui()

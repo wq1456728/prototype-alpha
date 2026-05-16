@@ -65,7 +65,10 @@ position = Vector2(780, 300)
 [node name="BruteSpawn" type="Marker2D" parent="EnemySpawns"]
 position = Vector2(790, 470)
 
-[node name="KnightPlayer" parent="." instance=ExtResource("2_player")]
+[node name="WorldEntities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="KnightPlayer" parent="WorldEntities" instance=ExtResource("2_player")]
 position = Vector2(640, 360)
 
 [node name="Enemies" type="Node2D" parent="."]

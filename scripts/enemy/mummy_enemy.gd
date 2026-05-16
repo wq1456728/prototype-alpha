@@ -304,11 +304,18 @@ func _drop_loot() -> void:
 	if loot.has_method("setup_item"):
 		loot.setup_item(_make_weapon_drop())
 	loot.global_position = global_position
-	var loot_root := get_tree().current_scene.get_node_or_null("Loot") as Node2D
-	if loot_root == null:
-		get_parent().add_child(loot)
+	var loot_parent := get_parent()
+	var current_scene := get_tree().current_scene
+	if current_scene != null and current_scene.has_method("get_world_item_parent"):
+		loot_parent = current_scene.get_world_item_parent()
+	elif current_scene != null and current_scene.get_node_or_null("Loot") != null:
+		loot_parent = current_scene.get_node_or_null("Loot") as Node2D
+	if loot_parent == null and current_scene != null:
+		loot_parent = current_scene
+	if loot_parent == null:
+		add_child(loot)
 	else:
-		loot_root.add_child(loot)
+		loot_parent.add_child(loot)
 
 
 func _make_weapon_drop() -> Dictionary:

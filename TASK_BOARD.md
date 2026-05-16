@@ -12,6 +12,7 @@ Current planning and implementation rules:
 - [docs/ART_PIPELINE.md](docs/ART_PIPELINE.md)
 - [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)
 - [docs/TASK_002_ASSET_INTEGRATION.md](docs/TASK_002_ASSET_INTEGRATION.md)
+- [docs/TASK_003_COMBAT_SANDBOX_PLAN.md](docs/TASK_003_COMBAT_SANDBOX_PLAN.md)
 - [ASSET_PROMPT_TEMPLATE.md](ASSET_PROMPT_TEMPLATE.md)
 
 If older notes conflict with these files, the files above win.
@@ -71,7 +72,7 @@ Expected output:
 
 ### TASK-002: Standard Asset Integration And Minimal Structure Stabilization
 
-Status: blocked by TASK-001
+Status: done
 
 Goal:
 
@@ -112,7 +113,7 @@ Acceptance:
 
 ### TASK-003: Combat Sandbox Plan
 
-Status: blocked by TASK-002
+Status: done
 
 Goal:
 
@@ -128,7 +129,7 @@ Expected output:
 
 ### TASK-004: Player Facing Prototype
 
-Status: blocked by TASK-003
+Status: ready
 
 Goal:
 

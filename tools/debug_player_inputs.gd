@@ -13,7 +13,10 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	await physics_frame
+	if not await _wait_for_scene():
+		print("player_inputs FAIL scene_not_ready")
+		quit(1)
+		return
 	await _test_mouse_button("left_mouse", MOUSE_BUTTON_LEFT)
 	await _test_mouse_button("right_mouse", MOUSE_BUTTON_RIGHT)
 	await _test_key("shield_charge_v", KEY_V)
@@ -93,3 +96,11 @@ func _clear_player_action(player: Node) -> void:
 
 func _fmt_vec(value: Vector2) -> String:
 	return "(%.1f, %.1f)" % [value.x, value.y]
+
+
+func _wait_for_scene() -> bool:
+	for _i in range(20):
+		await physics_frame
+		if current_scene != null and get_first_node_in_group("player") != null:
+			return true
+	return false

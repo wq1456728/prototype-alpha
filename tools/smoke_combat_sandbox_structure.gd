@@ -13,7 +13,10 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	await physics_frame
+	if not await _wait_for_scene():
+		print("CombatSandbox smoke: FAIL scene_not_ready")
+		quit(1)
+		return
 
 	var player := current_scene.get_node_or_null("KnightPlayer")
 	var enemies := get_nodes_in_group("enemy")
@@ -37,6 +40,18 @@ func _run() -> void:
 		print("CombatSandbox smoke: FAIL missing=%s enemies=%d" % [",".join(missing), enemies.size()])
 		quit(1)
 		return
+	if inventory_panel.visible:
+		print("CombatSandbox smoke: FAIL inventory_panel_should_start_hidden")
+		quit(1)
+		return
 
-	print("CombatSandbox smoke: PASS player=%s enemies=%d debug_label=ok inventory_panel=ok loot_root=ok" % [player.name, enemies.size()])
+	print("CombatSandbox smoke: PASS player=%s enemies=%d debug_label=ok inventory_panel=hidden loot_root=ok" % [player.name, enemies.size()])
 	quit(0)
+
+
+func _wait_for_scene() -> bool:
+	for _i in range(20):
+		await physics_frame
+		if current_scene != null:
+			return true
+	return false

@@ -40,7 +40,7 @@ kill enemy
 
 ## Active Task
 
-### TASK-011: Minimal Inventory And Equipment Proof
+### TASK-012: Item Data And Drop Roll v1
 
 Status: done
 
@@ -48,45 +48,11 @@ Task agent status: done
 
 Audit Status:
 
-- 2026-05-16 implemented the first equipment loop.
-- Enemy death now drops a visible weapon item instead of direct-stat damage pickup.
-- Player pickup adds the weapon to a 10-slot bag and does not immediately change attack damage.
-- Equipping the weapon from the bag updates attack damage from 24 to 32 in the sandbox validation.
-- CombatSandbox now shows equipped weapon, current damage, and bag slots using accepted item/UI icons.
+- 2026-05-16 replaced the fixed weapon drop with generated item data.
+- Weapon drops now roll name, rarity, damage bonus, icon, and rarity color.
+- The small rarity set is `normal`, `magic`, and `rare`, with tunable drop chances and damage ranges.
+- Drop roll validation sampled 13 names, 3 rarities, and 12 damage values with a fixed seed.
 - Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-
-Goal:
-
-Replace the temporary direct-stat pickup with the smallest Diablo-like item loop: enemy drops an item, player picks it into a bag, player equips it, and combat stats change.
-
-Focus on:
-
-- Keep the bag small and simple, such as 8-12 slots.
-- One item type is enough at first: weapon.
-- One equipment slot is enough at first: weapon.
-- Item data can be simple: name, icon/color, rarity, damage bonus.
-- Enemy drop should create a visible world item.
-- Picking up should add the item to the bag instead of immediately changing stats.
-- Equipping the item should update player damage.
-- UI can be basic and functional; no drag-and-drop required if a click/key equip is faster.
-- Show current equipped weapon and current attack damage somewhere in the sandbox.
-- Do not build full inventory sorting, stash, vendor, economy, crafting, item comparison, or a large item framework.
-
-Acceptance:
-
-- Enemy can drop a weapon item.
-- Player can pick the weapon into a small bag.
-- Player can equip the weapon.
-- Equipped weapon changes attack damage.
-- The current equipped weapon and damage value are visible.
-- The implementation remains small enough to replace or extend later.
-- Completed task entry includes `Task agent status: done`.
-
-## Backlog
-
-### TASK-012: Item Data And Drop Roll v1
-
-Status: ready
 
 Goal:
 
@@ -115,9 +81,21 @@ Acceptance:
 - Implementation remains small and local to the current sandbox loop.
 - Completed task entry includes `Task agent status: done`.
 
+## Backlog
+
 ### TASK-013: Inventory UI Pass 1
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 inventory now starts hidden and toggles with `B`.
+- Bag UI shows 10 slots, current equipped weapon, current attack damage, and selected item details.
+- Selecting a bag slot shows item name, rarity, and damage bonus.
+- Selected weapon can be equipped from the UI through the Equip button; number-key equip still works.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
 
 Goal:
 
@@ -125,6 +103,8 @@ Make the minimum bag/equipment flow visible and usable.
 
 Focus on:
 
+- Press `B` to toggle inventory visibility.
+- Inventory starts hidden by default.
 - Show 8-12 bag slots.
 - Show one equipped weapon slot.
 - Show selected item name, rarity, and damage bonus.
@@ -135,6 +115,7 @@ Focus on:
 
 Acceptance:
 
+- Pressing `B` shows and hides the inventory.
 - Player can see what is in the bag.
 - Player can see equipped weapon.
 - Player can equip a weapon and see damage update.
@@ -426,6 +407,36 @@ Acceptance:
 - Loot pickup has a simple pickup sound.
 - Sound volume is not painful.
 - Audio files are placed in a clear `assets/audio/sfx/` structure.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-011: Minimal Inventory And Equipment Proof
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 implemented the first equipment loop.
+- Enemy death now drops a visible weapon item instead of direct-stat damage pickup.
+- Player pickup adds the weapon to a 10-slot bag and does not immediately change attack damage.
+- Equipping the weapon from the bag updates attack damage from 24 to 32 in the sandbox validation.
+- CombatSandbox now shows equipped weapon, current damage, and bag slots using accepted item/UI icons.
+- Runtime wrapper validation previously passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
+- 2026-05-16 follow-up fixed the `current_scene` timing issue in smoke/debug scripts; runtime validation is reliable again.
+
+Goal:
+
+Replace the temporary direct-stat pickup with the smallest Diablo-like item loop: enemy drops an item, player picks it into a bag, player equips it, and combat stats change.
+
+Acceptance:
+
+- Enemy can drop a weapon item.
+- Player can pick the weapon into a small bag.
+- Player can equip the weapon.
+- Equipped weapon changes attack damage.
+- The current equipped weapon and damage value are visible.
+- The implementation remains small enough to replace or extend later.
 - Completed task entry includes `Task agent status: done`.
 
 ## Agent Rules

@@ -33,6 +33,55 @@ const HIT_FLASH_TIME := 0.12
 const HIT_FLASH_COLOR := Color(1.0, 0.42, 0.36, 1.0)
 const HURT_KNOCKBACK_SPEED := 130.0
 const DAMAGE_NUMBER_COLOR := Color(1.0, 0.86, 0.36, 1.0)
+const WEAPON_BASES := [
+	{
+		"id": "rusty_short_sword",
+		"name": "Short Sword",
+		"icon": "res://assets/sprites/items/item_weapon_rusty_short_sword_icon.png",
+	},
+	{
+		"id": "iron_sword",
+		"name": "Iron Sword",
+		"icon": "res://assets/sprites/items/item_weapon_iron_sword_icon.png",
+	},
+	{
+		"id": "bone_axe",
+		"name": "Bone Axe",
+		"icon": "res://assets/sprites/items/item_weapon_bone_axe_icon.png",
+	},
+	{
+		"id": "crystal_sword",
+		"name": "Crystal Sword",
+		"icon": "res://assets/sprites/items/item_weapon_crystal_sword_icon.png",
+	},
+	{
+		"id": "flame_sword",
+		"name": "Flame Sword",
+		"icon": "res://assets/sprites/items/item_weapon_flame_sword_icon.png",
+	},
+]
+const RARITY_DATA := {
+	"normal": {
+		"prefix": "Worn",
+		"damage_min": 6,
+		"damage_max": 9,
+		"color": Color(0.82, 0.78, 0.68, 1.0),
+	},
+	"magic": {
+		"prefix": "Glimmering",
+		"damage_min": 10,
+		"damage_max": 14,
+		"color": Color(0.36, 0.64, 1.0, 1.0),
+	},
+	"rare": {
+		"prefix": "Ancient",
+		"damage_min": 15,
+		"damage_max": 20,
+		"color": Color(1.0, 0.78, 0.25, 1.0),
+	},
+}
+const MAGIC_DROP_CHANCE := 0.24
+const RARE_DROP_CHANCE := 0.08
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
@@ -251,15 +300,29 @@ func _drop_loot() -> void:
 
 
 func _make_weapon_drop() -> Dictionary:
+	var rarity := _roll_weapon_rarity()
+	var rarity_data: Dictionary = RARITY_DATA[rarity]
+	var base: Dictionary = WEAPON_BASES.pick_random()
+	var damage_bonus := randi_range(int(rarity_data["damage_min"]), int(rarity_data["damage_max"]))
+	var item_id := "%s_%s_%d" % [rarity, str(base["id"]), damage_bonus]
 	return {
 		"type": "weapon",
-		"id": "rusty_short_sword",
-		"name": "Rusty Short Sword",
-		"rarity": "normal",
-		"damage_bonus": 8,
-		"icon": "res://assets/sprites/items/item_weapon_rusty_short_sword_icon.png",
-		"color": Color(0.82, 0.78, 0.68, 1.0),
+		"id": item_id,
+		"name": "%s %s" % [str(rarity_data["prefix"]), str(base["name"])],
+		"rarity": rarity,
+		"damage_bonus": damage_bonus,
+		"icon": str(base["icon"]),
+		"color": rarity_data["color"],
 	}
+
+
+func _roll_weapon_rarity() -> String:
+	var roll := randf()
+	if roll < RARE_DROP_CHANCE:
+		return "rare"
+	if roll < RARE_DROP_CHANCE + MAGIC_DROP_CHANCE:
+		return "magic"
+	return "normal"
 
 
 func _spawn_feedback(text: String, color: Color, offset: Vector2) -> void:

@@ -70,8 +70,8 @@ func _spawn_pickup_sfx() -> void:
 func _default_weapon_item() -> Dictionary:
 	return {
 		"type": "weapon",
-		"id": "rusty_short_sword",
-		"name": "Rusty Short Sword",
+		"id": "normal_rusty_short_sword_8",
+		"name": "Worn Short Sword",
 		"rarity": "normal",
 		"damage_bonus": 8,
 		"icon": "res://assets/sprites/items/item_weapon_rusty_short_sword_icon.png",

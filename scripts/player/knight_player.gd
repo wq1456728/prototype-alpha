@@ -43,6 +43,10 @@ const ENEMY_SOFT_COLLISION_FORCE := 120.0
 const MAX_SOFT_COLLISION_SPEED := 95.0
 const BAG_SLOT_COUNT := 10
 const EQUIP_SLOT_KEYS := [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0]
+const LEVEL_1_XP_TO_NEXT := 40
+const XP_TO_NEXT_LEVEL_STEP := 25
+const DAMAGE_PER_LEVEL := 3
+const LEVEL_UP_HEAL_FRACTION := 0.25
 const DEBUG_ATTACK_AREA_COLOR := Color(1.0, 0.18, 0.12, 0.22)
 const DEBUG_ATTACK_AREA_OUTLINE := Color(1.0, 0.28, 0.16, 0.8)
 
@@ -64,6 +68,10 @@ var mouse_button_was_down := {}
 var hp := MAX_HP
 var dead := false
 var damage_bonus := 0
+var level := 1
+var current_xp := 0
+var xp_to_next_level := LEVEL_1_XP_TO_NEXT
+var level_damage_bonus := 0
 var inventory_items: Array[Dictionary] = []
 var equipped_weapon: Dictionary = {}
 var item_cursor_blocks_attacks := false
@@ -227,7 +235,7 @@ func _start_attack(
 	velocity = Vector2.ZERO
 	action_direction = _valid_direction_or_facing(attack_direction)
 	_set_facing_direction(action_direction)
-	pending_hit_damage = damage + damage_bonus
+	pending_hit_damage = damage + get_total_damage_bonus()
 	pending_hit_time = hit_delay
 	pending_second_hit_time = -1.0
 	pending_forward_range = forward_range
@@ -263,7 +271,7 @@ func _start_shield_charge() -> void:
 	velocity = Vector2.ZERO
 	action_direction = _valid_direction_or_facing(aim_direction)
 	_set_facing_direction(action_direction)
-	pending_hit_damage = SHIELD_CHARGE_DAMAGE + damage_bonus
+	pending_hit_damage = SHIELD_CHARGE_DAMAGE + get_total_damage_bonus()
 	pending_hit_time = SHIELD_CHARGE_HIT_DELAY
 	pending_second_hit_time = SHIELD_CHARGE_SECOND_HIT_DELAY
 	pending_forward_range = SHIELD_CHARGE_FORWARD_RANGE
@@ -338,8 +346,45 @@ func get_damage_bonus() -> int:
 	return damage_bonus
 
 
+func get_total_damage_bonus() -> int:
+	return damage_bonus + level_damage_bonus
+
+
 func get_current_attack_damage() -> int:
-	return LIGHT_ATTACK_DAMAGE + damage_bonus
+	return LIGHT_ATTACK_DAMAGE + get_total_damage_bonus()
+
+
+func gain_xp(amount: int) -> bool:
+	if dead or amount <= 0:
+		return false
+	current_xp += amount
+	var leveled_up := false
+	while current_xp >= xp_to_next_level:
+		current_xp -= xp_to_next_level
+		level += 1
+		level_damage_bonus += DAMAGE_PER_LEVEL
+		xp_to_next_level += XP_TO_NEXT_LEVEL_STEP
+		leveled_up = true
+	if leveled_up:
+		hp = mini(hp + int(round(MAX_HP * LEVEL_UP_HEAL_FRACTION)), MAX_HP)
+		hp_bar.value = hp
+	return leveled_up
+
+
+func get_level() -> int:
+	return level
+
+
+func get_current_xp() -> int:
+	return current_xp
+
+
+func get_xp_to_next_level() -> int:
+	return xp_to_next_level
+
+
+func get_level_damage_bonus() -> int:
+	return level_damage_bonus
 
 
 func equip_bag_slot(slot_index: int) -> bool:

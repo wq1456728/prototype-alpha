@@ -56,8 +56,14 @@ func _run() -> void:
 
 	var target := enemies[0]
 	var before_damage := int(player.call("get_current_attack_damage"))
+	var before_xp := int(player.call("get_current_xp"))
 	target.call("take_damage", int(target.get("max_hp")), player.global_position)
 	await physics_frame
+	var after_kill_xp := int(player.call("get_current_xp"))
+	if after_kill_xp <= before_xp:
+		print("combat_sandbox FAIL xp_not_awarded xp %d -> %d reward=%s" % [before_xp, after_kill_xp, target.get("xp_reward")])
+		quit(1)
+		return
 	var feedback_after_hit := get_nodes_in_group("feedback").size()
 	var loot := _first_loot() as Area2D
 	if loot == null:
@@ -137,7 +143,19 @@ func _run() -> void:
 		print("combat_sandbox FAIL cursor_back_to_bag cursor=%s bag=%d" % [current_scene.call("has_cursor_item"), _filled_bag_count(player)])
 		quit(1)
 		return
+	var before_level := int(player.call("get_level"))
+	var before_level_damage := int(player.call("get_current_attack_damage"))
+	var xp_needed := int(player.call("get_xp_to_next_level")) - int(player.call("get_current_xp"))
+	player.call("gain_xp", xp_needed)
+	await process_frame
+	var after_level := int(player.call("get_level"))
+	var after_level_damage := int(player.call("get_current_attack_damage"))
+	if after_level <= before_level or after_level_damage <= before_level_damage:
+		print("combat_sandbox FAIL level_growth level %d -> %d damage %d -> %d" % [before_level, after_level, before_level_damage, after_level_damage])
+		quit(1)
+		return
 	print("combat_sandbox loot ok: damage %d -> walkover %d -> equip %d weapon=%s bag=%d cursor=%s loot_left=%d enemies_left=%d feedback_after_hit=%d" % [before_damage, after_pickup_damage, after_equip_damage, weapon_name, _filled_bag_count(player), current_scene.call("has_cursor_item"), get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size(), feedback_after_hit])
+	print("combat_sandbox progression ok: xp %d -> %d level %d -> %d damage %d -> %d" % [before_xp, after_kill_xp, before_level, after_level, before_level_damage, after_level_damage])
 	quit(0)
 
 

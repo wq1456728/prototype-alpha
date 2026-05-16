@@ -36,6 +36,8 @@ var inventory_slot_highlights: Array[ColorRect] = []
 var selected_name_label: Label
 var selected_rarity_label: Label
 var selected_damage_label: Label
+var progression_level_label: Label
+var progression_xp_label: Label
 var equip_button: Button
 var cursor_item_icon: TextureRect
 var cursor_status_label: Label
@@ -126,9 +128,9 @@ func click_empty_world(world_position: Vector2) -> void:
 
 func _spawn_wave() -> void:
 	_clear_enemies()
-	_spawn_mummy("MummyScout", $EnemySpawns/DummySpawn.global_position, 35, 42.0, 6, 46.0, 40.0, 1.25, 2.6)
-	_spawn_mummy("MummyGrunt", $EnemySpawns/GruntSpawn.global_position, 55, 68.0, 10, 54.0, 46.0, 1.1, 3.0)
-	_spawn_mummy("MummyBrute", $EnemySpawns/BruteSpawn.global_position, 95, 48.0, 18, 60.0, 52.0, 1.35, 3.35)
+	_spawn_mummy("MummyScout", $EnemySpawns/DummySpawn.global_position, 35, 42.0, 6, 46.0, 40.0, 1.25, 2.6, 20)
+	_spawn_mummy("MummyGrunt", $EnemySpawns/GruntSpawn.global_position, 55, 68.0, 10, 54.0, 46.0, 1.1, 3.0, 30)
+	_spawn_mummy("MummyBrute", $EnemySpawns/BruteSpawn.global_position, 95, 48.0, 18, 60.0, 52.0, 1.35, 3.35, 45)
 
 
 func _clear_enemies() -> void:
@@ -145,7 +147,8 @@ func _spawn_mummy(
 	attack_range: float,
 	preferred_distance: float,
 	attack_cooldown: float,
-	display_scale: float
+	display_scale: float,
+	xp_reward: int
 ) -> void:
 	var enemy := MUMMY_SCENE.instantiate()
 	enemy.name = enemy_name
@@ -157,6 +160,7 @@ func _spawn_mummy(
 	enemy.preferred_distance = preferred_distance
 	enemy.attack_cooldown = attack_cooldown
 	enemy.display_scale = display_scale
+	enemy.xp_reward = xp_reward
 	enemies_root.add_child(enemy)
 
 
@@ -165,6 +169,8 @@ func _update_debug_label() -> void:
 	var hp_text := "?"
 	var damage_text := "?"
 	var weapon_text := "?"
+	var level_text := "?"
+	var xp_text := "?/?"
 	var facing_text := "?"
 	var action_text := "?"
 	var cursor_text := "None"
@@ -173,6 +179,10 @@ func _update_debug_label() -> void:
 		hp_text = str(hp_value) if hp_value != null else "?"
 		if player.has_method("get_current_attack_damage"):
 			damage_text = str(player.get_current_attack_damage())
+		if player.has_method("get_level"):
+			level_text = str(player.get_level())
+		if player.has_method("get_current_xp") and player.has_method("get_xp_to_next_level"):
+			xp_text = "%d/%d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
 		if player.has_method("get_equipped_weapon_name"):
 			weapon_text = str(player.get_equipped_weapon_name())
 		if player.has_method("get_facing_direction"):
@@ -181,14 +191,14 @@ func _update_debug_label() -> void:
 			action_text = _format_vector(player.get_action_direction())
 	if not cursor_item.is_empty():
 		cursor_text = str(cursor_item.get("name", "Item"))
-	debug_label.text = "Enemies: %d\nHP: %s\nDamage: %s\nWeapon: %s\nCursor: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, damage_text, weapon_text, cursor_text, facing_text, action_text]
+	debug_label.text = "Enemies: %d\nHP: %s\nLevel: %s\nXP: %s\nDamage: %s\nWeapon: %s\nCursor: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, level_text, xp_text, damage_text, weapon_text, cursor_text, facing_text, action_text]
 
 
 func _build_inventory_ui() -> void:
 	inventory_panel = Control.new()
 	inventory_panel.name = "InventoryPanel"
 	inventory_panel.position = Vector2(640, 16)
-	inventory_panel.size = Vector2(610, 190)
+	inventory_panel.size = Vector2(610, 210)
 	inventory_panel.visible = false
 	debug_canvas.add_child(inventory_panel)
 
@@ -247,6 +257,13 @@ func _build_inventory_ui() -> void:
 	selected_damage_label = _make_label("Damage Bonus: -", Vector2(330, 73), Vector2(170, 20), 14, LABEL_COLOR)
 	inventory_panel.add_child(selected_damage_label)
 
+	var progression_title := _make_label("Progression", Vector2(330, 98), Vector2(140, 20), 15, LABEL_COLOR)
+	inventory_panel.add_child(progression_title)
+	progression_level_label = _make_label("Level: 1", Vector2(330, 121), Vector2(140, 20), 14, LABEL_COLOR)
+	inventory_panel.add_child(progression_level_label)
+	progression_xp_label = _make_label("XP: 0 / 40", Vector2(330, 142), Vector2(160, 20), 14, LABEL_COLOR)
+	inventory_panel.add_child(progression_xp_label)
+
 	equip_button = Button.new()
 	equip_button.text = "Equip"
 	equip_button.position = Vector2(520, 31)
@@ -255,7 +272,7 @@ func _build_inventory_ui() -> void:
 	equip_button.pressed.connect(_equip_selected_slot)
 	inventory_panel.add_child(equip_button)
 
-	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 118), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
+	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 168), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
 	inventory_panel.add_child(cursor_status_label)
 
 	for i in range(10):
@@ -328,6 +345,10 @@ func _update_inventory_ui() -> void:
 	if player.has_method("get_current_attack_damage"):
 		damage_text = str(player.get_current_attack_damage())
 	equipment_damage_label.text = "Damage: %s" % damage_text
+	if progression_level_label != null and player.has_method("get_level"):
+		progression_level_label.text = "Level: %d" % int(player.get_level())
+	if progression_xp_label != null and player.has_method("get_current_xp") and player.has_method("get_xp_to_next_level"):
+		progression_xp_label.text = "XP: %d / %d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
 
 	var items: Array = player.get_inventory_items()
 	if selected_slot_index >= items.size() or (selected_slot_index >= 0 and items[selected_slot_index].is_empty()):

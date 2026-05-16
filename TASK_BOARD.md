@@ -40,118 +40,20 @@ kill enemy
 
 ## Active Task
 
-### TASK-012: Item Data And Drop Roll v1
-
-Status: done
-
-Task agent status: done
-
-Audit Status:
-
-- 2026-05-16 replaced the fixed weapon drop with generated item data.
-- Weapon drops now roll name, rarity, damage bonus, icon, and rarity color.
-- The small rarity set is `normal`, `magic`, and `rare`, with tunable drop chances and damage ranges.
-- Drop roll validation sampled 13 names, 3 rarities, and 12 damage values with a fixed seed.
-- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-
-Goal:
-
-Replace fixed damage pickup behavior with simple generated weapon item data.
-
-Focus on:
-
-- Generate a weapon item when an enemy drops loot.
-- Keep item data small: name, rarity, damage bonus, icon/color.
-- Use a tiny rarity set: normal, magic, rare.
-- Use simple damage ranges per rarity.
-- Keep drop rates easy to tune.
-- Do not build a full affix system yet.
-
-Expected output:
-
-- Item data shape.
-- Drop roll behavior.
-- Updated sandbox debug or UI display if needed.
-- Runtime validation result.
-
-Acceptance:
-
-- Enemy drops produce item data, not only a fixed pickup.
-- Different drops can have different names, rarity colors, and damage values.
-- Implementation remains small and local to the current sandbox loop.
-- Completed task entry includes `Task agent status: done`.
-
-## Backlog
-
-### TASK-013: Inventory UI Pass 1
-
-Status: done
-
-Task agent status: done
-
-Audit Status:
-
-- 2026-05-16 inventory now starts hidden and toggles with `B`.
-- Bag UI shows 10 slots, current equipped weapon, current attack damage, and selected item details.
-- Selecting a bag slot shows item name, rarity, and damage bonus.
-- Selected weapon can be equipped from the UI through the Equip button; number-key equip still works.
-- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-- 2026-05-16 follow-up requirement added: current implementation is not enough for Diablo II-like mouse item handling; TASK-013 should be extended before treating the inventory UI as final for the demo loop.
-- 2026-05-16 follow-up completed: ground items now require left-click pickup, open inventory picks items onto the cursor, bag/equipment clicks support cursor-held swapping, cursor-held items block attacks, and cursor-held items can be dropped back into the world.
-- 2026-05-16 input-priority fix: world item left-click handling moved earlier in the input chain so pickup can preempt player attack polling; inventory UI clicks also suppress attack input.
-- Runtime wrapper validation passed again for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-
-Goal:
-
-Make the minimum bag/equipment flow visible and usable.
-
-Focus on:
-
-- Press `B` to toggle inventory visibility.
-- Inventory starts hidden by default.
-- Show 8-12 bag slots.
-- Show one equipped weapon slot.
-- Show selected item name, rarity, and damage bonus.
-- Allow equipping a weapon from the bag through a simple click or key action.
-- Show current attack damage.
-- Keep UI functional, not final.
-- Do not add drag-and-drop unless it is cheaper than the simpler interaction.
-
-Follow-up Requirement: Diablo II-like Mouse Item Handling:
-
-- Ground items are picked up with left mouse click, not by walking over them.
-- If inventory is closed, left-clicking a ground item may pick it directly into the first valid bag slot if space exists.
-- If inventory is open, left-clicking a ground item picks it onto the cursor instead of directly placing it into the bag.
-- Left-clicking a bag item while inventory is open picks that item onto the cursor.
-- Left-clicking the equipped weapon while inventory is open picks that item onto the cursor and clears the equipped slot.
-- While an item is held on the cursor, player attack inputs are blocked.
-- A held cursor item can be placed into an empty bag slot.
-- A held weapon item can be placed into the weapon equipment slot.
-- Placing a held item onto an occupied bag slot swaps the cursor item with the existing slot item.
-- Placing a held weapon onto an occupied weapon equipment slot swaps the cursor item with the equipped weapon.
-- Left-clicking empty world space while holding an item drops it back into the world at the clicked position.
-- Dropped world items keep their full item data: name, rarity, damage bonus, icon, and color.
-- Invalid placement keeps the item on the cursor and should provide simple feedback rather than deleting the item.
-- Closing the inventory while holding an item should keep the item on the cursor or drop it intentionally; do not silently delete it.
-- Death, scene reload, or full-bag edge cases must not lose held items silently.
-- The cursor-held item should be visibly attached to the mouse, using the item icon.
-- The UI should distinguish hover, selected, equipped, and cursor-held states clearly enough for playtesting.
-
-Acceptance:
-
-- Pressing `B` shows and hides the inventory.
-- Player can see what is in the bag.
-- Player can see equipped weapon.
-- Player can equip a weapon and see damage update.
-- Player must click ground items to pick them up.
-- Player can hold an item on the cursor and cannot attack while holding it.
-- Player can place, equip, swap, and drop cursor-held items without item loss.
-- UI is small enough for the combat sandbox.
-- Completed task entry includes `Task agent status: done`.
-
 ### TASK-014: XP And Level Growth v1
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 enemies now grant tunable XP on death.
+- Player now tracks level, current XP, XP to next level, and level damage bonus.
+- Level up uses a tiny tunable curve and increases visible attack damage.
+- Combat sandbox debug text and inventory panel show level and XP.
+- Runtime validation added for kill XP gain and level-up damage growth.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
 
 Goal:
 
@@ -172,9 +74,11 @@ Acceptance:
 - Level up changes a visible stat.
 - Completed task entry includes `Task agent status: done`.
 
+## Backlog
+
 ### TASK-015: Skill Unlock v1
 
-Status: blocked by TASK-014
+Status: ready
 
 Goal:
 
@@ -464,6 +368,67 @@ Acceptance:
 - Equipped weapon changes attack damage.
 - The current equipped weapon and damage value are visible.
 - The implementation remains small enough to replace or extend later.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-012: Item Data And Drop Roll v1
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 replaced the fixed weapon drop with generated item data.
+- Weapon drops now roll name, rarity, damage bonus, icon, and rarity color.
+- The small rarity set is `normal`, `magic`, and `rare`, with tunable drop chances and damage ranges.
+- Drop roll validation sampled 13 names, 3 rarities, and 12 damage values with a fixed seed.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
+- 2026-05-16 audit rerun confirmed: `debug_combat_sandbox.gd` reports 13 names, 3 rarities, and 12 damage values.
+
+Goal:
+
+Replace fixed damage pickup behavior with simple generated weapon item data.
+
+Acceptance:
+
+- Enemy drops produce item data, not only a fixed pickup.
+- Different drops can have different names, rarity colors, and damage values.
+- Implementation remains small and local to the current sandbox loop.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-013: Inventory UI Pass 1
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 inventory now starts hidden and toggles with `B`.
+- Bag UI shows 10 slots, current equipped weapon, current attack damage, and selected item details.
+- Selecting a bag slot shows item name, rarity, and damage bonus.
+- Selected weapon can be equipped from the UI through the Equip button; number-key equip still works.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
+- 2026-05-16 follow-up requirement added: current implementation is not enough for Diablo II-like mouse item handling; TASK-013 should be extended before treating the inventory UI as final for the demo loop.
+- 2026-05-16 follow-up completed: ground items now require left-click pickup, open inventory picks items onto the cursor, bag/equipment clicks support cursor-held swapping, cursor-held items block attacks, and cursor-held items can be dropped back into the world.
+- 2026-05-16 input-priority fix: world item left-click handling moved earlier in the input chain so pickup can preempt player attack polling; inventory UI clicks also suppress attack input.
+- Runtime wrapper validation passed again for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
+- 2026-05-16 audit rerun confirmed: inventory starts hidden, cursor item blocks attacks, ground-to-cursor, cursor-to-bag, bag-to-cursor, cursor-equip, equipped-to-cursor, cursor-drop, and dropped-ground-to-bag paths pass.
+
+Goal:
+
+Make the minimum bag/equipment flow visible and usable.
+
+Acceptance:
+
+- Pressing `B` shows and hides the inventory.
+- Player can see what is in the bag.
+- Player can see equipped weapon.
+- Player can equip a weapon and see damage update.
+- Player must click ground items to pick them up.
+- Player can hold an item on the cursor and cannot attack while holding it.
+- Player can place, equip, swap, and drop cursor-held items without item loss.
+- UI is small enough for the combat sandbox.
 - Completed task entry includes `Task agent status: done`.
 
 ## Agent Rules

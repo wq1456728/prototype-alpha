@@ -16,6 +16,7 @@ const DEATH_SFX := preload("res://assets/audio/sfx/enemy_mummy_death.mp3")
 @export var ai_min_think_time := 0.45
 @export var ai_max_think_time := 1.1
 @export var drops_loot := true
+@export var xp_reward := 20
 
 const ATTACK_LOCK_TIME := 0.62
 const ATTACK_HIT_DELAY := 0.32
@@ -33,6 +34,7 @@ const HIT_FLASH_TIME := 0.12
 const HIT_FLASH_COLOR := Color(1.0, 0.42, 0.36, 1.0)
 const HURT_KNOCKBACK_SPEED := 130.0
 const DAMAGE_NUMBER_COLOR := Color(1.0, 0.86, 0.36, 1.0)
+const XP_NUMBER_COLOR := Color(0.45, 0.78, 1.0, 1.0)
 const WEAPON_BASES := [
 	{
 		"id": "rusty_short_sword",
@@ -271,6 +273,7 @@ func _die() -> void:
 	pending_attack_hit = false
 	hp_bar.visible = false
 	_spawn_sfx(DEATH_SFX, -13.0, 1.0)
+	_grant_player_xp()
 	_drop_loot()
 	_heal_player_on_death()
 	_play("death", true)
@@ -283,6 +286,15 @@ func _heal_player_on_death() -> void:
 		_find_player()
 	if is_instance_valid(player) and player.has_method("heal_fraction"):
 		player.heal_fraction(1.0 / 3.0)
+
+
+func _grant_player_xp() -> void:
+	if not is_instance_valid(player):
+		_find_player()
+	if not is_instance_valid(player) or not player.has_method("gain_xp"):
+		return
+	player.gain_xp(xp_reward)
+	_spawn_feedback("+%d XP" % xp_reward, XP_NUMBER_COLOR, Vector2(0, -96))
 
 
 func _drop_loot() -> void:

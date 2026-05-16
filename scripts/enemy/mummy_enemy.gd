@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const DAMAGE_PICKUP_SCENE := preload("res://scenes/items/damage_pickup.tscn")
+
 @export var max_hp := 60
 @export var move_speed := 72.0
 @export var attack_damage := 12
@@ -10,6 +12,7 @@ extends CharacterBody2D
 @export var display_scale := 3.0
 @export var ai_min_think_time := 0.45
 @export var ai_max_think_time := 1.1
+@export var drops_loot := true
 
 const ATTACK_LOCK_TIME := 0.58
 const ATTACK_HIT_DELAY := 0.28
@@ -204,6 +207,7 @@ func _die() -> void:
 	action_lock = 0.0
 	pending_attack_hit = false
 	hp_bar.visible = false
+	_drop_loot()
 	_heal_player_on_death()
 	_play("death", true)
 	await get_tree().create_timer(DEATH_CLEANUP_TIME).timeout
@@ -215,6 +219,18 @@ func _heal_player_on_death() -> void:
 		_find_player()
 	if is_instance_valid(player) and player.has_method("heal_fraction"):
 		player.heal_fraction(1.0 / 3.0)
+
+
+func _drop_loot() -> void:
+	if not drops_loot:
+		return
+	var loot := DAMAGE_PICKUP_SCENE.instantiate()
+	loot.global_position = global_position
+	var loot_root := get_tree().current_scene.get_node_or_null("Loot") as Node2D
+	if loot_root == null:
+		get_parent().add_child(loot)
+	else:
+		loot_root.add_child(loot)
 
 
 func _find_player() -> void:

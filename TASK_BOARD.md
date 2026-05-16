@@ -156,7 +156,7 @@ Implement one basic attack loop:
 
 ### TASK-006: First Loot And Power Gain
 
-Status: ready
+Status: done
 
 Goal:
 

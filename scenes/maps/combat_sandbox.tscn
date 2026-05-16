@@ -78,6 +78,6 @@ position = Vector2(640, 360)
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 360.0
-offset_bottom = 120.0
+offset_bottom = 150.0
 label_settings = SubResource("LabelSettings_debug")
 text = "Enemies: 0"

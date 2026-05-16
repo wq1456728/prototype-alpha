@@ -64,16 +64,19 @@ func _spawn_mummy(
 func _update_debug_label() -> void:
 	var enemy_count := get_tree().get_nodes_in_group("enemy").size()
 	var hp_text := "?"
+	var damage_text := "?"
 	var facing_text := "?"
 	var action_text := "?"
 	if is_instance_valid(player):
 		var hp_value = player.get("hp")
 		hp_text = str(hp_value) if hp_value != null else "?"
+		if player.has_method("get_current_attack_damage"):
+			damage_text = str(player.get_current_attack_damage())
 		if player.has_method("get_facing_direction"):
 			facing_text = _format_vector(player.get_facing_direction())
 		if player.has_method("get_action_direction"):
 			action_text = _format_vector(player.get_action_direction())
-	debug_label.text = "Enemies: %d\nHP: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, facing_text, action_text]
+	debug_label.text = "Enemies: %d\nHP: %s\nDamage: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, damage_text, facing_text, action_text]
 
 
 func _format_vector(value: Vector2) -> String:

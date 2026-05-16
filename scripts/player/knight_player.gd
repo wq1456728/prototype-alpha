@@ -48,6 +48,7 @@ var locked_velocity := Vector2.ZERO
 var key_was_down := {}
 var hp := MAX_HP
 var dead := false
+var damage_bonus := 0
 var next_light_attack := 1
 var movement_time_since_light_attack := 0.0
 var pending_hit_time := -1.0
@@ -155,7 +156,7 @@ func _start_attack(
 	velocity = Vector2.ZERO
 	action_direction = _valid_direction_or_facing(attack_direction)
 	_set_facing_direction(action_direction)
-	pending_hit_damage = damage
+	pending_hit_damage = damage + damage_bonus
 	pending_hit_time = hit_delay
 	pending_second_hit_time = -1.0
 	pending_forward_range = forward_range
@@ -190,7 +191,7 @@ func _start_shield_charge() -> void:
 	velocity = Vector2.ZERO
 	action_direction = _valid_direction_or_facing(aim_direction)
 	_set_facing_direction(action_direction)
-	pending_hit_damage = SHIELD_CHARGE_DAMAGE
+	pending_hit_damage = SHIELD_CHARGE_DAMAGE + damage_bonus
 	pending_hit_time = SHIELD_CHARGE_HIT_DELAY
 	pending_second_hit_time = SHIELD_CHARGE_SECOND_HIT_DELAY
 	pending_forward_range = SHIELD_CHARGE_FORWARD_RANGE
@@ -248,6 +249,20 @@ func heal_fraction(fraction: float) -> void:
 	var heal_amount := int(round(MAX_HP * fraction))
 	hp = mini(hp + heal_amount, MAX_HP)
 	hp_bar.value = hp
+
+
+func add_damage_bonus(amount: int) -> void:
+	if dead:
+		return
+	damage_bonus += amount
+
+
+func get_damage_bonus() -> int:
+	return damage_bonus
+
+
+func get_current_attack_damage() -> int:
+	return LIGHT_ATTACK_DAMAGE + damage_bonus
 
 
 func _start_hurt(knockback: Vector2) -> void:

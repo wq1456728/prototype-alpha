@@ -87,7 +87,17 @@ Acceptance:
 
 ### TASK-012: Item Drop Roll And Instance Data v1
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 added `data/items/drop_tables.json` with mummy weapon drop definitions and rarity weights.
+- Rarity prefixes, colors, and damage ranges now live in config instead of the enemy script.
+- Enemy drops now call `ItemDatabase.roll_item_instance("mummy_weapon")` to produce concrete `ItemInstance` data.
+- Same item definitions can roll different names, rarity colors, and `stat_modifiers.damage` values.
+- Runtime wrapper validation passed for `tools/debug_combat_sandbox.gd`; drop sampling reported multiple names, all 3 rarities, and varied damage values.
 
 Goal:
 
@@ -114,7 +124,7 @@ Acceptance:
 
 ### TASK-013: Inventory And Equipment UI v1
 
-Status: blocked by TASK-011
+Status: ready
 
 Goal:
 

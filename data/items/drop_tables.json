@@ -1,0 +1,38 @@
+{
+  "rarities": {
+    "normal": {
+      "prefix": "Worn",
+      "damage_min": 6,
+      "damage_max": 9,
+      "color": [0.82, 0.78, 0.68, 1.0]
+    },
+    "magic": {
+      "prefix": "Glimmering",
+      "damage_min": 10,
+      "damage_max": 14,
+      "color": [0.36, 0.64, 1.0, 1.0]
+    },
+    "rare": {
+      "prefix": "Ancient",
+      "damage_min": 15,
+      "damage_max": 20,
+      "color": [1.0, 0.78, 0.25, 1.0]
+    }
+  },
+  "drop_tables": {
+    "mummy_weapon": {
+      "definitions": [
+        "weapon_rusty_short_sword",
+        "weapon_iron_sword",
+        "weapon_bone_axe",
+        "weapon_crystal_sword",
+        "weapon_flame_sword"
+      ],
+      "rarity_weights": {
+        "normal": 0.68,
+        "magic": 0.24,
+        "rare": 0.08
+      }
+    }
+  }
+}

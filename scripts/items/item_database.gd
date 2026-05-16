@@ -1,12 +1,15 @@
 extends RefCounted
 
 const ITEM_DEFINITIONS_PATH := "res://data/items/item_definitions.json"
+const DROP_TABLES_PATH := "res://data/items/drop_tables.json"
 const DEFAULT_RARITY_COLOR := Color(0.82, 0.78, 0.68, 1.0)
 
 static var _loaded := false
 static var _definitions := {}
 static var _equipment_slots := {}
 static var _item_types: Array = []
+static var _rarities := {}
+static var _drop_tables := {}
 
 
 static func get_definition(definition_id: String) -> Dictionary:
@@ -60,6 +63,27 @@ static func make_item_instance(definition_id: String, rarity: String = "normal",
 	return instance
 
 
+static func roll_item_instance(drop_table_id: String) -> Dictionary:
+	_ensure_loaded()
+	var drop_table: Dictionary = _drop_tables.get(drop_table_id, {})
+	if drop_table.is_empty():
+		return {}
+	var definition_ids: Array = drop_table.get("definitions", [])
+	if definition_ids.is_empty():
+		return {}
+	var definition_id := str(definition_ids.pick_random())
+	var rarity := _roll_weighted_key(drop_table.get("rarity_weights", {"normal": 1.0}))
+	var rarity_data: Dictionary = _rarities.get(rarity, _rarities.get("normal", {}))
+	var damage_bonus := randi_range(int(rarity_data.get("damage_min", 0)), int(rarity_data.get("damage_max", 0)))
+	var definition := get_definition(definition_id)
+	var item_id := "%s_%s_%d" % [rarity, definition_id, damage_bonus]
+	return make_item_instance(definition_id, rarity, {"damage": damage_bonus}, {
+		"id": item_id,
+		"name": "%s %s" % [str(rarity_data.get("prefix", "")), str(definition.get("name", definition_id))],
+		"color": rarity_data.get("color", DEFAULT_RARITY_COLOR),
+	})
+
+
 static func normalize_item_instance(item_data: Dictionary) -> Dictionary:
 	if item_data.is_empty():
 		return {}
@@ -108,6 +132,8 @@ static func _ensure_loaded() -> void:
 	_definitions.clear()
 	_equipment_slots.clear()
 	_item_types.clear()
+	_rarities.clear()
+	_drop_tables.clear()
 	var file := FileAccess.open(ITEM_DEFINITIONS_PATH, FileAccess.READ)
 	if file == null:
 		push_error("ItemDatabase failed to open %s" % ITEM_DEFINITIONS_PATH)
@@ -124,6 +150,26 @@ static func _ensure_loaded() -> void:
 	for definition in parsed.get("definitions", []):
 		if definition is Dictionary:
 			_definitions[str(definition.get("id", ""))] = definition.duplicate(true)
+	_load_drop_tables()
+
+
+static func _load_drop_tables() -> void:
+	var file := FileAccess.open(DROP_TABLES_PATH, FileAccess.READ)
+	if file == null:
+		push_error("ItemDatabase failed to open %s" % DROP_TABLES_PATH)
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	if not (parsed is Dictionary):
+		push_error("ItemDatabase failed to parse %s" % DROP_TABLES_PATH)
+		return
+	var rarities: Dictionary = parsed.get("rarities", {})
+	for rarity_id in rarities.keys():
+		var rarity: Dictionary = rarities[rarity_id].duplicate(true)
+		rarity["color"] = _color_from_array(rarity.get("color", [0.82, 0.78, 0.68, 1.0]))
+		_rarities[str(rarity_id)] = rarity
+	var drop_tables: Dictionary = parsed.get("drop_tables", {})
+	for drop_table_id in drop_tables.keys():
+		_drop_tables[str(drop_table_id)] = drop_tables[drop_table_id].duplicate(true)
 
 
 static func _merge_stat_modifiers(base_modifiers, rolled_modifiers: Dictionary) -> Dictionary:
@@ -134,6 +180,30 @@ static func _merge_stat_modifiers(base_modifiers, rolled_modifiers: Dictionary) 
 	for stat_id in rolled_modifiers.keys():
 		merged[str(stat_id)] = int(merged.get(str(stat_id), 0)) + int(rolled_modifiers[stat_id])
 	return merged
+
+
+static func _roll_weighted_key(weights) -> String:
+	if not (weights is Dictionary) or weights.is_empty():
+		return "normal"
+	var total := 0.0
+	for key in weights.keys():
+		total += float(weights[key])
+	var roll := randf() * total
+	var cursor := 0.0
+	for key in weights.keys():
+		cursor += float(weights[key])
+		if roll <= cursor:
+			return str(key)
+	return str(weights.keys()[0])
+
+
+static func _color_from_array(value) -> Color:
+	if value is Array and value.size() >= 3:
+		var alpha := 1.0
+		if value.size() >= 4:
+			alpha = float(value[3])
+		return Color(float(value[0]), float(value[1]), float(value[2]), alpha)
+	return DEFAULT_RARITY_COLOR
 
 
 static func _legacy_definition_id(item_data: Dictionary) -> String:

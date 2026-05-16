@@ -11,6 +11,7 @@ Current planning and implementation rules:
 - [docs/CONTROL_AND_COMBAT.md](docs/CONTROL_AND_COMBAT.md)
 - [docs/ART_PIPELINE.md](docs/ART_PIPELINE.md)
 - [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md)
+- [docs/TASK_002_ASSET_INTEGRATION.md](docs/TASK_002_ASSET_INTEGRATION.md)
 - [ASSET_PROMPT_TEMPLATE.md](ASSET_PROMPT_TEMPLATE.md)
 
 If older notes conflict with these files, the files above win.

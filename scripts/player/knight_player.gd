@@ -1,7 +1,9 @@
 extends CharacterBody2D
 
-const SPRITE_ROOT := "res://assets/sprites/Knight/without_outline"
+const SPRITE_ROOT := "res://assets/sprites/characters/knight"
 const SHIELD_CHARGE_FRAMES_RESOURCE := "res://assets/animations/knight_shield_charge_attack.tres"
+const SPRITE_FRAME_WIDTH := 128
+const SPRITE_FRAME_HEIGHT := 112
 
 const WALK_SPEED := 130.0
 const RUN_SPEED := 220.0
@@ -316,11 +318,13 @@ func _add_frames(
 	frames.set_animation_speed(anim_name, speed)
 	frames.set_animation_loop(anim_name, loops)
 
+	var sheet_path := "%s/class_knight_%s_side.png" % [SPRITE_ROOT, file_prefix]
+	var sheet := load(sheet_path) as Texture2D
+	if sheet == null:
+		return
+
 	for i in range(count):
-		var path := "%s/%s_%02d.png" % [SPRITE_ROOT, file_prefix, i]
-		var texture: Resource = load(path)
-		if texture != null:
-			frames.add_frame(anim_name, texture)
+		frames.add_frame(anim_name, _make_atlas_frame(sheet, i))
 
 
 func _add_frames_from_resource(
@@ -353,8 +357,18 @@ func _add_frame_sequence(
 	frames.set_animation_speed(anim_name, speed)
 	frames.set_animation_loop(anim_name, loops)
 
+	var sheet_path := "%s/class_knight_%s_side.png" % [SPRITE_ROOT, file_prefix]
+	var sheet := load(sheet_path) as Texture2D
+	if sheet == null:
+		return
+
 	for index in sequence:
-		var path := "%s/%s_%02d.png" % [SPRITE_ROOT, file_prefix, index]
-		var texture: Resource = load(path)
-		if texture != null:
-			frames.add_frame(anim_name, texture)
+		frames.add_frame(anim_name, _make_atlas_frame(sheet, index))
+
+
+func _make_atlas_frame(sheet: Texture2D, frame_index: int) -> AtlasTexture:
+	var frame := AtlasTexture.new()
+	frame.atlas = sheet
+	frame.region = Rect2(frame_index * SPRITE_FRAME_WIDTH, 0, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT)
+	frame.filter_clip = true
+	return frame

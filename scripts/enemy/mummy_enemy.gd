@@ -20,6 +20,9 @@ const PLAYER_SOFT_COLLISION_FORCE := 135.0
 const ENEMY_SOFT_COLLISION_DISTANCE := 44.0
 const ENEMY_SOFT_COLLISION_FORCE := 115.0
 const MAX_SOFT_COLLISION_SPEED := 125.0
+const SPRITE_ROOT := "res://assets/sprites/enemies/mummy"
+const SPRITE_FRAME_WIDTH := 64
+const SPRITE_FRAME_HEIGHT := 64
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
@@ -230,8 +233,18 @@ func _add_frames(frames: SpriteFrames, anim_name: StringName, prefix: String, co
 	frames.add_animation(anim_name)
 	frames.set_animation_speed(anim_name, speed)
 	frames.set_animation_loop(anim_name, loops)
+	var sheet_path := "%s/enemy_mummy_%s_side.png" % [SPRITE_ROOT, prefix]
+	var sheet := load(sheet_path) as Texture2D
+	if sheet == null:
+		return
+
 	for i in range(count):
-		var path := "res://assets/sprites/Enemy/Mummy/%s_%02d.png" % [prefix, i]
-		var texture: Resource = load(path)
-		if texture != null:
-			frames.add_frame(anim_name, texture)
+		frames.add_frame(anim_name, _make_atlas_frame(sheet, i))
+
+
+func _make_atlas_frame(sheet: Texture2D, frame_index: int) -> AtlasTexture:
+	var frame := AtlasTexture.new()
+	frame.atlas = sheet
+	frame.region = Rect2(frame_index * SPRITE_FRAME_WIDTH, 0, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT)
+	frame.filter_clip = true
+	return frame

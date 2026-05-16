@@ -87,7 +87,14 @@ Acceptance:
 
 ### TASK-008: Runtime Smoke Test Script
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit:
+
+- 2026-05-16 added a narrow CombatSandbox structure smoke test.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`.
 
 Goal:
 

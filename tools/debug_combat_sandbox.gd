@@ -1,6 +1,7 @@
 extends SceneTree
 
 const SCENE_PATH := "res://scenes/maps/combat_sandbox.tscn"
+const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 
 
 func _initialize() -> void:
@@ -25,6 +26,10 @@ func _run() -> void:
 	var loot_root := current_scene.get_node_or_null("Loot")
 	if player == null or enemies.is_empty() or debug_label == null or inventory_panel == null or world_entities_root == null or loot_root == null:
 		print("combat_sandbox FAIL player=%s enemies=%d debug=%s inventory=%s world_entities=%s loot=%s" % [player != null, enemies.size(), debug_label != null, inventory_panel != null, world_entities_root != null, loot_root != null])
+		quit(1)
+		return
+	if ITEM_DATABASE.get_definition("weapon_rusty_short_sword").is_empty() or ITEM_DATABASE.get_equipment_slot("weapon").is_empty():
+		print("combat_sandbox FAIL item_database_not_loaded")
 		quit(1)
 		return
 	if player.get_parent() != world_entities_root:
@@ -206,11 +211,11 @@ func _validate_drop_roll(enemy: Node) -> bool:
 
 
 func _validate_item_shape(item: Dictionary) -> bool:
-	var required := ["type", "id", "name", "rarity", "damage_bonus", "icon", "color"]
+	var required := ["schema", "instance_id", "definition_id", "item_type", "type", "id", "name", "rarity", "damage_bonus", "icon", "color", "equip_slot", "stat_modifiers"]
 	for key in required:
 		if not item.has(key):
 			return false
-	return str(item["type"]) == "weapon" and int(item["damage_bonus"]) > 0 and not str(item["icon"]).is_empty()
+	return str(item["schema"]) == "ItemInstance" and str(item["type"]) == "weapon" and str(item["definition_id"]).begins_with("weapon_") and int(item["damage_bonus"]) > 0 and not str(item["icon"]).is_empty()
 
 
 func _filled_bag_count(player: Node) -> int:

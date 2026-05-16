@@ -4,6 +4,7 @@ const LIGHT_ATTACK_SFX := preload("res://assets/audio/sfx/player_attack_light_sl
 const HEAVY_ATTACK_SFX := preload("res://assets/audio/sfx/player_attack_heavy_slash.mp3")
 const SHIELD_IMPACT_SFX := preload("res://assets/audio/sfx/player_shield_impact.mp3")
 const FOOTSTEPS_SFX := preload("res://assets/audio/sfx/player_footsteps_run_loop.mp3")
+const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const SPRITE_ROOT := "res://assets/sprites/characters/knight"
 const SHIELD_CHARGE_FRAMES_RESOURCE := "res://assets/animations/knight_shield_charge_attack.tres"
 const SPRITE_FRAME_WIDTH := 96
@@ -73,6 +74,7 @@ var current_xp := 0
 var xp_to_next_level := LEVEL_1_XP_TO_NEXT
 var level_damage_bonus := 0
 var inventory_items: Array[Dictionary] = []
+var equipment_slots := {}
 var equipped_weapon: Dictionary = {}
 var item_cursor_blocks_attacks := false
 var attack_input_suppression_time := 0.0
@@ -333,12 +335,16 @@ func heal_fraction(fraction: float) -> void:
 
 
 func pickup_weapon_item(item_data: Dictionary) -> bool:
+	return pickup_item(item_data)
+
+
+func pickup_item(item_data: Dictionary) -> bool:
 	if dead:
 		return false
 	var slot_index := _first_empty_bag_slot()
 	if slot_index < 0:
 		return false
-	inventory_items[slot_index] = item_data.duplicate(true)
+	inventory_items[slot_index] = ITEM_DATABASE.normalize_item_instance(item_data)
 	return true
 
 
@@ -395,11 +401,12 @@ func equip_bag_slot(slot_index: int) -> bool:
 	var item := inventory_items[slot_index]
 	if item.is_empty():
 		return false
-	if str(item.get("type", "")) != "weapon":
+	var equip_slot := str(item.get("equip_slot", "weapon"))
+	if not _can_use_equipment_slot(equip_slot):
 		return false
-	var previous_weapon := equipped_weapon.duplicate(true)
-	equipped_weapon = item.duplicate(true)
-	inventory_items[slot_index] = previous_weapon
+	var previous_item: Dictionary = equipment_slots[equip_slot].duplicate(true)
+	equipment_slots[equip_slot] = ITEM_DATABASE.normalize_item_instance(item)
+	inventory_items[slot_index] = previous_item
 	_refresh_equipment_stats()
 	return true
 
@@ -441,22 +448,36 @@ func place_bag_slot(slot_index: int, item_data: Dictionary) -> Dictionary:
 	if not _is_valid_bag_slot(slot_index) or item_data.is_empty():
 		return item_data
 	var displaced := inventory_items[slot_index].duplicate(true)
-	inventory_items[slot_index] = item_data.duplicate(true)
+	inventory_items[slot_index] = ITEM_DATABASE.normalize_item_instance(item_data)
 	return displaced
 
 
 func take_equipped_weapon() -> Dictionary:
-	var item := equipped_weapon.duplicate(true)
-	equipped_weapon = {}
+	var item := take_equipment_slot("weapon")
+	return item
+
+
+func take_equipment_slot(slot_id: String) -> Dictionary:
+	if not _can_use_equipment_slot(slot_id):
+		return {}
+	var item: Dictionary = equipment_slots[slot_id].duplicate(true)
+	equipment_slots[slot_id] = {}
 	_refresh_equipment_stats()
 	return item
 
 
 func place_equipped_weapon(item_data: Dictionary) -> Dictionary:
-	if item_data.is_empty() or str(item_data.get("type", "")) != "weapon":
+	return place_equipment_slot("weapon", item_data)
+
+
+func place_equipment_slot(slot_id: String, item_data: Dictionary) -> Dictionary:
+	if item_data.is_empty() or not _can_use_equipment_slot(slot_id):
 		return item_data
-	var displaced := equipped_weapon.duplicate(true)
-	equipped_weapon = item_data.duplicate(true)
+	var normalized := ITEM_DATABASE.normalize_item_instance(item_data)
+	if not ITEM_DATABASE.can_equip_in_slot(normalized, slot_id):
+		return item_data
+	var displaced: Dictionary = equipment_slots[slot_id].duplicate(true)
+	equipment_slots[slot_id] = normalized
 	_refresh_equipment_stats()
 	return displaced
 
@@ -480,6 +501,14 @@ func _initialize_inventory() -> void:
 	inventory_items.clear()
 	for _i in range(BAG_SLOT_COUNT):
 		inventory_items.append({})
+	_initialize_equipment_slots()
+
+
+func _initialize_equipment_slots() -> void:
+	equipment_slots.clear()
+	for slot_id in ITEM_DATABASE.get_equipment_slot_ids():
+		equipment_slots[slot_id] = {}
+	equipped_weapon = equipment_slots.get("weapon", {})
 
 
 func _first_empty_bag_slot() -> int:
@@ -505,7 +534,20 @@ func _handle_inventory_input() -> void:
 
 
 func _refresh_equipment_stats() -> void:
-	damage_bonus = int(equipped_weapon.get("damage_bonus", 0))
+	damage_bonus = 0
+	for slot_id in equipment_slots.keys():
+		var item: Dictionary = equipment_slots[slot_id]
+		if item.is_empty():
+			continue
+		damage_bonus += ITEM_DATABASE.get_stat_modifier_total(item, "damage")
+	equipped_weapon = equipment_slots.get("weapon", {})
+
+
+func _can_use_equipment_slot(slot_id: String) -> bool:
+	if not equipment_slots.has(slot_id):
+		return false
+	var slot := ITEM_DATABASE.get_equipment_slot(slot_id)
+	return bool(slot.get("active", false))
 
 
 func _start_hurt(knockback: Vector2) -> void:

@@ -2,6 +2,7 @@ extends Area2D
 
 const FLOATING_FEEDBACK_SCENE := preload("res://scenes/ui/floating_feedback.tscn")
 const PICKUP_SFX := preload("res://assets/audio/sfx/loot_pickup_coin.mp3")
+const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const PICKUP_TEXT_COLOR := Color(0.55, 1.0, 0.48, 1.0)
 const FULL_TEXT_COLOR := Color(1.0, 0.48, 0.34, 1.0)
 
@@ -15,11 +16,13 @@ func _ready() -> void:
 	add_to_group("loot")
 	if item_data.is_empty():
 		item_data = _default_weapon_item()
+	else:
+		item_data = ITEM_DATABASE.normalize_item_instance(item_data)
 	_apply_visual()
 
 
 func setup_item(data: Dictionary) -> void:
-	item_data = data.duplicate(true)
+	item_data = ITEM_DATABASE.normalize_item_instance(data)
 	if is_inside_tree():
 		_apply_visual()
 
@@ -70,12 +73,4 @@ func _spawn_pickup_sfx() -> void:
 
 
 func _default_weapon_item() -> Dictionary:
-	return {
-		"type": "weapon",
-		"id": "normal_rusty_short_sword_8",
-		"name": "Worn Short Sword",
-		"rarity": "normal",
-		"damage_bonus": 8,
-		"icon": "res://assets/sprites/items/item_weapon_rusty_short_sword_icon.png",
-		"color": Color(0.82, 0.78, 0.68, 1.0),
-	}
+	return ITEM_DATABASE.make_item_instance("weapon_rusty_short_sword", "normal", {"damage": 8}, {"name": "Worn Short Sword"})

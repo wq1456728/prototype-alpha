@@ -40,7 +40,7 @@ kill enemy
 
 ## Active Task
 
-### TASK-014: XP And Level Growth v1
+### TASK-011: Item System Skeleton
 
 Status: done
 
@@ -48,54 +48,156 @@ Task agent status: done
 
 Audit Status:
 
-- 2026-05-16 enemies now grant tunable XP on death.
-- Player now tracks level, current XP, XP to next level, and level damage bonus.
-- Level up uses a tiny tunable curve and increases visible attack damage.
-- Combat sandbox debug text and inventory panel show level and XP.
-- Runtime validation added for kill XP gain and level-up damage growth.
-- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
+- 2026-05-16 added `data/items/item_definitions.json` with item types, equipment slots, and weapon definitions.
+- Added `ItemDatabase` loader/lookup helpers for item definitions, equipment slots, and normalized `ItemInstance` dictionaries.
+- Player inventory now stores item instances and equipment uses generic equipment slots with weapon active now.
+- Equipped stats are applied through reusable `stat_modifiers.damage` while preserving current attack damage UI.
+- Existing ground pickup, cursor item, equip, swap, and drop flows remain compatible.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd` and `tools/debug_combat_sandbox.gd`.
 
 Goal:
 
-Add the first non-item growth layer.
+Refactor the current loot/equipment prototype into a real minimal item-system skeleton. Content can stay tiny, but the architecture must be usable for later Diablo-like expansion.
 
 Focus on:
 
-- Enemies grant XP on death.
-- Player has level and current XP.
-- Level up increases one useful stat, such as max HP or base damage.
-- Show level and XP in simple sandbox UI.
-- Keep XP curve tiny and tunable.
+- Use the name `Item System`, not `Equipment System`; equipment is only one item-system use case.
+- Add data-driven item definitions from simple config files, preferably JSON under `data/items/`.
+- Do not use SQL or an external database for this demo stage.
+- Separate static `ItemDefinition` from dropped/owned `ItemInstance`.
+- Add a small `ItemDatabase` loader/lookup layer.
+- Add item categories/types that can grow later: weapon, armor, accessory, consumable, material, quest.
+- Implement only weapon behavior now, but do not hardcode the system as weapon-only.
+- Add equipment slot definitions that can grow later: weapon, chest, accessory. Only weapon must be active now.
+- Add stat-modifier structure for item effects, starting with damage.
+- Preserve current sandbox behavior where possible, but remove direct-stat pickup assumptions.
+- Keep implementation local and simple; no save/load, stash, vendor, crafting, durability, sockets, sets, or legendary logic.
 
 Acceptance:
 
-- Player gains XP by killing enemies.
-- Player can level up in the sandbox.
-- Level up changes a visible stat.
+- Item definitions are loaded from config, not only hardcoded in a pickup script.
+- Dropped and inventory items are represented as item instances referencing definitions.
+- Inventory can store item instances without knowing only about weapons.
+- Equipment can equip a weapon item instance through a generic slot path.
+- Equipped item stats affect player damage through a reusable stat application path.
+- Skeleton has clear extension points for armor/accessory/consumable without rewriting the core.
 - Completed task entry includes `Task agent status: done`.
 
 ## Backlog
 
-### TASK-015: Skill Unlock v1
+### TASK-012: Item Drop Roll And Instance Data v1
 
 Status: ready
 
 Goal:
 
-Unlock one new ability through vertical progression.
+Make enemy drops use the item-system skeleton instead of fixed item results.
 
 Focus on:
 
-- Unlock one existing or simple new ability at a low level or sandbox objective.
-- Prefer a knight ability already close to current code, such as shield charge, dash strike, or a small area slam.
-- Show locked/unlocked state in simple UI.
-- Do not build a skill tree.
+- Define a tiny item-definition table with a few weapon bases.
+- Define rarity config: normal, magic, rare.
+- Roll item instance rarity and stat values from config.
+- Use Diablo-like principles at small scale: base item + rarity + rolled stats = concrete dropped item.
+- Keep affixes simple; a single rolled damage modifier is enough for now.
+- Keep drop tables small and readable, but make the shape expandable by enemy type or area later.
+- World item display should use item name and rarity color.
+- Do not build full prefix/suffix pools yet.
 
 Acceptance:
 
-- Player starts without the ability or with it visibly locked.
-- Progression unlocks the ability.
-- The ability changes combat behavior.
+- Enemy drops create rolled `ItemInstance` data.
+- Same item definition can produce different concrete drops.
+- Rarity changes item display and stat range.
+- Drop logic can later add more item types without replacing the whole path.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-013: Inventory And Equipment UI v1
+
+Status: blocked by TASK-011
+
+Goal:
+
+Make the item-system skeleton visible and usable through a small but real inventory/equipment UI.
+
+Focus on:
+
+- Press `B` to toggle inventory visibility.
+- Inventory starts hidden by default.
+- Show 8-12 bag slots backed by inventory item instances.
+- Show equipment slots in a structure that can grow: weapon active now, chest/accessory can be disabled or placeholder.
+- Support Diablo-like mouse item handling at minimum: click ground item, hold item on cursor, place in bag, equip, swap, and drop back to world.
+- Cursor-held item should block combat input.
+- Show selected/hovered item name, rarity, type, slot, and rolled stats.
+- Show current attack damage and equipped weapon.
+- Keep UI functional, not final art.
+- Do not build stash, vendor, sorting, item comparison, or drag polish yet.
+
+Implementation Notes:
+
+- 2026-05-16 sandbox pre-work: player, enemies, and world loot were moved under one `WorldEntities` y-sort parent so item/equipment playtests use foot-position draw order instead of fixed player-over-monster layering.
+
+Acceptance:
+
+- Player can open/close inventory with `B`.
+- Player can pick a world item into cursor/bag.
+- Player can equip a weapon through the generic equipment slot path.
+- Player can swap/drop items without item loss.
+- UI proves the item system, not a weapon-only shortcut.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-014: Progression System Skeleton
+
+Status: ready
+
+Goal:
+
+Refactor XP/level growth into a small progression-system skeleton that can later support skill points, stat points, and level-gated systems.
+
+Focus on:
+
+- Keep current XP gain and level-up behavior if it works.
+- Separate progression state from direct combat code where practical.
+- Track level, current XP, XP to next level, and available skill points.
+- Use a small tunable progression config/table for XP curve and rewards.
+- Level-up should award at least one future-use resource, such as skill point.
+- A small base stat gain is acceptable, but avoid making level-up only a hardcoded damage bump.
+- Show level, XP, and available skill points in the sandbox UI.
+- Do not build full stat allocation yet.
+
+Acceptance:
+
+- Enemy kills grant XP through a reusable progression path.
+- Player can level up.
+- Level-up awards skill points or another explicit progression resource.
+- Combat stats can still react to level if configured.
+- System can feed the later skill tree without rewriting XP logic.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-015: Minimal Skill Tree Skeleton
+
+Status: blocked by TASK-014
+
+Goal:
+
+Create a real minimal skill-tree structure with only a few low-tier nodes implemented or configured.
+
+Focus on:
+
+- Add data-driven skill definitions, preferably under `data/skills/`.
+- Support skill id, name, description, skill type, required level, required skill ids, max rank, current rank, unlock cost, and active/passive flag.
+- Create a tiny knight/paladin skill tree config with 1-2 low-tier skills and optional placeholder locked nodes.
+- Implement only one actual new or gated ability if needed; structure matters more than content volume.
+- Skill points from progression should unlock or rank up skills.
+- UI can be minimal: a small panel/list/tree, not a final Diablo II-style visual tree yet.
+- Do not build a full skill tree UI, respec system, class-wide tree library, or dozens of skills.
+
+Acceptance:
+
+- Skills are defined as data, not only `if level >= X`.
+- Player can spend a skill point to unlock or rank up a configured skill.
+- Skill prerequisites/level requirements exist in the structure.
+- At least one unlocked skill changes combat behavior.
 - Completed task entry includes `Task agent status: done`.
 
 ### TASK-016: Sandbox Objective Flow
@@ -104,21 +206,22 @@ Status: blocked by TASK-015
 
 Goal:
 
-Turn the sandbox into a short vertical-slice objective sequence.
+Turn the sandbox into a short vertical-slice objective sequence using the real item and progression skeletons.
 
 Focus on:
 
 - Start with a clear objective.
 - Require killing enemies.
 - Require picking up and equipping a weapon.
-- Require reaching a level or unlocking the first skill.
+- Require gaining XP and leveling up.
+- Require unlocking or using the first skill-tree skill.
 - End with defeating a stronger enemy or completing a simple objective.
 - Keep it in the sandbox; do not build the outdoor map yet.
 
 Acceptance:
 
 - Sandbox has a beginning, middle, and completion state.
-- The player experiences combat, loot, equipment, XP, and skill unlock in one flow.
+- The player experiences combat, item drop, inventory, equipment, XP, skill point, skill unlock, and completion in one flow.
 - Completed task entry includes `Task agent status: done`.
 
 ### TASK-017: First Outdoor Greybox Plan
@@ -132,7 +235,7 @@ Plan the first outdoor map only after the vertical sandbox loop is proven.
 Focus on:
 
 - Translate the sandbox objective flow into a small outdoor route.
-- Define spawn/camp, combat zones, first item drop moment, level-up moment, and dungeon entrance.
+- Define spawn/camp, combat zones, first item drop moment, level-up moment, first skill unlock moment, and dungeon entrance.
 - Keep this as a plan before implementation.
 
 Acceptance:
@@ -338,97 +441,6 @@ Acceptance:
 - Loot pickup has a simple pickup sound.
 - Sound volume is not painful.
 - Audio files are placed in a clear `assets/audio/sfx/` structure.
-- Completed task entry includes `Task agent status: done`.
-
-### TASK-011: Minimal Inventory And Equipment Proof
-
-Status: done
-
-Task agent status: done
-
-Audit Status:
-
-- 2026-05-16 implemented the first equipment loop.
-- Enemy death now drops a visible weapon item instead of direct-stat damage pickup.
-- Player pickup adds the weapon to a 10-slot bag and does not immediately change attack damage.
-- Equipping the weapon from the bag updates attack damage from 24 to 32 in the sandbox validation.
-- CombatSandbox now shows equipped weapon, current damage, and bag slots using accepted item/UI icons.
-- Runtime wrapper validation previously passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-- 2026-05-16 follow-up fixed the `current_scene` timing issue in smoke/debug scripts; runtime validation is reliable again.
-
-Goal:
-
-Replace the temporary direct-stat pickup with the smallest Diablo-like item loop: enemy drops an item, player picks it into a bag, player equips it, and combat stats change.
-
-Acceptance:
-
-- Enemy can drop a weapon item.
-- Player can pick the weapon into a small bag.
-- Player can equip the weapon.
-- Equipped weapon changes attack damage.
-- The current equipped weapon and damage value are visible.
-- The implementation remains small enough to replace or extend later.
-- Completed task entry includes `Task agent status: done`.
-
-### TASK-012: Item Data And Drop Roll v1
-
-Status: done
-
-Task agent status: done
-
-Audit Status:
-
-- 2026-05-16 replaced the fixed weapon drop with generated item data.
-- Weapon drops now roll name, rarity, damage bonus, icon, and rarity color.
-- The small rarity set is `normal`, `magic`, and `rare`, with tunable drop chances and damage ranges.
-- Drop roll validation sampled 13 names, 3 rarities, and 12 damage values with a fixed seed.
-- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-- 2026-05-16 audit rerun confirmed: `debug_combat_sandbox.gd` reports 13 names, 3 rarities, and 12 damage values.
-
-Goal:
-
-Replace fixed damage pickup behavior with simple generated weapon item data.
-
-Acceptance:
-
-- Enemy drops produce item data, not only a fixed pickup.
-- Different drops can have different names, rarity colors, and damage values.
-- Implementation remains small and local to the current sandbox loop.
-- Completed task entry includes `Task agent status: done`.
-
-### TASK-013: Inventory UI Pass 1
-
-Status: done
-
-Task agent status: done
-
-Audit Status:
-
-- 2026-05-16 inventory now starts hidden and toggles with `B`.
-- Bag UI shows 10 slots, current equipped weapon, current attack damage, and selected item details.
-- Selecting a bag slot shows item name, rarity, and damage bonus.
-- Selected weapon can be equipped from the UI through the Equip button; number-key equip still works.
-- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-- 2026-05-16 follow-up requirement added: current implementation is not enough for Diablo II-like mouse item handling; TASK-013 should be extended before treating the inventory UI as final for the demo loop.
-- 2026-05-16 follow-up completed: ground items now require left-click pickup, open inventory picks items onto the cursor, bag/equipment clicks support cursor-held swapping, cursor-held items block attacks, and cursor-held items can be dropped back into the world.
-- 2026-05-16 input-priority fix: world item left-click handling moved earlier in the input chain so pickup can preempt player attack polling; inventory UI clicks also suppress attack input.
-- Runtime wrapper validation passed again for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
-- 2026-05-16 audit rerun confirmed: inventory starts hidden, cursor item blocks attacks, ground-to-cursor, cursor-to-bag, bag-to-cursor, cursor-equip, equipped-to-cursor, cursor-drop, and dropped-ground-to-bag paths pass.
-
-Goal:
-
-Make the minimum bag/equipment flow visible and usable.
-
-Acceptance:
-
-- Pressing `B` shows and hides the inventory.
-- Player can see what is in the bag.
-- Player can see equipped weapon.
-- Player can equip a weapon and see damage update.
-- Player must click ground items to pick them up.
-- Player can hold an item on the cursor and cannot attack while holding it.
-- Player can place, equip, swap, and drop cursor-held items without item loss.
-- UI is small enough for the combat sandbox.
 - Completed task entry includes `Task agent status: done`.
 
 ## Agent Rules

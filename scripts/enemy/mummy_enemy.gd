@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 const WEAPON_PICKUP_SCENE := preload("res://scenes/items/weapon_pickup.tscn")
 const FLOATING_FEEDBACK_SCENE := preload("res://scenes/ui/floating_feedback.tscn")
+const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const HIT_IMPACT_SFX := preload("res://assets/audio/sfx/enemy_hit_impact.mp3")
 const DEATH_SFX := preload("res://assets/audio/sfx/enemy_mummy_death.mp3")
 
@@ -38,26 +39,31 @@ const XP_NUMBER_COLOR := Color(0.45, 0.78, 1.0, 1.0)
 const WEAPON_BASES := [
 	{
 		"id": "rusty_short_sword",
+		"definition_id": "weapon_rusty_short_sword",
 		"name": "Short Sword",
 		"icon": "res://assets/sprites/items/item_weapon_rusty_short_sword_icon.png",
 	},
 	{
 		"id": "iron_sword",
+		"definition_id": "weapon_iron_sword",
 		"name": "Iron Sword",
 		"icon": "res://assets/sprites/items/item_weapon_iron_sword_icon.png",
 	},
 	{
 		"id": "bone_axe",
+		"definition_id": "weapon_bone_axe",
 		"name": "Bone Axe",
 		"icon": "res://assets/sprites/items/item_weapon_bone_axe_icon.png",
 	},
 	{
 		"id": "crystal_sword",
+		"definition_id": "weapon_crystal_sword",
 		"name": "Crystal Sword",
 		"icon": "res://assets/sprites/items/item_weapon_crystal_sword_icon.png",
 	},
 	{
 		"id": "flame_sword",
+		"definition_id": "weapon_flame_sword",
 		"name": "Flame Sword",
 		"icon": "res://assets/sprites/items/item_weapon_flame_sword_icon.png",
 	},
@@ -324,15 +330,11 @@ func _make_weapon_drop() -> Dictionary:
 	var base: Dictionary = WEAPON_BASES.pick_random()
 	var damage_bonus := randi_range(int(rarity_data["damage_min"]), int(rarity_data["damage_max"]))
 	var item_id := "%s_%s_%d" % [rarity, str(base["id"]), damage_bonus]
-	return {
-		"type": "weapon",
+	return ITEM_DATABASE.make_item_instance(str(base["definition_id"]), rarity, {"damage": damage_bonus}, {
 		"id": item_id,
 		"name": "%s %s" % [str(rarity_data["prefix"]), str(base["name"])],
-		"rarity": rarity,
-		"damage_bonus": damage_bonus,
-		"icon": str(base["icon"]),
 		"color": rarity_data["color"],
-	}
+	})
 
 
 func _roll_weapon_rarity() -> String:

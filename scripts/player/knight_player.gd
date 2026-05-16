@@ -422,6 +422,17 @@ func get_equipped_weapon() -> Dictionary:
 	return equipped_weapon.duplicate(true)
 
 
+func get_equipment_items() -> Dictionary:
+	var items := {}
+	for slot_id in equipment_slots.keys():
+		items[slot_id] = equipment_slots[slot_id].duplicate(true)
+	return items
+
+
+func get_equipment_slot_item(slot_id: String) -> Dictionary:
+	return equipment_slots.get(slot_id, {}).duplicate(true)
+
+
 func get_equipped_weapon_name() -> String:
 	if equipped_weapon.is_empty():
 		return "None"

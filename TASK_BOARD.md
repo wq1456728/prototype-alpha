@@ -124,7 +124,17 @@ Acceptance:
 
 ### TASK-013: Inventory And Equipment UI v1
 
-Status: ready
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 inventory UI now displays item type, target equipment slot, and stat damage from item instances.
+- Equipment UI shows the reusable slot structure: weapon active, chest/accessory reserved and locked for now.
+- Player exposes generic equipment-slot accessors while preserving existing weapon-slot interaction.
+- Existing Diablo-like cursor pickup, bag placement, equip, swap, drop, and attack-block flows still pass.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd` and `tools/debug_combat_sandbox.gd`.
 
 Goal:
 

@@ -32,11 +32,14 @@ var equipment_slot_highlight: ColorRect
 var equipment_icon: TextureRect
 var equipment_name_label: Label
 var equipment_damage_label: Label
+var equipment_slots_label: Label
 var inventory_slot_icons: Array[TextureRect] = []
 var inventory_slot_bonus_labels: Array[Label] = []
 var inventory_slot_highlights: Array[ColorRect] = []
 var selected_name_label: Label
 var selected_rarity_label: Label
+var selected_type_label: Label
+var selected_slot_label: Label
 var selected_damage_label: Label
 var progression_level_label: Label
 var progression_xp_label: Label
@@ -229,7 +232,7 @@ func _build_inventory_ui() -> void:
 	inventory_panel = Control.new()
 	inventory_panel.name = "InventoryPanel"
 	inventory_panel.position = Vector2(640, 16)
-	inventory_panel.size = Vector2(610, 210)
+	inventory_panel.size = Vector2(610, 240)
 	inventory_panel.visible = false
 	debug_canvas.add_child(inventory_panel)
 
@@ -242,7 +245,7 @@ func _build_inventory_ui() -> void:
 	var title := _make_label("Equipment", Vector2(10, 8), Vector2(150, 20), 15, LABEL_COLOR)
 	inventory_panel.add_child(title)
 
-	var bag_title := _make_label("Bag", Vector2(10, 72), Vector2(120, 20), 15, LABEL_COLOR)
+	var bag_title := _make_label("Bag", Vector2(10, 104), Vector2(120, 20), 15, LABEL_COLOR)
 	inventory_panel.add_child(bag_title)
 
 	var equip_slot := Control.new()
@@ -278,6 +281,8 @@ func _build_inventory_ui() -> void:
 	inventory_panel.add_child(equipment_name_label)
 	equipment_damage_label = _make_label("Damage: ?", Vector2(68, 52), Vector2(180, 20), 14, LABEL_COLOR)
 	inventory_panel.add_child(equipment_damage_label)
+	equipment_slots_label = _make_label("Slots: Weapon active, Chest/Accessory locked", Vector2(68, 73), Vector2(245, 20), 12, EMPTY_LABEL_COLOR)
+	inventory_panel.add_child(equipment_slots_label)
 
 	var selected_title := _make_label("Selected", Vector2(330, 8), Vector2(120, 20), 15, LABEL_COLOR)
 	inventory_panel.add_child(selected_title)
@@ -285,14 +290,18 @@ func _build_inventory_ui() -> void:
 	inventory_panel.add_child(selected_name_label)
 	selected_rarity_label = _make_label("Rarity: -", Vector2(330, 52), Vector2(150, 20), 14, EMPTY_LABEL_COLOR)
 	inventory_panel.add_child(selected_rarity_label)
-	selected_damage_label = _make_label("Damage Bonus: -", Vector2(330, 73), Vector2(170, 20), 14, LABEL_COLOR)
+	selected_type_label = _make_label("Type: -", Vector2(330, 73), Vector2(170, 20), 13, LABEL_COLOR)
+	inventory_panel.add_child(selected_type_label)
+	selected_slot_label = _make_label("Slot: -", Vector2(330, 94), Vector2(170, 20), 13, LABEL_COLOR)
+	inventory_panel.add_child(selected_slot_label)
+	selected_damage_label = _make_label("Stat: -", Vector2(330, 115), Vector2(170, 20), 13, LABEL_COLOR)
 	inventory_panel.add_child(selected_damage_label)
 
-	var progression_title := _make_label("Progression", Vector2(330, 98), Vector2(140, 20), 15, LABEL_COLOR)
+	var progression_title := _make_label("Progression", Vector2(330, 142), Vector2(140, 20), 15, LABEL_COLOR)
 	inventory_panel.add_child(progression_title)
-	progression_level_label = _make_label("Level: 1", Vector2(330, 121), Vector2(140, 20), 14, LABEL_COLOR)
+	progression_level_label = _make_label("Level: 1", Vector2(330, 164), Vector2(140, 20), 14, LABEL_COLOR)
 	inventory_panel.add_child(progression_level_label)
-	progression_xp_label = _make_label("XP: 0 / 40", Vector2(330, 142), Vector2(160, 20), 14, LABEL_COLOR)
+	progression_xp_label = _make_label("XP: 0 / 40", Vector2(330, 185), Vector2(160, 20), 14, LABEL_COLOR)
 	inventory_panel.add_child(progression_xp_label)
 
 	equip_button = Button.new()
@@ -303,12 +312,12 @@ func _build_inventory_ui() -> void:
 	equip_button.pressed.connect(_equip_selected_slot)
 	inventory_panel.add_child(equip_button)
 
-	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 168), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
+	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 210), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
 	inventory_panel.add_child(cursor_status_label)
 
 	for i in range(10):
 		var slot := Control.new()
-		slot.position = Vector2(10 + i * 58, 94)
+		slot.position = Vector2(10 + i * 58, 126)
 		slot.size = SLOT_SIZE
 		inventory_panel.add_child(slot)
 		_add_slot_background(slot, INVENTORY_SLOT_TEXTURE)
@@ -394,7 +403,7 @@ func _update_inventory_ui() -> void:
 			inventory_slot_bonus_labels[i].text = ""
 		inventory_slot_highlights[i].visible = i == selected_slot_index
 	_update_selected_item_details(items)
-	equipment_slot_highlight.visible = not cursor_item.is_empty() and str(cursor_item.get("type", "")) == "weapon"
+	equipment_slot_highlight.visible = not cursor_item.is_empty() and str(cursor_item.get("equip_slot", "")) == "weapon"
 
 
 func _add_slot_background(parent: Control, texture: Texture2D) -> void:
@@ -451,7 +460,7 @@ func _equip_selected_slot() -> void:
 func _update_selected_item_details(items: Array) -> void:
 	if not cursor_item.is_empty():
 		_set_item_detail_labels(cursor_item, "Cursor")
-		equip_button.disabled = str(cursor_item.get("type", "")) != "weapon"
+		equip_button.disabled = str(cursor_item.get("equip_slot", "")) != "weapon"
 		cursor_status_label.text = "Cursor: %s" % str(cursor_item.get("name", "Item"))
 		cursor_status_label.add_theme_color_override("font_color", _item_color(cursor_item))
 		return
@@ -461,7 +470,9 @@ func _update_selected_item_details(items: Array) -> void:
 		selected_name_label.add_theme_color_override("font_color", LABEL_COLOR)
 		selected_rarity_label.text = "Rarity: -"
 		selected_rarity_label.add_theme_color_override("font_color", EMPTY_LABEL_COLOR)
-		selected_damage_label.text = "Damage Bonus: -"
+		selected_type_label.text = "Type: -"
+		selected_slot_label.text = "Slot: -"
+		selected_damage_label.text = "Stat: -"
 		equip_button.disabled = true
 		cursor_status_label.text = "Cursor: Empty"
 		cursor_status_label.add_theme_color_override("font_color", EMPTY_LABEL_COLOR)
@@ -479,7 +490,9 @@ func _set_item_detail_labels(item: Dictionary, source_label: String) -> void:
 	selected_name_label.add_theme_color_override("font_color", rarity_color)
 	selected_rarity_label.text = "Rarity: %s" % rarity.capitalize()
 	selected_rarity_label.add_theme_color_override("font_color", rarity_color)
-	selected_damage_label.text = "Damage Bonus: +%d" % int(item.get("damage_bonus", 0))
+	selected_type_label.text = "Type: %s" % str(item.get("item_type", item.get("type", "-"))).capitalize()
+	selected_slot_label.text = "Slot: %s" % str(item.get("equip_slot", "-")).capitalize()
+	selected_damage_label.text = "Stat Damage: +%d" % int(item.get("damage_bonus", 0))
 
 
 func _item_color(item: Dictionary) -> Color:

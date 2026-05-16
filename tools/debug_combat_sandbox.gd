@@ -32,6 +32,10 @@ func _run() -> void:
 		print("combat_sandbox FAIL item_database_not_loaded")
 		quit(1)
 		return
+	if not player.has_method("get_equipment_items") or not player.call("get_equipment_items").has("weapon"):
+		print("combat_sandbox FAIL generic_equipment_slots_missing")
+		quit(1)
+		return
 	if player.get_parent() != world_entities_root:
 		print("combat_sandbox FAIL player_parent=%s world_entities=%s" % [player.get_parent().name, world_entities_root.name])
 		quit(1)

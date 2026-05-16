@@ -141,7 +141,7 @@ Implement the frozen facing rules:
 
 ### TASK-005: Basic Hit Loop
 
-Status: ready
+Status: done
 
 Goal:
 
@@ -156,7 +156,7 @@ Implement one basic attack loop:
 
 ### TASK-006: First Loot And Power Gain
 
-Status: blocked by TASK-005
+Status: ready
 
 Goal:
 

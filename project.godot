@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="prototype-alpha"
-run/main_scene="uid://3pshe4diqlh8"
+run/main_scene="res://scenes/maps/combat_sandbox.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 
 [physics]

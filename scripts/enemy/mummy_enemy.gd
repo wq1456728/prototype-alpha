@@ -23,6 +23,9 @@ const MAX_SOFT_COLLISION_SPEED := 125.0
 const SPRITE_ROOT := "res://assets/sprites/enemies/mummy"
 const SPRITE_FRAME_WIDTH := 64
 const SPRITE_FRAME_HEIGHT := 64
+const HIT_FLASH_TIME := 0.12
+const HIT_FLASH_COLOR := Color(1.0, 0.42, 0.36, 1.0)
+const HURT_KNOCKBACK_SPEED := 130.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
@@ -31,12 +34,15 @@ var hp := 0
 var player: Node2D
 var dead := false
 var action_lock := 0.0
+var locked_velocity := Vector2.ZERO
 var attack_timer := 0.0
 var pending_attack_hit := false
 var pending_attack_time := -1.0
 var ai_mode := "approach"
 var ai_timer := 0.0
 var strafe_sign := 1.0
+var flash_time := 0.0
+var base_modulate := Color.WHITE
 
 
 func _ready() -> void:
@@ -46,6 +52,7 @@ func _ready() -> void:
 	sprite.sprite_frames = _build_sprite_frames()
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.scale = Vector2(display_scale, display_scale)
+	base_modulate = sprite.modulate
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
 	_find_player()
@@ -57,6 +64,8 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
+
+	_update_hit_flash(delta)
 
 	if not is_instance_valid(player):
 		_find_player()
@@ -74,8 +83,10 @@ func _physics_process(delta: float) -> void:
 			if pending_attack_time <= 0.0:
 				_apply_attack_hit()
 				pending_attack_hit = false
-		velocity = Vector2.ZERO
+		velocity = locked_velocity
 		move_and_slide()
+		if action_lock <= 0.0:
+			locked_velocity = Vector2.ZERO
 		return
 
 	var to_player := player.global_position - global_position
@@ -106,11 +117,13 @@ func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO) -> void:
 		return
 	hp = maxi(hp - amount, 0)
 	hp_bar.value = hp
+	_start_hit_flash()
 	_update_facing(source_position - global_position)
 	if hp <= 0:
 		_die()
 		return
 	action_lock = HURT_LOCK_TIME
+	locked_velocity = _knockback_from(source_position)
 	pending_attack_hit = false
 	velocity = Vector2.ZERO
 	_play("hurt", true)
@@ -118,6 +131,7 @@ func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO) -> void:
 
 func _start_attack() -> void:
 	action_lock = ATTACK_LOCK_TIME
+	locked_velocity = Vector2.ZERO
 	attack_timer = attack_cooldown
 	pending_attack_hit = true
 	pending_attack_time = ATTACK_HIT_DELAY
@@ -186,6 +200,7 @@ func _die() -> void:
 	dead = true
 	remove_from_group("enemy")
 	velocity = Vector2.ZERO
+	locked_velocity = Vector2.ZERO
 	action_lock = 0.0
 	pending_attack_hit = false
 	hp_bar.visible = false
@@ -211,6 +226,26 @@ func _find_player() -> void:
 func _update_facing(direction: Vector2) -> void:
 	if absf(direction.x) > 0.01:
 		sprite.flip_h = direction.x > 0
+
+
+func _knockback_from(source_position: Vector2) -> Vector2:
+	var away := global_position - source_position
+	if away.length_squared() <= 0.01:
+		return Vector2.ZERO
+	return away.normalized() * HURT_KNOCKBACK_SPEED
+
+
+func _start_hit_flash() -> void:
+	flash_time = HIT_FLASH_TIME
+	sprite.modulate = HIT_FLASH_COLOR
+
+
+func _update_hit_flash(delta: float) -> void:
+	if flash_time <= 0.0:
+		return
+	flash_time -= delta
+	if flash_time <= 0.0:
+		sprite.modulate = base_modulate
 
 
 func _play(anim_name: StringName, restart: bool = false) -> void:

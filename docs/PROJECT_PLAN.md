@@ -27,13 +27,21 @@ Tasks:
 - Decide which current player and enemy code can be kept.
 - Decide which temporary assets should be replaced.
 - Confirm folder conventions for scenes, scripts, sprites, animation resources, and raw AI outputs.
+- Do a small structure stabilization pass before building the combat sandbox.
+- Separate raw AI output from accepted gameplay sprites.
+- Identify the active player scene, enemy scene, sprite assets, and animation resources.
+- Mark temporary assets clearly instead of trying to solve all art quality now.
 - Keep `TASK_BOARD.md` updated with the next active task.
 
 Acceptance:
 
 - Project structure is understood.
 - Keep / redo list exists.
+- Active project conventions are clear enough for another agent to continue.
+- Obvious folder and resource confusion is reduced without broad refactoring.
 - First `CombatSandbox.tscn` plan is clear.
+
+Do not turn this milestone into a full architecture cleanup. The goal is to reduce confusion before combat work, not to perfect the whole codebase.
 
 ## Milestone 1: Combat Sandbox
 

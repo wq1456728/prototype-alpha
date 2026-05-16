@@ -68,9 +68,50 @@ Expected output:
 
 ## Backlog
 
-### TASK-002: Combat Sandbox Plan
+### TASK-002: Standard Asset Integration And Minimal Structure Stabilization
 
 Status: blocked by TASK-001
+
+Goal:
+
+Use the newly organized standard assets to clean only the project structure problems that would block or confuse the combat sandbox.
+
+This is not a broad refactor. Do not rewrite systems for future scalability.
+
+Focus on:
+
+- Inspect the newly organized standard assets.
+- Validate the expected frame size, frame count, transparency, naming, and baseline consistency.
+- Decide the active asset folder convention.
+- Separate raw AI outputs from accepted gameplay sprites.
+- Decide where `SpriteFrames` / animation resources should live.
+- Identify duplicate or abandoned player scenes.
+- Identify duplicate or abandoned enemy scenes.
+- Identify animation resources that mix incompatible frame sizes or baselines.
+- Reconnect the current simplest playable flow to the new standard assets if practical.
+- Mark temporary assets clearly instead of trying to perfect all art now.
+- Keep any working movement or enemy behavior unless it blocks the next milestone.
+
+Expected output:
+
+- Standard assets accepted / rejected.
+- Files or folders cleaned.
+- Files or folders intentionally left alone.
+- Active scene/script/resource convention.
+- Temporary assets that remain.
+- Whether the simplest previous playable flow still runs.
+- Risks before building `CombatSandbox.tscn`.
+
+Acceptance:
+
+- No important asset or script is moved without checking references.
+- The current playable work is not broken intentionally.
+- The next agent can tell which player, enemy, sprite, and animation resources are active.
+- The simplest movement / enemy / animation loop is restored or the blocker is documented.
+
+### TASK-003: Combat Sandbox Plan
+
+Status: blocked by TASK-002
 
 Goal:
 
@@ -84,9 +125,9 @@ Expected output:
 - Debug UI or labels.
 - Test cases for movement, facing, attack, hit, death, and loot.
 
-### TASK-003: Player Facing Prototype
+### TASK-004: Player Facing Prototype
 
-Status: blocked by TASK-002
+Status: blocked by TASK-003
 
 Goal:
 
@@ -96,9 +137,9 @@ Implement the frozen facing rules:
 - Mouse-facing during attack or cast.
 - Return to movement-facing after recovery if movement is active.
 
-### TASK-004: Basic Hit Loop
+### TASK-005: Basic Hit Loop
 
-Status: blocked by TASK-003
+Status: blocked by TASK-004
 
 Goal:
 
@@ -111,9 +152,9 @@ Implement one basic attack loop:
 - Knockback or stagger.
 - Enemy death.
 
-### TASK-005: First Loot And Power Gain
+### TASK-006: First Loot And Power Gain
 
-Status: blocked by TASK-004
+Status: blocked by TASK-005
 
 Goal:
 

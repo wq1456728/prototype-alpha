@@ -1,0 +1,4 @@
+interface:
+  display_name: "prototype-alpha Pixel Art Style"
+  short_description: "Unify dark fantasy ARPG pixel assets."
+  default_prompt: "Use $prototype-alpha-pixel-art-style to rewrite and validate a Godot-ready pixel art asset request."

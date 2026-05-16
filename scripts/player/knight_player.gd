@@ -15,7 +15,10 @@ const MAX_HP := 100
 const HURT_LOCK_TIME := 0.22
 
 const LIGHT_ATTACK_LOCK_TIME := 0.42
-const LIGHT_ATTACK_HIT_DELAY := 0.18
+const LIGHT_ATTACK_1_HIT_DELAY := 0.2
+const LIGHT_ATTACK_2_HIT_DELAY := 0.11
+const LIGHT_ATTACK_1_SFX_DELAY := 0.13
+const LIGHT_ATTACK_2_SFX_DELAY := 0.04
 const LIGHT_ATTACK_DAMAGE := 24
 const LIGHT_ATTACK_FORWARD_RANGE := 105.0
 const LIGHT_ATTACK_SIDE_RANGE := 60.0
@@ -58,6 +61,10 @@ var damage_bonus := 0
 var next_light_attack := 1
 var movement_time_since_light_attack := 0.0
 var pending_hit_time := -1.0
+var pending_sfx_time := -1.0
+var pending_sfx_stream: AudioStream
+var pending_sfx_volume_db := 0.0
+var pending_sfx_pitch_scale := 1.0
 var pending_hit_damage := 0
 var pending_forward_range := 0.0
 var pending_side_range := 0.0
@@ -104,12 +111,17 @@ func _physics_process(delta: float) -> void:
 			if pending_second_hit_time <= 0.0:
 				_apply_attack_hit()
 				pending_second_hit_time = -1.0
+		if pending_sfx_time >= 0.0:
+			pending_sfx_time -= delta
+			if pending_sfx_time <= 0.0:
+				_play_pending_sfx()
 		velocity = locked_velocity
 		move_and_slide()
 		if action_lock <= 0.0:
 			locked_velocity = Vector2.ZERO
 			pending_hit_time = -1.0
 			pending_second_hit_time = -1.0
+			pending_sfx_time = -1.0
 			hit_enemies.clear()
 			if move_direction != Vector2.ZERO:
 				_set_facing_direction(move_direction)
@@ -127,12 +139,14 @@ func _physics_process(delta: float) -> void:
 	if shield_charge_pressed and shield_charge_cooldown <= 0.0:
 		_start_shield_charge()
 	elif heavy_attack_pressed:
-		_start_attack("attack_3", HEAVY_ATTACK_LOCK_TIME, HEAVY_ATTACK_DAMAGE, HEAVY_ATTACK_HIT_DELAY, HEAVY_ATTACK_FORWARD_RANGE, HEAVY_ATTACK_SIDE_RANGE, aim_direction)
+		_start_attack("attack_3", HEAVY_ATTACK_LOCK_TIME, HEAVY_ATTACK_DAMAGE, HEAVY_ATTACK_HIT_DELAY, HEAVY_ATTACK_FORWARD_RANGE, HEAVY_ATTACK_SIDE_RANGE, aim_direction, HEAVY_ATTACK_SFX, 0.12, -11.0, 0.9)
 	elif light_attack_pressed:
 		var anim_name := StringName("attack_%d" % next_light_attack)
+		var hit_delay := LIGHT_ATTACK_1_HIT_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_HIT_DELAY
+		var sfx_delay := LIGHT_ATTACK_1_SFX_DELAY if next_light_attack == 1 else LIGHT_ATTACK_2_SFX_DELAY
 		next_light_attack = 2 if next_light_attack == 1 else 1
 		movement_time_since_light_attack = 0.0
-		_start_attack(anim_name, LIGHT_ATTACK_LOCK_TIME, LIGHT_ATTACK_DAMAGE, LIGHT_ATTACK_HIT_DELAY, LIGHT_ATTACK_FORWARD_RANGE, LIGHT_ATTACK_SIDE_RANGE, aim_direction)
+		_start_attack(anim_name, LIGHT_ATTACK_LOCK_TIME, LIGHT_ATTACK_DAMAGE, hit_delay, LIGHT_ATTACK_FORWARD_RANGE, LIGHT_ATTACK_SIDE_RANGE, aim_direction, LIGHT_ATTACK_SFX, sfx_delay, -15.0, 1.18)
 
 	if action_lock > 0.0:
 		move_and_slide()
@@ -160,7 +174,11 @@ func _start_attack(
 	hit_delay: float,
 	forward_range: float,
 	side_range: float,
-	attack_direction: Vector2
+	attack_direction: Vector2,
+	sfx_stream: AudioStream,
+	sfx_delay: float,
+	sfx_volume_db: float,
+	sfx_pitch_scale: float
 ) -> void:
 	action_lock = duration
 	locked_velocity = Vector2.ZERO
@@ -173,7 +191,7 @@ func _start_attack(
 	pending_forward_range = forward_range
 	pending_side_range = side_range
 	hit_enemies.clear()
-	_play_attack_sfx(damage)
+	_schedule_sfx(sfx_stream, sfx_delay, sfx_volume_db, sfx_pitch_scale)
 	_play(anim_name, true)
 
 
@@ -209,7 +227,7 @@ func _start_shield_charge() -> void:
 	pending_forward_range = SHIELD_CHARGE_FORWARD_RANGE
 	pending_side_range = SHIELD_CHARGE_SIDE_RANGE
 	hit_enemies.clear()
-	_play_sfx(SHIELD_IMPACT_SFX, -13.0, 0.92)
+	_schedule_sfx(SHIELD_IMPACT_SFX, SHIELD_CHARGE_HIT_DELAY, -13.0, 0.92)
 	_play("shield_charge", true)
 
 
@@ -283,6 +301,7 @@ func _start_hurt(knockback: Vector2) -> void:
 	locked_velocity = knockback
 	action_direction = facing_direction
 	pending_hit_time = -1.0
+	pending_sfx_time = -1.0
 	if sprite.sprite_frames.has_animation("hurt"):
 		_play("hurt", true)
 
@@ -294,6 +313,7 @@ func _die() -> void:
 	action_lock = 0.0
 	pending_hit_time = -1.0
 	pending_second_hit_time = -1.0
+	pending_sfx_time = -1.0
 	hit_enemies.clear()
 	hp_bar.value = 0
 	if sprite.sprite_frames.has_animation("death"):
@@ -374,11 +394,18 @@ func _play_sfx(stream: AudioStream, volume_db: float, pitch_scale: float = 1.0) 
 	audio.play()
 
 
-func _play_attack_sfx(damage: int) -> void:
-	if damage == LIGHT_ATTACK_DAMAGE:
-		_play_sfx(LIGHT_ATTACK_SFX, -15.0, 1.18)
-	else:
-		_play_sfx(HEAVY_ATTACK_SFX, -11.0, 0.9)
+func _schedule_sfx(stream: AudioStream, delay: float, volume_db: float, pitch_scale: float = 1.0) -> void:
+	pending_sfx_stream = stream
+	pending_sfx_time = delay
+	pending_sfx_volume_db = volume_db
+	pending_sfx_pitch_scale = pitch_scale
+
+
+func _play_pending_sfx() -> void:
+	if pending_sfx_stream != null:
+		_play_sfx(pending_sfx_stream, pending_sfx_volume_db, pending_sfx_pitch_scale)
+	pending_sfx_time = -1.0
+	pending_sfx_stream = null
 
 
 func _setup_footstep_audio() -> void:

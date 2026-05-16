@@ -72,6 +72,14 @@ func _print_player_state(label: String, player: Node) -> void:
 			_fmt_vec(player.call("get_action_direction")),
 		]
 	)
+	print(
+		"%s pending_hit=%.2f pending_sfx=%.2f"
+		% [
+			label,
+			float(player.get("pending_hit_time")),
+			float(player.get("pending_sfx_time")),
+		]
+	)
 
 
 func _clear_player_action(player: Node) -> void:
@@ -80,6 +88,7 @@ func _clear_player_action(player: Node) -> void:
 	player.set("action_lock", 0.0)
 	player.set("pending_hit_time", -1.0)
 	player.set("pending_second_hit_time", -1.0)
+	player.set("pending_sfx_time", -1.0)
 
 
 func _fmt_vec(value: Vector2) -> String:

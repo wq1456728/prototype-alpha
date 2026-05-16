@@ -16,7 +16,6 @@ func _ready() -> void:
 	if item_data.is_empty():
 		item_data = _default_weapon_item()
 	_apply_visual()
-	body_entered.connect(_on_body_entered)
 
 
 func setup_item(data: Dictionary) -> void:
@@ -25,19 +24,22 @@ func setup_item(data: Dictionary) -> void:
 		_apply_visual()
 
 
-func _on_body_entered(body: Node2D) -> void:
+func get_item_data() -> Dictionary:
+	return item_data.duplicate(true)
+
+
+func collect_from_world() -> Dictionary:
 	if picked_up:
-		return
-	if not body.has_method("pickup_weapon_item"):
-		return
-	var accepted := bool(body.pickup_weapon_item(item_data))
-	if not accepted:
-		_spawn_feedback("Bag Full", FULL_TEXT_COLOR)
-		return
+		return {}
 	picked_up = true
 	_spawn_feedback("Picked up %s" % str(item_data.get("name", "Weapon")), PICKUP_TEXT_COLOR)
 	_spawn_pickup_sfx()
 	queue_free()
+	return item_data.duplicate(true)
+
+
+func show_reject_feedback(text: String) -> void:
+	_spawn_feedback(text, FULL_TEXT_COLOR)
 
 
 func _apply_visual() -> void:

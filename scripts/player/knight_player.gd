@@ -66,6 +66,8 @@ var dead := false
 var damage_bonus := 0
 var inventory_items: Array[Dictionary] = []
 var equipped_weapon: Dictionary = {}
+var item_cursor_blocks_attacks := false
+var attack_input_suppression_time := 0.0
 var next_light_attack := 1
 var movement_time_since_light_attack := 0.0
 var pending_hit_time := -1.0
@@ -87,6 +89,7 @@ func _ready() -> void:
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	hp_bar.max_value = MAX_HP
 	hp_bar.value = hp
+	_initialize_inventory()
 	_setup_footstep_audio()
 	_play("idle")
 
@@ -99,9 +102,19 @@ func _physics_process(delta: float) -> void:
 		return
 
 	shield_charge_cooldown = maxf(shield_charge_cooldown - delta, 0.0)
-	var light_attack_pressed := _consume_mouse_button_press(MOUSE_BUTTON_LEFT)
-	var heavy_attack_pressed := _consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
-	var shield_charge_pressed := _consume_press(KEY_V)
+	attack_input_suppression_time = maxf(attack_input_suppression_time - delta, 0.0)
+	var attacks_blocked := _is_attack_input_blocked()
+	var light_attack_pressed := false
+	var heavy_attack_pressed := false
+	var shield_charge_pressed := false
+	if attacks_blocked:
+		_consume_mouse_button_press(MOUSE_BUTTON_LEFT)
+		_consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
+		_consume_press(KEY_V)
+	else:
+		light_attack_pressed = _consume_mouse_button_press(MOUSE_BUTTON_LEFT)
+		heavy_attack_pressed = _consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
+		shield_charge_pressed = _consume_press(KEY_V)
 	_handle_inventory_input()
 	move_direction = _read_move_direction()
 	aim_direction = _read_aim_direction()
@@ -314,9 +327,10 @@ func heal_fraction(fraction: float) -> void:
 func pickup_weapon_item(item_data: Dictionary) -> bool:
 	if dead:
 		return false
-	if inventory_items.size() >= BAG_SLOT_COUNT:
+	var slot_index := _first_empty_bag_slot()
+	if slot_index < 0:
 		return false
-	inventory_items.append(item_data.duplicate(true))
+	inventory_items[slot_index] = item_data.duplicate(true)
 	return true
 
 
@@ -331,17 +345,16 @@ func get_current_attack_damage() -> int:
 func equip_bag_slot(slot_index: int) -> bool:
 	if dead:
 		return false
-	if slot_index < 0 or slot_index >= inventory_items.size():
+	if not _is_valid_bag_slot(slot_index):
 		return false
 	var item := inventory_items[slot_index]
+	if item.is_empty():
+		return false
 	if str(item.get("type", "")) != "weapon":
 		return false
 	var previous_weapon := equipped_weapon.duplicate(true)
 	equipped_weapon = item.duplicate(true)
-	if previous_weapon.is_empty():
-		inventory_items.remove_at(slot_index)
-	else:
-		inventory_items[slot_index] = previous_weapon
+	inventory_items[slot_index] = previous_weapon
 	_refresh_equipment_stats()
 	return true
 
@@ -369,6 +382,74 @@ func get_equipped_weapon_damage_bonus() -> int:
 
 func get_bag_slot_count() -> int:
 	return BAG_SLOT_COUNT
+
+
+func take_bag_slot(slot_index: int) -> Dictionary:
+	if not _is_valid_bag_slot(slot_index):
+		return {}
+	var item := inventory_items[slot_index].duplicate(true)
+	inventory_items[slot_index] = {}
+	return item
+
+
+func place_bag_slot(slot_index: int, item_data: Dictionary) -> Dictionary:
+	if not _is_valid_bag_slot(slot_index) or item_data.is_empty():
+		return item_data
+	var displaced := inventory_items[slot_index].duplicate(true)
+	inventory_items[slot_index] = item_data.duplicate(true)
+	return displaced
+
+
+func take_equipped_weapon() -> Dictionary:
+	var item := equipped_weapon.duplicate(true)
+	equipped_weapon = {}
+	_refresh_equipment_stats()
+	return item
+
+
+func place_equipped_weapon(item_data: Dictionary) -> Dictionary:
+	if item_data.is_empty() or str(item_data.get("type", "")) != "weapon":
+		return item_data
+	var displaced := equipped_weapon.duplicate(true)
+	equipped_weapon = item_data.duplicate(true)
+	_refresh_equipment_stats()
+	return displaced
+
+
+func set_item_cursor_blocks_attacks(blocked: bool) -> void:
+	item_cursor_blocks_attacks = blocked
+
+
+func suppress_attack_inputs(duration: float = 0.12) -> void:
+	attack_input_suppression_time = maxf(attack_input_suppression_time, duration)
+	_consume_mouse_button_press(MOUSE_BUTTON_LEFT)
+	_consume_mouse_button_press(MOUSE_BUTTON_RIGHT)
+	_consume_press(KEY_V)
+
+
+func is_attack_input_blocked() -> bool:
+	return _is_attack_input_blocked()
+
+
+func _initialize_inventory() -> void:
+	inventory_items.clear()
+	for _i in range(BAG_SLOT_COUNT):
+		inventory_items.append({})
+
+
+func _first_empty_bag_slot() -> int:
+	for i in range(inventory_items.size()):
+		if inventory_items[i].is_empty():
+			return i
+	return -1
+
+
+func _is_valid_bag_slot(slot_index: int) -> bool:
+	return slot_index >= 0 and slot_index < inventory_items.size()
+
+
+func _is_attack_input_blocked() -> bool:
+	return item_cursor_blocks_attacks or attack_input_suppression_time > 0.0
 
 
 func _handle_inventory_input() -> void:

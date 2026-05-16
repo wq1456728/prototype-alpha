@@ -96,6 +96,9 @@ Audit Status:
 - Selecting a bag slot shows item name, rarity, and damage bonus.
 - Selected weapon can be equipped from the UI through the Equip button; number-key equip still works.
 - Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
+- 2026-05-16 follow-up requirement added: current implementation is not enough for Diablo II-like mouse item handling; TASK-013 should be extended before treating the inventory UI as final for the demo loop.
+- 2026-05-16 follow-up completed: ground items now require left-click pickup, open inventory picks items onto the cursor, bag/equipment clicks support cursor-held swapping, cursor-held items block attacks, and cursor-held items can be dropped back into the world.
+- Runtime wrapper validation passed again for `tools/smoke_combat_sandbox_structure.gd`, `tools/debug_player_inputs.gd`, and `tools/debug_combat_sandbox.gd`.
 
 Goal:
 
@@ -113,12 +116,35 @@ Focus on:
 - Keep UI functional, not final.
 - Do not add drag-and-drop unless it is cheaper than the simpler interaction.
 
+Follow-up Requirement: Diablo II-like Mouse Item Handling:
+
+- Ground items are picked up with left mouse click, not by walking over them.
+- If inventory is closed, left-clicking a ground item may pick it directly into the first valid bag slot if space exists.
+- If inventory is open, left-clicking a ground item picks it onto the cursor instead of directly placing it into the bag.
+- Left-clicking a bag item while inventory is open picks that item onto the cursor.
+- Left-clicking the equipped weapon while inventory is open picks that item onto the cursor and clears the equipped slot.
+- While an item is held on the cursor, player attack inputs are blocked.
+- A held cursor item can be placed into an empty bag slot.
+- A held weapon item can be placed into the weapon equipment slot.
+- Placing a held item onto an occupied bag slot swaps the cursor item with the existing slot item.
+- Placing a held weapon onto an occupied weapon equipment slot swaps the cursor item with the equipped weapon.
+- Left-clicking empty world space while holding an item drops it back into the world at the clicked position.
+- Dropped world items keep their full item data: name, rarity, damage bonus, icon, and color.
+- Invalid placement keeps the item on the cursor and should provide simple feedback rather than deleting the item.
+- Closing the inventory while holding an item should keep the item on the cursor or drop it intentionally; do not silently delete it.
+- Death, scene reload, or full-bag edge cases must not lose held items silently.
+- The cursor-held item should be visibly attached to the mouse, using the item icon.
+- The UI should distinguish hover, selected, equipped, and cursor-held states clearly enough for playtesting.
+
 Acceptance:
 
 - Pressing `B` shows and hides the inventory.
 - Player can see what is in the bag.
 - Player can see equipped weapon.
 - Player can equip a weapon and see damage update.
+- Player must click ground items to pick them up.
+- Player can hold an item on the cursor and cannot attack while holding it.
+- Player can place, equip, swap, and drop cursor-held items without item loss.
 - UI is small enough for the combat sandbox.
 - Completed task entry includes `Task agent status: done`.
 

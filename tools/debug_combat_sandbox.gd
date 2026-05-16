@@ -76,26 +76,68 @@ func _run() -> void:
 	for _i in range(12):
 		await physics_frame
 	var after_pickup_damage := int(player.call("get_current_attack_damage"))
-	var bag_items: Array = player.call("get_inventory_items")
-	if bag_items.size() != 1 or after_pickup_damage != before_damage:
-		print("combat_sandbox FAIL pickup bag=%d damage %d -> %d" % [bag_items.size(), before_damage, after_pickup_damage])
+	if _filled_bag_count(player) != 0 or after_pickup_damage != before_damage:
+		print("combat_sandbox FAIL walkover_pickup bag=%d damage %d -> %d" % [_filled_bag_count(player), before_damage, after_pickup_damage])
 		quit(1)
 		return
 	current_scene.call("toggle_inventory_visibility")
-	current_scene.call("select_inventory_slot", 0)
+	current_scene.call("click_ground_item", loot)
 	await process_frame
-	var equipped := false
-	if current_scene.has_method("equip_selected_inventory_slot"):
-		current_scene.call("equip_selected_inventory_slot")
-		equipped = true
+	if not bool(current_scene.call("has_cursor_item")) or _filled_bag_count(player) != 0:
+		print("combat_sandbox FAIL open_inventory_ground_to_cursor cursor=%s bag=%d" % [current_scene.call("has_cursor_item"), _filled_bag_count(player)])
+		quit(1)
+		return
+	if not bool(player.call("is_attack_input_blocked")):
+		print("combat_sandbox FAIL cursor_should_block_attack")
+		quit(1)
+		return
+	current_scene.call("click_inventory_slot", 0)
+	await process_frame
+	if bool(current_scene.call("has_cursor_item")) or _filled_bag_count(player) != 1:
+		print("combat_sandbox FAIL cursor_to_bag cursor=%s bag=%d" % [current_scene.call("has_cursor_item"), _filled_bag_count(player)])
+		quit(1)
+		return
+	current_scene.call("click_inventory_slot", 0)
+	await process_frame
+	if not bool(current_scene.call("has_cursor_item")) or _filled_bag_count(player) != 0:
+		print("combat_sandbox FAIL bag_to_cursor cursor=%s bag=%d" % [current_scene.call("has_cursor_item"), _filled_bag_count(player)])
+		quit(1)
+		return
+	current_scene.call("click_equipment_slot")
 	await process_frame
 	var after_equip_damage := int(player.call("get_current_attack_damage"))
 	var weapon_name := str(player.call("get_equipped_weapon_name"))
-	if not equipped or after_equip_damage <= before_damage:
-		print("combat_sandbox FAIL equip equipped=%s damage %d -> %d weapon=%s" % [equipped, before_damage, after_equip_damage, weapon_name])
+	if bool(current_scene.call("has_cursor_item")) or after_equip_damage <= before_damage:
+		print("combat_sandbox FAIL cursor_equip cursor=%s damage %d -> %d weapon=%s" % [current_scene.call("has_cursor_item"), before_damage, after_equip_damage, weapon_name])
 		quit(1)
 		return
-	print("combat_sandbox loot ok: damage %d -> pickup %d -> equip %d weapon=%s bag=%d loot_left=%d enemies_left=%d feedback_after_hit=%d" % [before_damage, after_pickup_damage, after_equip_damage, weapon_name, player.call("get_inventory_items").size(), get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size(), feedback_after_hit])
+	current_scene.call("click_equipment_slot")
+	await process_frame
+	if not bool(current_scene.call("has_cursor_item")) or int(player.call("get_current_attack_damage")) != before_damage:
+		print("combat_sandbox FAIL equipped_to_cursor cursor=%s damage=%d" % [current_scene.call("has_cursor_item"), int(player.call("get_current_attack_damage"))])
+		quit(1)
+		return
+	var loot_before_drop := get_nodes_in_group("loot").size()
+	current_scene.call("click_empty_world", player.global_position + Vector2(72, 0))
+	await process_frame
+	if bool(current_scene.call("has_cursor_item")) or get_nodes_in_group("loot").size() <= loot_before_drop:
+		print("combat_sandbox FAIL cursor_drop cursor=%s loot_before=%d loot_after=%d" % [current_scene.call("has_cursor_item"), loot_before_drop, get_nodes_in_group("loot").size()])
+		quit(1)
+		return
+	var dropped_loot := _first_loot()
+	current_scene.call("click_ground_item", dropped_loot)
+	await process_frame
+	if not bool(current_scene.call("has_cursor_item")):
+		print("combat_sandbox FAIL dropped_ground_to_cursor")
+		quit(1)
+		return
+	current_scene.call("click_inventory_slot", 1)
+	await process_frame
+	if bool(current_scene.call("has_cursor_item")) or _filled_bag_count(player) != 1:
+		print("combat_sandbox FAIL cursor_back_to_bag cursor=%s bag=%d" % [current_scene.call("has_cursor_item"), _filled_bag_count(player)])
+		quit(1)
+		return
+	print("combat_sandbox loot ok: damage %d -> walkover %d -> equip %d weapon=%s bag=%d cursor=%s loot_left=%d enemies_left=%d feedback_after_hit=%d" % [before_damage, after_pickup_damage, after_equip_damage, weapon_name, _filled_bag_count(player), current_scene.call("has_cursor_item"), get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size(), feedback_after_hit])
 	quit(0)
 
 
@@ -132,6 +174,15 @@ func _validate_item_shape(item: Dictionary) -> bool:
 		if not item.has(key):
 			return false
 	return str(item["type"]) == "weapon" and int(item["damage_bonus"]) > 0 and not str(item["icon"]).is_empty()
+
+
+func _filled_bag_count(player: Node) -> int:
+	var count := 0
+	var items: Array = player.call("get_inventory_items")
+	for item in items:
+		if item is Dictionary and not item.is_empty():
+			count += 1
+	return count
 
 
 func _wait_for_scene() -> bool:

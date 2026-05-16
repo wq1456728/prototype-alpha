@@ -26,6 +26,7 @@ func _run() -> void:
 func _test_mouse_button(label: String, button: MouseButton) -> void:
 	var player := get_first_node_in_group("player")
 	_send_mouse(button, true)
+	await process_frame
 	await physics_frame
 	_send_mouse(button, false)
 	await physics_frame
@@ -47,6 +48,7 @@ func _send_mouse(button: MouseButton, pressed: bool) -> void:
 	var event := InputEventMouseButton.new()
 	event.button_index = button
 	event.pressed = pressed
+	event.position = Vector2(640, 360)
 	Input.parse_input_event(event)
 
 
@@ -67,12 +69,13 @@ func _print_player_state(label: String, player: Node) -> void:
 	if sprite != null:
 		animation = sprite.animation
 	print(
-		"%s action_lock=%.2f animation=%s action_direction=%s"
+		"%s action_lock=%.2f animation=%s action_direction=%s attack_blocked=%s"
 		% [
 			label,
 			float(player.get("action_lock")),
 			animation,
 			_fmt_vec(player.call("get_action_direction")),
+			player.call("is_attack_input_blocked") if player.has_method("is_attack_input_blocked") else "?",
 		]
 	)
 	print(

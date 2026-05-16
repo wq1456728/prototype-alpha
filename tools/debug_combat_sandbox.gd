@@ -34,6 +34,7 @@ func _run() -> void:
 	var before_damage := int(player.call("get_current_attack_damage"))
 	target.call("take_damage", int(target.get("max_hp")), player.global_position)
 	await physics_frame
+	var feedback_after_hit := get_nodes_in_group("feedback").size()
 	var loot := _first_loot() as Area2D
 	if loot == null:
 		print("combat_sandbox FAIL loot_missing")
@@ -47,7 +48,7 @@ func _run() -> void:
 	for _i in range(110):
 		await physics_frame
 	var after_damage := int(player.call("get_current_attack_damage"))
-	print("combat_sandbox loot ok: damage %d -> %d loot_left=%d enemies_left=%d" % [before_damage, after_damage, get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size()])
+	print("combat_sandbox loot ok: damage %d -> %d loot_left=%d enemies_left=%d feedback_after_hit=%d" % [before_damage, after_damage, get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size(), feedback_after_hit])
 	quit(0)
 
 

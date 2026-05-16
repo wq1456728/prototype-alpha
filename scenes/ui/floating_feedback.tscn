@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/floating_feedback.gd" id="1_feedback"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_feedback"]
+font_size = 18
+font_color = Color(1, 1, 1, 1)
+outline_size = 3
+outline_color = Color(0.08, 0.06, 0.04, 1)
+
+[node name="FloatingFeedback" type="Node2D"]
+script = ExtResource("1_feedback")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -48.0
+offset_top = -18.0
+offset_right = 48.0
+offset_bottom = 18.0
+label_settings = SubResource("LabelSettings_feedback")
+horizontal_alignment = 1
+vertical_alignment = 1

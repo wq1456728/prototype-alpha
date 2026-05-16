@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 const DAMAGE_PICKUP_SCENE := preload("res://scenes/items/damage_pickup.tscn")
+const FLOATING_FEEDBACK_SCENE := preload("res://scenes/ui/floating_feedback.tscn")
 
 @export var max_hp := 60
 @export var move_speed := 72.0
@@ -29,6 +30,7 @@ const SPRITE_FRAME_HEIGHT := 64
 const HIT_FLASH_TIME := 0.12
 const HIT_FLASH_COLOR := Color(1.0, 0.42, 0.36, 1.0)
 const HURT_KNOCKBACK_SPEED := 130.0
+const DAMAGE_NUMBER_COLOR := Color(1.0, 0.86, 0.36, 1.0)
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
@@ -120,6 +122,7 @@ func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO) -> void:
 		return
 	hp = maxi(hp - amount, 0)
 	hp_bar.value = hp
+	_spawn_feedback(str(amount), DAMAGE_NUMBER_COLOR, Vector2(0, -78))
 	_start_hit_flash()
 	_update_facing(source_position - global_position)
 	if hp <= 0:
@@ -239,6 +242,13 @@ func _drop_loot() -> void:
 		get_parent().add_child(loot)
 	else:
 		loot_root.add_child(loot)
+
+
+func _spawn_feedback(text: String, color: Color, offset: Vector2) -> void:
+	var feedback := FLOATING_FEEDBACK_SCENE.instantiate()
+	feedback.global_position = global_position + offset
+	get_tree().current_scene.add_child(feedback)
+	feedback.setup(text, color)
 
 
 func _find_player() -> void:

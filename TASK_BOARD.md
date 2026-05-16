@@ -117,7 +117,16 @@ Acceptance:
 
 ### TASK-009: Player Combat Feedback Pass
 
-Status: blocked by TASK-007
+Status: done
+
+Task agent status: done
+
+Audit:
+
+- 2026-05-16 added lightweight world-space floating feedback.
+- Enemy hits now spawn damage numbers.
+- Damage pickup now shows a short `Damage +N` pickup message.
+- Runtime wrapper validation passed for the CombatSandbox debug script after feedback changes.
 
 Goal:
 
@@ -139,7 +148,7 @@ Acceptance:
 
 ### TASK-010: Enemy Pressure Pass 1
 
-Status: blocked by TASK-007
+Status: ready
 
 Goal:
 
@@ -161,7 +170,7 @@ Acceptance:
 
 ### TASK-011: Loot Feedback And Minimal Item Variety
 
-Status: blocked by TASK-009
+Status: ready
 
 Goal:
 

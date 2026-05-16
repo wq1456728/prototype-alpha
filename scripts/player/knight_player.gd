@@ -41,6 +41,10 @@ const SHIELD_CHARGE_COOLDOWN := 1.25
 const ENEMY_SOFT_COLLISION_DISTANCE := 48.0
 const ENEMY_SOFT_COLLISION_FORCE := 120.0
 const MAX_SOFT_COLLISION_SPEED := 95.0
+const DEBUG_ATTACK_AREA_COLOR := Color(1.0, 0.18, 0.12, 0.22)
+const DEBUG_ATTACK_AREA_OUTLINE := Color(1.0, 0.28, 0.16, 0.8)
+
+@export var show_attack_debug := true
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
@@ -117,6 +121,7 @@ func _physics_process(delta: float) -> void:
 				_play_pending_sfx()
 		velocity = locked_velocity
 		move_and_slide()
+		queue_redraw()
 		if action_lock <= 0.0:
 			locked_velocity = Vector2.ZERO
 			pending_hit_time = -1.0
@@ -150,6 +155,7 @@ func _physics_process(delta: float) -> void:
 
 	if action_lock > 0.0:
 		move_and_slide()
+		queue_redraw()
 		return
 
 	var wants_run := _held(KEY_SHIFT)
@@ -165,6 +171,24 @@ func _physics_process(delta: float) -> void:
 		_play("run")
 	else:
 		_play("walk")
+	queue_redraw()
+
+
+func _draw() -> void:
+	if not show_attack_debug or action_lock <= 0.0 or pending_forward_range <= 0.0:
+		return
+
+	var forward := _valid_direction_or_facing(action_direction)
+	var right := Vector2(-forward.y, forward.x)
+	var back_distance := 18.0
+	var polygon := PackedVector2Array([
+		-forward * back_distance - right * pending_side_range,
+		forward * pending_forward_range - right * pending_side_range,
+		forward * pending_forward_range + right * pending_side_range,
+		-forward * back_distance + right * pending_side_range,
+	])
+	draw_colored_polygon(polygon, DEBUG_ATTACK_AREA_COLOR)
+	draw_polyline(PackedVector2Array([polygon[0], polygon[1], polygon[2], polygon[3], polygon[0]]), DEBUG_ATTACK_AREA_OUTLINE, 2.0)
 
 
 func _start_attack(

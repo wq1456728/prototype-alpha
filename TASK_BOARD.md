@@ -19,7 +19,7 @@ If older notes conflict with these files, the files above win.
 
 ## Current Phase
 
-Combat sandbox feel pass and next playable-loop expansion.
+Next playable-loop expansion after the first combat sandbox loop.
 
 ## Current Goal
 
@@ -37,160 +37,6 @@ WASD movement
 ```
 
 ## Active Task
-
-### TASK-007: Combat Sandbox Feel Pass 1
-
-Status: done
-
-Task agent status: done
-
-Owner: task agent
-
-Audit:
-
-- 2026-05-16 feel pass completed.
-- Runtime wrapper validation passed for `scenes/maps/combat_sandbox.tscn`.
-- Player can kill a mummy, spawn damage loot, pick it up, and increase displayed attack damage.
-- Light player hit timing and mummy attack timing were nudged later to better match visible active frames.
-- Mummy attack lock now covers the full visible attack animation.
-
-Goal:
-
-Improve the current `CombatSandbox` from "functionally works" to "feels readable and worth iterating."
-
-Focus on:
-
-- Verify the sandbox launches through the project Godot wrapper.
-- Check player movement speed, run speed, attack lock times, and recovery.
-- Check enemy approach speed, attack range, attack cooldown, and soft collision.
-- Check attack hit timing against visible frames.
-- Check hit feedback: flash, knockback, death cleanup, damage growth visibility.
-- Keep changes small and parameter-focused where possible.
-
-Expected output:
-
-- Runtime validation result.
-- Tuning changes made.
-- Before / after feel summary.
-- Remaining combat feel issues.
-- Recommended next task.
-
-Acceptance:
-
-- Sandbox loads without blocking runtime errors.
-- Player can kill at least one enemy and pick up damage loot.
-- Combat remains readable and not too fast.
-- Any tuning changes are small and easy to revert.
-- Completed task entry includes `Task agent status: done`.
-
-## Backlog
-
-### TASK-008: Runtime Smoke Test Script
-
-Status: done
-
-Task agent status: done
-
-Audit:
-
-- 2026-05-16 added a narrow CombatSandbox structure smoke test.
-- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`.
-
-Goal:
-
-Add or update a narrow Godot smoke test for the combat sandbox.
-
-Focus on:
-
-- Launch `scenes/maps/combat_sandbox.tscn`.
-- Confirm player exists.
-- Confirm enemies spawn.
-- Confirm debug label exists.
-- Confirm loot root exists.
-- Keep output short.
-
-Acceptance:
-
-- Test can be run through `tools/run_godot.ps1`.
-- Test reports pass/fail with concise logs.
-- No broad testing framework is introduced.
-
-### TASK-009: Player Combat Feedback Pass
-
-Status: done
-
-Task agent status: done
-
-Audit Status:
-
-- 2026-05-16 added lightweight world-space floating feedback.
-- Enemy hits now spawn damage numbers.
-- Damage pickup now shows a short `Damage +N` pickup message.
-- Runtime wrapper validation passed for the CombatSandbox debug script after feedback changes.
-- 2026-05-16 audit confirmed: `debug_combat_sandbox.gd` passes; hit feedback spawns, loot pickup raises damage from 24 to 32.
-
-Goal:
-
-Improve player-facing combat feedback without adding large systems.
-
-Focus on:
-
-- Clearer hit impact feedback.
-- Damage number or simple impact text if not already present.
-- Pickup feedback when damage bonus increases.
-- Light screen shake or hit stop only if it improves readability.
-- Avoid complex UI or audio pipelines.
-
-Acceptance:
-
-- Player can tell when hits connect.
-- Player can tell when loot increased damage.
-- Feedback remains readable in the sandbox.
-
-### TASK-010: First SFX Pass
-
-Status: done
-
-Task agent status: done
-
-Audit:
-
-- 2026-05-16 organized first accepted SFX into `assets/audio/sfx/`.
-- Player attacks now play a swing placeholder.
-- Enemy hit and death now play impact/death placeholders.
-- Damage pickup now plays a quiet pickup placeholder.
-- Runtime wrapper validation passed for the CombatSandbox debug and smoke scripts after SFX wiring.
-- 2026-05-16 main-thread review: first wiring exists, but player attack sound mapping is too generic and must be corrected.
-- 2026-05-16 revision completed: light attack, heavy attack, shield strike, enemy hit, enemy death, pickup, and movement footsteps now use separate accepted SFX names.
-
-Goal:
-
-Correct and complete sound effect mapping for the current simple combat sandbox.
-
-Focus on:
-
-- Player light attack must use a lighter slash sound.
-- Player heavy attack must use a different, heavier slash sound.
-- Player shield charge / shield strike must use a separate crisp shield-impact sound.
-- If two downloaded slash sounds are available, assign the lighter/brighter one to light attack and the heavier/deeper one to heavy attack.
-- Enemy hit must have its own enemy-hit impact sound.
-- Enemy death must have its own enemy-death sound.
-- Loot pickup sound can remain simple, but should not be confused with combat hit sounds.
-- Running footsteps should play during normal movement and stop during idle or attack locks.
-- Check that the current assigned sounds match the action that triggered them.
-- Keep audio wiring local and simple.
-- Keep volume balanced and not painful.
-- Do not introduce a large audio manager yet.
-
-Acceptance:
-
-- Light attack and heavy attack are audibly different.
-- Shield charge / shield strike uses a distinct shield sound.
-- Enemy hit and enemy death are audibly different.
-- Loot pickup has a simple pickup sound.
-- Sound volume is not painful.
-- Audio files are placed in a clear `assets/audio/sfx/` structure.
-- Completed task entry includes `Task agent status: done`.
 
 ### TASK-011: Enemy Pressure Pass 1
 
@@ -213,6 +59,8 @@ Acceptance:
 - Player can kite and reposition.
 - Enemies do not clump into unreadable overlap.
 - Brute is meaningfully different from grunt.
+
+## Backlog
 
 ### TASK-012: Loot Feedback And Minimal Item Variety
 
@@ -237,7 +85,7 @@ Acceptance:
 
 ### TASK-013: Mage Prototype Plan
 
-Status: blocked by TASK-007
+Status: ready
 
 Goal:
 
@@ -271,7 +119,7 @@ Status: done
 
 Task agent status: done
 
-Audit:
+Audit Status:
 
 - 2026-05-16 review completed.
 - Runtime flow: `project.godot` -> `scenes/maps/combat_sandbox.tscn` -> `KnightPlayer` + spawned mummy enemies + loot/debug roots.
@@ -282,7 +130,7 @@ Status: done
 
 Task agent status: done
 
-Audit:
+Audit Status:
 
 - 2026-05-16 review: functionally OK for current sandbox.
 - Active accepted sprites are under `assets/sprites/characters/` and `assets/sprites/enemies/`.
@@ -294,7 +142,7 @@ Status: done
 
 Task agent status: done
 
-Audit:
+Audit Status:
 
 - 2026-05-16 review: implemented and active as main scene.
 - Sandbox has player, enemy spawn markers, `Enemies`, `Loot`, and debug label showing enemy count, HP, damage, facing, and action.
@@ -305,7 +153,7 @@ Status: done
 
 Task agent status: done
 
-Audit:
+Audit Status:
 
 - 2026-05-16 review: OK.
 - `KnightPlayer` has `move_direction`, `aim_direction`, `facing_direction`, and `action_direction`; mouse attacks face aim direction and return to movement-facing after action recovery.
@@ -316,7 +164,7 @@ Status: done
 
 Task agent status: done
 
-Audit:
+Audit Status:
 
 - 2026-05-16 review: OK.
 - Player attacks use delayed hit timing and one-hit-per-swing prevention; mummy enemies take damage, flash, receive knockback/stagger, die, and clean up.
@@ -327,10 +175,113 @@ Status: done
 
 Task agent status: done
 
-Audit:
+Audit Status:
 
 - 2026-05-16 review: OK.
 - Mummy death drops `DamagePickup`; pickup calls `add_damage_bonus`, and sandbox debug damage display reflects the increased attack damage.
+
+### TASK-007: Combat Sandbox Feel Pass 1
+
+Status: done
+
+Task agent status: done
+
+Owner: task agent
+
+Audit Status:
+
+- 2026-05-16 feel pass completed.
+- Runtime wrapper validation passed for `scenes/maps/combat_sandbox.tscn`.
+- Player can kill a mummy, spawn damage loot, pick it up, and increase displayed attack damage.
+- Light player hit timing and mummy attack timing were nudged later to better match visible active frames.
+- Mummy attack lock now covers the full visible attack animation.
+
+Goal:
+
+Improve the current `CombatSandbox` from "functionally works" to "feels readable and worth iterating."
+
+Acceptance:
+
+- Sandbox loads without blocking runtime errors.
+- Player can kill at least one enemy and pick up damage loot.
+- Combat remains readable and not too fast.
+- Any tuning changes are small and easy to revert.
+- Completed task entry includes `Task agent status: done`.
+
+### TASK-008: Runtime Smoke Test Script
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 added a narrow CombatSandbox structure smoke test.
+- Runtime wrapper validation passed for `tools/smoke_combat_sandbox_structure.gd`.
+
+Goal:
+
+Add or update a narrow Godot smoke test for the combat sandbox.
+
+Acceptance:
+
+- Test can be run through `tools/run_godot.ps1`.
+- Test reports pass/fail with concise logs.
+- No broad testing framework is introduced.
+
+### TASK-009: Player Combat Feedback Pass
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 added lightweight world-space floating feedback.
+- Enemy hits now spawn damage numbers.
+- Damage pickup now shows a short `Damage +N` pickup message.
+- Runtime wrapper validation passed for the CombatSandbox debug script after feedback changes.
+- 2026-05-16 audit confirmed: `debug_combat_sandbox.gd` passes; hit feedback spawns, loot pickup raises damage from 24 to 32.
+
+Goal:
+
+Improve player-facing combat feedback without adding large systems.
+
+Acceptance:
+
+- Player can tell when hits connect.
+- Player can tell when loot increased damage.
+- Feedback remains readable in the sandbox.
+
+### TASK-010: First SFX Pass
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-16 organized first accepted SFX into `assets/audio/sfx/`.
+- Player attacks now play a swing placeholder.
+- Enemy hit and death now play impact/death placeholders.
+- Damage pickup now plays a quiet pickup placeholder.
+- Runtime wrapper validation passed for the CombatSandbox debug and smoke scripts after SFX wiring.
+- 2026-05-16 main-thread review: first wiring exists, but player attack sound mapping is too generic and must be corrected.
+- 2026-05-16 revision completed: light attack, heavy attack, shield strike, enemy hit, enemy death, pickup, and movement footsteps now use separate accepted SFX names.
+
+Goal:
+
+Correct and complete sound effect mapping for the current simple combat sandbox.
+
+Acceptance:
+
+- Light attack and heavy attack are audibly different.
+- Shield charge / shield strike uses a distinct shield sound.
+- Enemy hit and enemy death are audibly different.
+- Loot pickup has a simple pickup sound.
+- Sound volume is not painful.
+- Audio files are placed in a clear `assets/audio/sfx/` structure.
+- Completed task entry includes `Task agent status: done`.
 
 ## Agent Rules
 

@@ -6,14 +6,18 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$GodotExe = "E:\GameDev\Godot_v4.6.2-stable_win64_console.exe"
+$GodotCandidates = @(
+    "E:\GameDev\Godot_v4.6.2-stable_win64_console.exe",
+    "E:\GameDev\Godot_v4.6.2-stable_win64.exe"
+)
+$GodotExe = $GodotCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 $EnvRoot = Join-Path $ProjectRoot ".codex_godot_env"
 $LocalAppData = Join-Path $EnvRoot "LocalAppData"
 $AppData = Join-Path $EnvRoot "AppDataRoaming"
 $Temp = Join-Path $EnvRoot "Temp"
 
-if (-not (Test-Path -LiteralPath $GodotExe)) {
-    throw "Godot console executable not found: $GodotExe"
+if ([string]::IsNullOrWhiteSpace($GodotExe)) {
+    throw "Godot executable not found. Checked: $($GodotCandidates -join ', ')"
 }
 
 New-Item -ItemType Directory -Force -Path $LocalAppData, $AppData, $Temp | Out-Null

@@ -2,6 +2,8 @@ extends CharacterBody2D
 
 const DAMAGE_PICKUP_SCENE := preload("res://scenes/items/damage_pickup.tscn")
 const FLOATING_FEEDBACK_SCENE := preload("res://scenes/ui/floating_feedback.tscn")
+const HIT_IMPACT_SFX := preload("res://assets/audio/sfx/enemy_hit_impact.mp3")
+const DEATH_SFX := preload("res://assets/audio/sfx/enemy_mummy_death.mp3")
 
 @export var max_hp := 60
 @export var move_speed := 72.0
@@ -123,6 +125,7 @@ func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO) -> void:
 	hp = maxi(hp - amount, 0)
 	hp_bar.value = hp
 	_spawn_feedback(str(amount), DAMAGE_NUMBER_COLOR, Vector2(0, -78))
+	_spawn_sfx(HIT_IMPACT_SFX, -14.0, 1.05)
 	_start_hit_flash()
 	_update_facing(source_position - global_position)
 	if hp <= 0:
@@ -218,6 +221,7 @@ func _die() -> void:
 	action_lock = 0.0
 	pending_attack_hit = false
 	hp_bar.visible = false
+	_spawn_sfx(DEATH_SFX, -13.0, 1.0)
 	_drop_loot()
 	_heal_player_on_death()
 	_play("death", true)
@@ -249,6 +253,17 @@ func _spawn_feedback(text: String, color: Color, offset: Vector2) -> void:
 	feedback.global_position = global_position + offset
 	get_tree().current_scene.add_child(feedback)
 	feedback.setup(text, color)
+
+
+func _spawn_sfx(stream: AudioStream, volume_db: float, pitch_scale: float = 1.0) -> void:
+	var audio := AudioStreamPlayer2D.new()
+	audio.stream = stream
+	audio.volume_db = volume_db
+	audio.pitch_scale = pitch_scale
+	audio.global_position = global_position
+	audio.finished.connect(audio.queue_free)
+	get_tree().current_scene.add_child(audio)
+	audio.play()
 
 
 func _find_player() -> void:

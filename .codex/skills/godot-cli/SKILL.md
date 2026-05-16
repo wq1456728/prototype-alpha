@@ -15,7 +15,8 @@ Do not call `Godot_v4.6.2-stable_win64_console.exe` directly from Codex. In this
 
 The wrapper:
 
-- uses `E:\GameDev\Godot_v4.6.2-stable_win64_console.exe`
+- prefers `E:\GameDev\Godot_v4.6.2-stable_win64_console.exe`
+- falls back to `E:\GameDev\Godot_v4.6.2-stable_win64.exe`
 - redirects `LOCALAPPDATA`, `APPDATA`, `TEMP`, and `TMP` to `.codex_godot_env/`
 - forwards all arguments to Godot
 - returns Godot's exit code

@@ -1,5 +1,9 @@
 extends CharacterBody2D
 
+const LIGHT_ATTACK_SFX := preload("res://assets/audio/sfx/player_attack_light_slash.mp3")
+const HEAVY_ATTACK_SFX := preload("res://assets/audio/sfx/player_attack_heavy_slash.mp3")
+const SHIELD_IMPACT_SFX := preload("res://assets/audio/sfx/player_shield_impact.mp3")
+const FOOTSTEPS_SFX := preload("res://assets/audio/sfx/player_footsteps_run_loop.mp3")
 const SPRITE_ROOT := "res://assets/sprites/characters/knight"
 const SHIELD_CHARGE_FRAMES_RESOURCE := "res://assets/animations/knight_shield_charge_attack.tres"
 const SPRITE_FRAME_WIDTH := 96
@@ -38,6 +42,7 @@ const MAX_SOFT_COLLISION_SPEED := 95.0
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
 
+var footstep_audio: AudioStreamPlayer2D
 var facing := Vector2.RIGHT
 var move_direction := Vector2.ZERO
 var aim_direction := Vector2.RIGHT
@@ -67,12 +72,14 @@ func _ready() -> void:
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	hp_bar.max_value = MAX_HP
 	hp_bar.value = hp
+	_setup_footstep_audio()
 	_play("idle")
 
 
 func _physics_process(delta: float) -> void:
 	if dead:
 		velocity = Vector2.ZERO
+		_update_footstep_audio(false, false)
 		move_and_slide()
 		return
 
@@ -84,6 +91,7 @@ func _physics_process(delta: float) -> void:
 	aim_direction = _read_aim_direction()
 
 	if action_lock > 0.0:
+		_update_footstep_audio(false, false)
 		_set_facing_direction(action_direction)
 		action_lock -= delta
 		if pending_hit_time >= 0.0:
@@ -135,6 +143,7 @@ func _physics_process(delta: float) -> void:
 	var soft_collision := _soft_collision_velocity() if move_direction != Vector2.ZERO else Vector2.ZERO
 	velocity = move_direction * target_speed + soft_collision
 	move_and_slide()
+	_update_footstep_audio(move_direction != Vector2.ZERO, wants_run)
 
 	if move_direction == Vector2.ZERO:
 		_play("idle")
@@ -164,6 +173,7 @@ func _start_attack(
 	pending_forward_range = forward_range
 	pending_side_range = side_range
 	hit_enemies.clear()
+	_play_attack_sfx(damage)
 	_play(anim_name, true)
 
 
@@ -199,6 +209,7 @@ func _start_shield_charge() -> void:
 	pending_forward_range = SHIELD_CHARGE_FORWARD_RANGE
 	pending_side_range = SHIELD_CHARGE_SIDE_RANGE
 	hit_enemies.clear()
+	_play_sfx(SHIELD_IMPACT_SFX, -13.0, 0.92)
 	_play("shield_charge", true)
 
 
@@ -351,6 +362,42 @@ func _consume_mouse_button_press(button: int) -> bool:
 func _play(anim_name: StringName, restart: bool = false) -> void:
 	if restart or sprite.animation != anim_name:
 		sprite.play(anim_name)
+
+
+func _play_sfx(stream: AudioStream, volume_db: float, pitch_scale: float = 1.0) -> void:
+	var audio := AudioStreamPlayer2D.new()
+	audio.stream = stream
+	audio.volume_db = volume_db
+	audio.pitch_scale = pitch_scale
+	audio.finished.connect(audio.queue_free)
+	add_child(audio)
+	audio.play()
+
+
+func _play_attack_sfx(damage: int) -> void:
+	if damage == LIGHT_ATTACK_DAMAGE:
+		_play_sfx(LIGHT_ATTACK_SFX, -15.0, 1.18)
+	else:
+		_play_sfx(HEAVY_ATTACK_SFX, -11.0, 0.9)
+
+
+func _setup_footstep_audio() -> void:
+	footstep_audio = AudioStreamPlayer2D.new()
+	footstep_audio.stream = FOOTSTEPS_SFX
+	footstep_audio.volume_db = -25.0
+	add_child(footstep_audio)
+
+
+func _update_footstep_audio(is_moving: bool, wants_run: bool) -> void:
+	if footstep_audio == null:
+		return
+	if not is_moving:
+		if footstep_audio.playing:
+			footstep_audio.stop()
+		return
+	footstep_audio.pitch_scale = 1.08 if wants_run else 0.88
+	if not footstep_audio.playing:
+		footstep_audio.play()
 
 
 func _build_sprite_frames() -> SpriteFrames:

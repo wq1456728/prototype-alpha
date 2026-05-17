@@ -1,33 +1,35 @@
 # Prototype Alpha
 
-Prototype Alpha is a Godot 4.6 2D dark fantasy ARPG demo.
+Prototype Alpha 是一个 Godot 4.6 2D dark fantasy ARPG demo。
 
-The current target is a 15-20 minute Windows vertical slice with Diablo II-like loot and progression rhythm, Chronicon-like WASD controls, and a pseudo top-down pixel-art presentation.
+当前目标是做一个 15-20 分钟 Windows vertical slice：Diablo II-like 的刷宝和成长节奏，Chronicon-like 的 WASD 控制，以及 pseudo top-down pixel-art 表现。
 
-## Frozen Planning Docs
+## 文档入口
 
-These documents are the current source of truth:
+当前 source of truth：
 
-- [Task Board](TASK_BOARD.md)
-- [Demo Scope](docs/DEMO_SCOPE.md)
-- [Control And Combat Rules](docs/CONTROL_AND_COMBAT.md)
-- [Art Pipeline](docs/ART_PIPELINE.md)
-- [Project Plan](docs/PROJECT_PLAN.md)
-- [Project Overview](docs/project_overview.md)
+- [任务板](TASK_BOARD.md)：当前任务、下一步和最近完成。
+- [项目计划](docs/PROJECT_PLAN.md)：长期 milestone。
+- [Demo 范围](docs/DEMO_SCOPE.md)：15-20 分钟 demo 的冻结范围。
+- [控制和战斗规则](docs/CONTROL_AND_COMBAT.md)：WASD、朝向、战斗节奏、反馈规则。
+- [美术管线](docs/ART_PIPELINE.md)：视角、像素风格、动画和素材导入规范。
+- [Agent 规则](docs/AGENT_RULES.md)：不同 agent 的通用工作规则。
+- [任务归档](docs/TASK_ARCHIVE.md)：已完成任务和审查结果。
+- [素材提示词模板](ASSET_PROMPT_TEMPLATE.md)：给素材网站复制使用的通用 prompt。
 
-If older notes conflict with these files, the frozen documents win.
+如果旧笔记和上面文件冲突，以上面文件为准。
 
-## Current Demo Target
+## 当前 Demo 目标
 
-- One outdoor map.
-- One enterable dungeon.
-- One small boss.
-- One light quest thread.
-- Two class prototypes: paladin-style melee and mage-style ranged.
-- WASD movement with mouse-aimed attacks and skills.
-- Loot, equipment, level growth, skill unlocks, and enough UI to support the loop.
+- 一张 outdoor map。
+- 一个可进入 dungeon。
+- 一个 small boss。
+- 一条轻量 quest thread。
+- 两个职业原型：paladin-style melee 和 mage-style ranged。
+- WASD movement，鼠标控制 attack/skill 方向。
+- Loot、equipment、level growth、skill unlocks，以及支撑这些系统的 UI。
 
-## Core Loop
+## 核心循环
 
 ```text
 move
@@ -39,36 +41,34 @@ move
 -> push deeper
 ```
 
-## Current Priorities
+## 当前优先级
 
-- Combat feel.
-- Readable movement and facing.
-- Stable sprite animation.
-- Satisfying hit feedback.
-- Enemy pressure.
-- Short-term power growth.
-- Loot clarity.
-- Fast in-game iteration.
+- Combat feel。
+- Readable movement and facing。
+- Stable sprite animation。
+- Satisfying hit feedback。
+- Enemy pressure。
+- Short-term power growth。
+- Loot clarity。
+- Fast in-game iteration。
 
-## Scope Control
+## 范围控制
 
-Do not build these unless the demo is explicitly re-scoped:
+除非 demo 明确重新定范围，否则不要做：
 
-- Multiplayer.
-- Procedural dungeon generation.
-- Full save/load architecture.
-- Large skill trees.
-- Rune systems.
-- Crafting.
-- Economy.
-- Large UI frameworks.
-- Broad architecture rewrites.
+- Multiplayer。
+- Procedural dungeon generation。
+- Full save/load architecture。
+- Large skill trees。
+- Rune systems。
+- Crafting。
+- Economy。
+- Large UI frameworks。
+- Broad architecture rewrites。
 
-## Daily Check
+## 每次加功能前检查
 
-Before adding a feature, ask:
-
-- Does it improve combat?
-- Does it improve loot?
-- Does it improve growth?
-- Can it be tested quickly in-game?
+- 它是否改善 combat？
+- 它是否改善 loot？
+- 它是否改善 growth？
+- 它能不能快速在游戏里验证？

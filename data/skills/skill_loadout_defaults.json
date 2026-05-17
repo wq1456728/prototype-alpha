@@ -5,7 +5,9 @@
       "name": "Light Attack",
       "description": "Default basic attack. This is not a skill-tree node.",
       "skill_type": "active",
-      "baseline": true
+      "baseline": true,
+      "icon": "res://assets/ui/skills/skill_light_attack_icon.png",
+      "icon_color": [0.78, 0.72, 0.48]
     }
   ],
   "slots": [

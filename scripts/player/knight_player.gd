@@ -51,7 +51,7 @@ const LEVEL_UP_HEAL_FRACTION := 0.25
 const DEBUG_ATTACK_AREA_COLOR := Color(1.0, 0.18, 0.12, 0.22)
 const DEBUG_ATTACK_AREA_OUTLINE := Color(1.0, 0.28, 0.16, 0.8)
 
-@export var show_attack_debug := true
+@export var show_attack_debug := false
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hp_bar: ProgressBar = $HPBar
@@ -165,7 +165,8 @@ func _physics_process(delta: float) -> void:
 
 	if triggered_skill == "shield_charge" and shield_charge_cooldown <= 0.0:
 		_start_shield_charge()
-	elif triggered_skill == "heavy_attack":
+	elif triggered_skill == "heavy_strike" or triggered_skill == "heavy_attack":
+		_record_skill_use("heavy_strike")
 		_start_attack("attack_3", HEAVY_ATTACK_LOCK_TIME, HEAVY_ATTACK_DAMAGE, HEAVY_ATTACK_HIT_DELAY, HEAVY_ATTACK_FORWARD_RANGE, HEAVY_ATTACK_SIDE_RANGE, aim_direction, HEAVY_ATTACK_SFX, 0.12, -11.0, 0.9)
 	elif triggered_skill == "light_attack":
 		_start_light_attack()

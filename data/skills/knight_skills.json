@@ -1,15 +1,30 @@
 {
   "skills": [
     {
-      "id": "shield_charge",
-      "name": "Shield Charge",
-      "description": "Unlocks Shield Charge for assignment to an active skill slot.",
+      "id": "heavy_strike",
+      "name": "Heavy Strike",
+      "description": "A committed melee strike with higher damage and a slower recovery.",
       "skill_type": "active",
       "required_level": 2,
       "required_skill_ids": [],
       "max_rank": 1,
       "unlock_cost": 1,
-      "active": true
+      "active": true,
+      "icon": "res://assets/ui/skills/skill_heavy_strike_icon.png",
+      "icon_color": [0.72, 0.33, 0.18]
+    },
+    {
+      "id": "shield_charge",
+      "name": "Shield Charge",
+      "description": "Unlocks Shield Charge for assignment to an active skill slot.",
+      "skill_type": "active",
+      "required_level": 2,
+      "required_skill_ids": ["heavy_strike"],
+      "max_rank": 1,
+      "unlock_cost": 1,
+      "active": true,
+      "icon": "res://assets/ui/skills/skill_shield_charge_icon.png",
+      "icon_color": [0.26, 0.48, 0.82]
     },
     {
       "id": "shield_training",
@@ -20,7 +35,9 @@
       "required_skill_ids": ["shield_charge"],
       "max_rank": 1,
       "unlock_cost": 1,
-      "active": false
+      "active": false,
+      "icon": "res://assets/ui/skills/skill_shield_training_icon.png",
+      "icon_color": [0.36, 0.62, 0.42]
     }
   ]
 }

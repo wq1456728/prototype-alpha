@@ -217,16 +217,35 @@ func _run() -> void:
 		print("combat_sandbox FAIL skill_points_not_awarded points %d -> %d" % [before_skill_points, after_skill_points])
 		quit(1)
 		return
-	if not bool(player.call("can_unlock_skill", "shield_charge")):
-		print("combat_sandbox FAIL shield_charge_should_be_unlockable level=%d points=%d" % [after_level, after_skill_points])
+	if bool(player.call("can_unlock_skill", "shield_charge")):
+		print("combat_sandbox FAIL shield_charge_should_need_heavy_strike")
+		quit(1)
+		return
+	if not bool(player.call("can_unlock_skill", "heavy_strike")):
+		print("combat_sandbox FAIL heavy_strike_should_be_unlockable level=%d points=%d" % [after_level, after_skill_points])
+		quit(1)
+		return
+	if not bool(player.call("unlock_skill", "heavy_strike")) or not bool(player.call("is_skill_unlocked", "heavy_strike")):
+		print("combat_sandbox FAIL heavy_strike_unlock")
 		quit(1)
 		return
 	if not bool(player.call("unlock_skill", "shield_charge")) or not bool(player.call("is_skill_unlocked", "shield_charge")):
 		print("combat_sandbox FAIL shield_charge_unlock")
 		quit(1)
 		return
-	if not bool(current_scene.call("assign_skill_to_loadout", "shield_charge", "v")) or str(player.call("get_loadout_skill", "v")) != "shield_charge":
-		print("combat_sandbox FAIL shield_charge_assign slot_v=%s" % player.call("get_loadout_skill", "v"))
+	current_scene.call("click_loadout_slot", "v")
+	await process_frame
+	if not bool(current_scene.call("is_loadout_picker_visible")) or int(current_scene.call("get_loadout_picker_option_count")) < 1:
+		print("combat_sandbox FAIL loadout_picker_missing visible=%s options=%d" % [current_scene.call("is_loadout_picker_visible"), int(current_scene.call("get_loadout_picker_option_count"))])
+		quit(1)
+		return
+	var shield_tooltip := str(current_scene.call("get_loadout_picker_tooltip", "shield_charge"))
+	if not shield_tooltip.contains("Shield Charge") or not shield_tooltip.contains("assignment"):
+		print("combat_sandbox FAIL loadout_picker_tooltip tooltip=%s" % shield_tooltip)
+		quit(1)
+		return
+	if not bool(current_scene.call("click_loadout_picker_skill", "shield_charge")) or str(player.call("get_loadout_skill", "v")) != "shield_charge":
+		print("combat_sandbox FAIL shield_charge_picker_assign slot_v=%s" % player.call("get_loadout_skill", "v"))
 		quit(1)
 		return
 	player.call("_start_shield_charge")

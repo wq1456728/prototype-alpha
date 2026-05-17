@@ -77,6 +77,10 @@ func _test_locked_shield_charge() -> void:
 func _unlock_shield_charge() -> void:
 	var player := get_first_node_in_group("player")
 	player.call("gain_xp", int(player.call("get_xp_to_next_level")))
+	if not bool(player.call("unlock_skill", "heavy_strike")):
+		print("heavy_strike_unlock FAIL level=%d points=%d" % [int(player.call("get_level")), int(player.call("get_available_skill_points"))])
+		quit(1)
+		return
 	if not bool(player.call("unlock_skill", "shield_charge")):
 		print("shield_charge_unlock FAIL level=%d points=%d" % [int(player.call("get_level")), int(player.call("get_available_skill_points"))])
 		quit(1)

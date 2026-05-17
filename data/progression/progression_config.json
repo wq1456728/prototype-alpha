@@ -1,33 +1,33 @@
 {
   "level_defaults": {
-    "xp_to_next": 90,
-    "damage_bonus": 9,
-    "skill_points_on_level": 1
+	"xp_to_next": 90,
+	"damage_bonus": 9,
+	"skill_points_on_level": 1
   },
   "levels": [
-    {
-      "level": 1,
-      "xp_to_next": 40,
-      "damage_bonus": 0,
-      "skill_points_on_level": 0
-    },
-    {
-      "level": 2,
-      "xp_to_next": 65,
-      "damage_bonus": 3,
-      "skill_points_on_level": 1
-    },
-    {
-      "level": 3,
-      "xp_to_next": 90,
-      "damage_bonus": 6,
-      "skill_points_on_level": 1
-    },
-    {
-      "level": 4,
-      "xp_to_next": 120,
-      "damage_bonus": 9,
-      "skill_points_on_level": 1
-    }
+	{
+	  "level": 1,
+	  "xp_to_next": 40,
+	  "damage_bonus": 0,
+	  "skill_points_on_level": 0
+	},
+	{
+	  "level": 2,
+	  "xp_to_next": 65,
+	  "damage_bonus": 3,
+	  "skill_points_on_level": 2
+	},
+	{
+	  "level": 3,
+	  "xp_to_next": 90,
+	  "damage_bonus": 6,
+	  "skill_points_on_level": 1
+	},
+	{
+	  "level": 4,
+	  "xp_to_next": 120,
+	  "damage_bonus": 9,
+	  "skill_points_on_level": 1
+	}
   ]
 }

@@ -3,33 +3,16 @@ extends Node2D
 const MUMMY_SCENE := preload("res://scenes/enemy/mummy_enemy.tscn")
 const WEAPON_PICKUP_SCENE := preload("res://scenes/items/weapon_pickup.tscn")
 const COLLISION_DEBUG_OVERLAY_SCRIPT := preload("res://scripts/debug/collision_debug_overlay.gd")
-const INVENTORY_SLOT_TEXTURE := preload("res://assets/ui/inventory_slot.png")
-const EQUIPMENT_SLOT_TEXTURE := preload("res://assets/ui/equipment_weapon_slot.png")
+const DEBUG_HUD_SCRIPT := preload("res://scripts/ui/sandbox_debug_hud.gd")
+const INVENTORY_PANEL_SCRIPT := preload("res://scripts/ui/inventory_panel.gd")
+const SKILL_TREE_PANEL_SCRIPT := preload("res://scripts/ui/skill_tree_panel.gd")
+const SKILL_LOADOUT_BAR_SCRIPT := preload("res://scripts/ui/skill_loadout_bar.gd")
+const OBJECTIVE_PANEL_SCRIPT := preload("res://scripts/ui/objective_panel.gd")
+
 const RESPAWN_DELAY := 4.0
-const SLOT_SIZE := Vector2(48, 48)
-const ITEM_ICON_SIZE := Vector2(32, 32)
 const WORLD_ITEM_CLICK_RADIUS := 36.0
 const CURSOR_DROP_DISTANCE := 42.0
-const PANEL_COLOR := Color(0.055, 0.058, 0.052, 0.82)
-const SELECTED_SLOT_COLOR := Color(0.95, 0.78, 0.24, 0.34)
-const CURSOR_SLOT_COLOR := Color(0.36, 0.64, 1.0, 0.24)
-const LABEL_COLOR := Color(0.9, 0.88, 0.72, 1.0)
-const EMPTY_LABEL_COLOR := Color(0.48, 0.48, 0.42, 1.0)
-const RARITY_COLORS := {
-	"normal": Color(0.82, 0.78, 0.68, 1.0),
-	"magic": Color(0.36, 0.64, 1.0, 1.0),
-	"rare": Color(1.0, 0.78, 0.25, 1.0),
-}
-const OBJECTIVE_STEPS := [
-	"Kill a mummy",
-	"Pick up a dropped item",
-	"Equip a weapon",
-	"Reach level 2",
-	"Unlock Shield Charge",
-	"Assign Shield Charge to V",
-	"Use Shield Charge from the loadout",
-	"Defeat the brute"
-]
+const UI_MARGIN := 24.0
 
 @onready var world_entities_root: Node2D = $WorldEntities
 @onready var player: Node2D = $WorldEntities/KnightPlayer
@@ -38,55 +21,32 @@ const OBJECTIVE_STEPS := [
 
 var respawn_pending := false
 var inventory_panel: Control
-var equipment_slot_highlight: ColorRect
-var equipment_icon: TextureRect
-var equipment_name_label: Label
-var equipment_damage_label: Label
-var equipment_slots_label: Label
-var inventory_slot_icons: Array[TextureRect] = []
-var inventory_slot_bonus_labels: Array[Label] = []
-var inventory_slot_highlights: Array[ColorRect] = []
-var selected_name_label: Label
-var selected_rarity_label: Label
-var selected_type_label: Label
-var selected_slot_label: Label
-var selected_damage_label: Label
-var progression_level_label: Label
-var progression_xp_label: Label
-var progression_skill_points_label: Label
-var equip_button: Button
-var cursor_item_icon: TextureRect
-var cursor_status_label: Label
 var skill_tree_panel: Control
-var skill_points_panel_label: Label
-var skill_node_labels := {}
-var skill_unlock_buttons := {}
-var skill_assign_buttons := {}
 var loadout_bar: Control
-var loadout_slot_buttons := {}
-var selected_skill_id := "shield_charge"
 var objective_panel: Control
-var objective_title_label: Label
-var objective_step_label: Label
-var objective_detail_label: Label
-var objective_stage := 0
-var objective_complete := false
+var cursor_item_icon: TextureRect
 var collision_debug_overlay: Node2D
-var selected_slot_index := -1
 var cursor_item: Dictionary = {}
 var icon_cache := {}
+var last_viewport_size := Vector2.ZERO
 
 
 func _ready() -> void:
 	_setup_collision_debug_overlay()
+	_setup_debug_hud()
 	_build_inventory_ui()
 	_build_skill_tree_ui()
 	_build_loadout_ui()
 	_build_objective_ui()
+	_build_cursor_item_ui()
+	_layout_ui(true)
 	_spawn_wave()
 
 
 func _process(_delta: float) -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	if viewport_size != last_viewport_size:
+		_layout_ui()
 	_update_debug_label()
 	_update_inventory_ui()
 	_update_skill_tree_ui()
@@ -109,6 +69,11 @@ func _input(event: InputEvent) -> void:
 			if _is_screen_point_in_inventory(mouse_event.position) or _is_screen_point_in_skill_tree(mouse_event.position) or _is_screen_point_in_loadout(mouse_event.position):
 				_suppress_player_attack_input()
 				return
+			if is_loadout_picker_visible():
+				_hide_loadout_picker()
+				_suppress_player_attack_input()
+				get_viewport().set_input_as_handled()
+				return
 			if _handle_world_left_click():
 				get_viewport().set_input_as_handled()
 
@@ -130,7 +95,14 @@ func _unhandled_input(event: InputEvent) -> void:
 func toggle_inventory_visibility() -> void:
 	if inventory_panel == null:
 		return
-	inventory_panel.visible = not inventory_panel.visible
+	var should_show := not inventory_panel.visible
+	inventory_panel.visible = should_show
+	if should_show:
+		if skill_tree_panel != null:
+			skill_tree_panel.visible = false
+		_hide_loadout_picker()
+	_update_large_panel_focus_ui()
+	_update_skill_tree_ui()
 	_update_cursor_item_ui()
 
 
@@ -141,7 +113,14 @@ func is_inventory_visible() -> bool:
 func toggle_skill_tree_visibility() -> void:
 	if skill_tree_panel == null:
 		return
-	skill_tree_panel.visible = not skill_tree_panel.visible
+	var should_show := not skill_tree_panel.visible
+	skill_tree_panel.visible = should_show
+	if should_show:
+		if inventory_panel != null:
+			inventory_panel.visible = false
+		_hide_loadout_picker()
+	_update_large_panel_focus_ui()
+	_update_inventory_ui()
 	_update_skill_tree_ui()
 
 
@@ -152,15 +131,26 @@ func is_skill_tree_visible() -> bool:
 func toggle_collision_debug_visibility() -> void:
 	if collision_debug_overlay == null:
 		return
-	collision_debug_overlay.visible = not collision_debug_overlay.visible
+	var should_show := not collision_debug_overlay.visible
+	collision_debug_overlay.visible = should_show
+	_set_player_attack_debug_visible(should_show)
 
 
 func is_collision_debug_visible() -> bool:
 	return collision_debug_overlay != null and collision_debug_overlay.visible
 
 
+func _set_player_attack_debug_visible(should_show: bool) -> void:
+	for player_node in get_tree().get_nodes_in_group("player"):
+		player_node.set("show_attack_debug", should_show)
+		if player_node is CanvasItem:
+			(player_node as CanvasItem).queue_redraw()
+
+
 func select_inventory_slot(slot_index: int) -> void:
-	_select_inventory_slot(slot_index)
+	if inventory_panel != null:
+		inventory_panel.call("select_slot", slot_index, player)
+	_update_inventory_ui()
 
 
 func equip_selected_inventory_slot() -> void:
@@ -197,19 +187,41 @@ func assign_skill_to_loadout(skill_id: String, slot_id: String) -> bool:
 	var assigned := bool(player.assign_skill_to_slot(skill_id, slot_id))
 	_update_loadout_ui()
 	_update_skill_tree_ui()
+	if assigned:
+		_hide_loadout_picker()
 	return assigned
 
 
 func get_objective_stage() -> int:
-	return objective_stage
+	return int(objective_panel.call("get_stage")) if objective_panel != null else 0
 
 
 func is_objective_complete() -> bool:
-	return objective_complete
+	return bool(objective_panel.call("is_complete")) if objective_panel != null else false
 
 
 func get_world_item_parent() -> Node2D:
 	return world_entities_root if is_instance_valid(world_entities_root) else self
+
+
+func is_loadout_picker_visible() -> bool:
+	return bool(loadout_bar.call("is_picker_visible")) if loadout_bar != null else false
+
+
+func get_loadout_picker_option_count() -> int:
+	return int(loadout_bar.call("get_picker_option_count")) if loadout_bar != null else 0
+
+
+func get_loadout_picker_tooltip(skill_id: String) -> String:
+	return str(loadout_bar.call("get_picker_tooltip", skill_id)) if loadout_bar != null else ""
+
+
+func click_loadout_slot(slot_id: String) -> void:
+	_click_loadout_slot(slot_id)
+
+
+func click_loadout_picker_skill(skill_id: String) -> bool:
+	return bool(loadout_bar.call("select_picker_skill", skill_id)) if loadout_bar != null else false
 
 
 func _spawn_wave() -> void:
@@ -251,179 +263,51 @@ func _spawn_mummy(
 	get_world_item_parent().add_child(enemy)
 
 
-func _update_debug_label() -> void:
-	var enemy_count := get_tree().get_nodes_in_group("enemy").size()
-	var hp_text := "?"
-	var damage_text := "?"
-	var weapon_text := "?"
-	var level_text := "?"
-	var xp_text := "?/?"
-	var skill_points_text := "?"
-	var facing_text := "?"
-	var action_text := "?"
-	var cursor_text := "None"
-	var collision_text := "Off"
-	if is_instance_valid(player):
-		var hp_value = player.get("hp")
-		hp_text = str(hp_value) if hp_value != null else "?"
-		if player.has_method("get_current_attack_damage"):
-			damage_text = str(player.get_current_attack_damage())
-		if player.has_method("get_level"):
-			level_text = str(player.get_level())
-		if player.has_method("get_current_xp") and player.has_method("get_xp_to_next_level"):
-			xp_text = "%d/%d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
-		if player.has_method("get_available_skill_points"):
-			skill_points_text = str(player.get_available_skill_points())
-		if player.has_method("get_equipped_weapon_name"):
-			weapon_text = str(player.get_equipped_weapon_name())
-		if player.has_method("get_facing_direction"):
-			facing_text = _format_vector(player.get_facing_direction())
-		if player.has_method("get_action_direction"):
-			action_text = _format_vector(player.get_action_direction())
-	if not cursor_item.is_empty():
-		cursor_text = str(cursor_item.get("name", "Item"))
-	if is_collision_debug_visible():
-		collision_text = "On"
-	debug_label.text = "Enemies: %d\nHP: %s\nLevel: %s\nXP: %s\nSkill Points: %s\nDamage: %s\nWeapon: %s\nCursor: %s\nCollision: %s\nFacing: %s\nAction: %s" % [enemy_count, hp_text, level_text, xp_text, skill_points_text, damage_text, weapon_text, cursor_text, collision_text, facing_text, action_text]
-
-
 func _setup_collision_debug_overlay() -> void:
 	collision_debug_overlay = COLLISION_DEBUG_OVERLAY_SCRIPT.new()
 	collision_debug_overlay.name = "CollisionDebugOverlay"
 	add_child(collision_debug_overlay)
 
 
+func _setup_debug_hud() -> void:
+	debug_label.set_script(DEBUG_HUD_SCRIPT)
+	debug_label.call("setup")
+
+
 func _build_inventory_ui() -> void:
-	inventory_panel = Control.new()
-	inventory_panel.name = "InventoryPanel"
-	inventory_panel.position = Vector2(640, 16)
-	inventory_panel.size = Vector2(610, 240)
-	inventory_panel.visible = false
+	inventory_panel = INVENTORY_PANEL_SCRIPT.new()
 	debug_canvas.add_child(inventory_panel)
+	inventory_panel.call("setup")
+	inventory_panel.connect("inventory_slot_pressed", Callable(self, "_click_inventory_slot"))
+	inventory_panel.connect("equipment_slot_pressed", Callable(self, "_click_equipment_slot"))
+	inventory_panel.connect("equip_selected_requested", Callable(self, "_equip_selected_slot"))
 
-	var background := ColorRect.new()
-	background.color = PANEL_COLOR
-	background.size = inventory_panel.size
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inventory_panel.add_child(background)
 
-	var title := _make_label("Equipment", Vector2(10, 8), Vector2(150, 20), 15, LABEL_COLOR)
-	inventory_panel.add_child(title)
+func _build_skill_tree_ui() -> void:
+	skill_tree_panel = SKILL_TREE_PANEL_SCRIPT.new()
+	debug_canvas.add_child(skill_tree_panel)
+	skill_tree_panel.call("setup")
+	skill_tree_panel.connect("unlock_requested", Callable(self, "_unlock_skill_from_panel"))
 
-	var bag_title := _make_label("Bag", Vector2(10, 104), Vector2(120, 20), 15, LABEL_COLOR)
-	inventory_panel.add_child(bag_title)
 
-	var equip_slot := Control.new()
-	equip_slot.position = Vector2(10, 30)
-	equip_slot.size = SLOT_SIZE
-	inventory_panel.add_child(equip_slot)
-	_add_slot_background(equip_slot, EQUIPMENT_SLOT_TEXTURE)
+func _build_loadout_ui() -> void:
+	loadout_bar = SKILL_LOADOUT_BAR_SCRIPT.new()
+	debug_canvas.add_child(loadout_bar)
+	loadout_bar.call("setup", player)
+	loadout_bar.connect("slot_pressed", Callable(self, "_click_loadout_slot"))
+	loadout_bar.connect("skill_selected", Callable(self, "_on_loadout_skill_selected"))
 
-	equipment_slot_highlight = ColorRect.new()
-	equipment_slot_highlight.color = CURSOR_SLOT_COLOR
-	equipment_slot_highlight.size = SLOT_SIZE
-	equipment_slot_highlight.visible = false
-	equipment_slot_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	equip_slot.add_child(equipment_slot_highlight)
 
-	equipment_icon = TextureRect.new()
-	equipment_icon.position = Vector2(8, 8)
-	equipment_icon.size = ITEM_ICON_SIZE
-	equipment_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	equipment_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	equipment_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	equip_slot.add_child(equipment_icon)
+func _build_objective_ui() -> void:
+	objective_panel = OBJECTIVE_PANEL_SCRIPT.new()
+	debug_canvas.add_child(objective_panel)
+	objective_panel.call("setup")
 
-	var equip_slot_button := Button.new()
-	equip_slot_button.flat = true
-	equip_slot_button.text = ""
-	equip_slot_button.size = SLOT_SIZE
-	equip_slot_button.focus_mode = Control.FOCUS_NONE
-	equip_slot_button.pressed.connect(_click_equipment_slot)
-	equip_slot.add_child(equip_slot_button)
 
-	equipment_name_label = _make_label("None", Vector2(68, 31), Vector2(240, 20), 14, LABEL_COLOR)
-	inventory_panel.add_child(equipment_name_label)
-	equipment_damage_label = _make_label("Damage: ?", Vector2(68, 52), Vector2(180, 20), 14, LABEL_COLOR)
-	inventory_panel.add_child(equipment_damage_label)
-	equipment_slots_label = _make_label("Slots: Weapon active, Chest/Accessory locked", Vector2(68, 73), Vector2(245, 20), 12, EMPTY_LABEL_COLOR)
-	inventory_panel.add_child(equipment_slots_label)
-
-	var selected_title := _make_label("Selected", Vector2(330, 8), Vector2(120, 20), 15, LABEL_COLOR)
-	inventory_panel.add_child(selected_title)
-	selected_name_label = _make_label("None", Vector2(330, 31), Vector2(190, 20), 14, LABEL_COLOR)
-	inventory_panel.add_child(selected_name_label)
-	selected_rarity_label = _make_label("Rarity: -", Vector2(330, 52), Vector2(150, 20), 14, EMPTY_LABEL_COLOR)
-	inventory_panel.add_child(selected_rarity_label)
-	selected_type_label = _make_label("Type: -", Vector2(330, 73), Vector2(170, 20), 13, LABEL_COLOR)
-	inventory_panel.add_child(selected_type_label)
-	selected_slot_label = _make_label("Slot: -", Vector2(330, 94), Vector2(170, 20), 13, LABEL_COLOR)
-	inventory_panel.add_child(selected_slot_label)
-	selected_damage_label = _make_label("Stat: -", Vector2(330, 115), Vector2(170, 20), 13, LABEL_COLOR)
-	inventory_panel.add_child(selected_damage_label)
-
-	var progression_title := _make_label("Progression", Vector2(330, 142), Vector2(140, 20), 15, LABEL_COLOR)
-	inventory_panel.add_child(progression_title)
-	progression_level_label = _make_label("Level: 1", Vector2(330, 164), Vector2(140, 20), 14, LABEL_COLOR)
-	inventory_panel.add_child(progression_level_label)
-	progression_xp_label = _make_label("XP: 0 / 40", Vector2(330, 185), Vector2(160, 20), 14, LABEL_COLOR)
-	inventory_panel.add_child(progression_xp_label)
-	progression_skill_points_label = _make_label("Skill Points: 0", Vector2(330, 206), Vector2(160, 20), 13, LABEL_COLOR)
-	inventory_panel.add_child(progression_skill_points_label)
-
-	equip_button = Button.new()
-	equip_button.text = "Equip"
-	equip_button.position = Vector2(520, 31)
-	equip_button.size = Vector2(72, 28)
-	equip_button.disabled = true
-	equip_button.pressed.connect(_equip_selected_slot)
-	inventory_panel.add_child(equip_button)
-
-	cursor_status_label = _make_label("Cursor: Empty", Vector2(330, 224), Vector2(250, 20), 13, EMPTY_LABEL_COLOR)
-	inventory_panel.add_child(cursor_status_label)
-
-	for i in range(10):
-		var slot := Control.new()
-		slot.position = Vector2(10 + i * 58, 126)
-		slot.size = SLOT_SIZE
-		inventory_panel.add_child(slot)
-		_add_slot_background(slot, INVENTORY_SLOT_TEXTURE)
-
-		var highlight := ColorRect.new()
-		highlight.color = SELECTED_SLOT_COLOR
-		highlight.size = SLOT_SIZE
-		highlight.visible = false
-		highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		slot.add_child(highlight)
-		inventory_slot_highlights.append(highlight)
-
-		var key_label := _make_label(_slot_key_text(i), Vector2(3, 1), Vector2(18, 16), 11, EMPTY_LABEL_COLOR)
-		slot.add_child(key_label)
-
-		var icon := TextureRect.new()
-		icon.position = Vector2(8, 8)
-		icon.size = ITEM_ICON_SIZE
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		slot.add_child(icon)
-		inventory_slot_icons.append(icon)
-
-		var bonus := _make_label("", Vector2(20, 31), Vector2(28, 16), 11, LABEL_COLOR)
-		slot.add_child(bonus)
-		inventory_slot_bonus_labels.append(bonus)
-
-		var button := Button.new()
-		button.flat = true
-		button.text = ""
-		button.size = SLOT_SIZE
-		button.focus_mode = Control.FOCUS_NONE
-		button.pressed.connect(_click_inventory_slot.bind(i))
-		slot.add_child(button)
-
+func _build_cursor_item_ui() -> void:
 	cursor_item_icon = TextureRect.new()
 	cursor_item_icon.name = "CursorItemIcon"
-	cursor_item_icon.size = ITEM_ICON_SIZE
+	cursor_item_icon.size = Vector2(48, 48)
 	cursor_item_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	cursor_item_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	cursor_item_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -432,396 +316,89 @@ func _build_inventory_ui() -> void:
 	debug_canvas.add_child(cursor_item_icon)
 
 
-func _build_skill_tree_ui() -> void:
-	skill_tree_panel = Control.new()
-	skill_tree_panel.name = "SkillTreePanel"
-	skill_tree_panel.position = Vector2(770, 150)
-	skill_tree_panel.size = Vector2(430, 350)
-	skill_tree_panel.visible = false
-	debug_canvas.add_child(skill_tree_panel)
-
-	var background := ColorRect.new()
-	background.color = PANEL_COLOR
-	background.size = skill_tree_panel.size
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	skill_tree_panel.add_child(background)
-
-	var title := _make_label("Skill Tree", Vector2(14, 10), Vector2(190, 24), 18, LABEL_COLOR)
-	skill_tree_panel.add_child(title)
-	skill_points_panel_label = _make_label("Skill Points: 0", Vector2(270, 13), Vector2(145, 20), 14, LABEL_COLOR)
-	skill_tree_panel.add_child(skill_points_panel_label)
-
-	_add_skill_node("shield_charge", Vector2(28, 58))
-	_add_skill_node("shield_training", Vector2(28, 178))
-
-
-func _add_skill_node(skill_id: String, position: Vector2) -> void:
-	var label := _make_label("", position, Vector2(260, 82), 13, LABEL_COLOR)
-	skill_tree_panel.add_child(label)
-	skill_node_labels[skill_id] = label
-
-	var unlock_button := Button.new()
-	unlock_button.text = "Unlock"
-	unlock_button.position = position + Vector2(282, 4)
-	unlock_button.size = Vector2(98, 28)
-	unlock_button.focus_mode = Control.FOCUS_NONE
-	unlock_button.pressed.connect(_unlock_skill_from_panel.bind(skill_id))
-	skill_tree_panel.add_child(unlock_button)
-	skill_unlock_buttons[skill_id] = unlock_button
-
-	var assign_button := Button.new()
-	assign_button.text = "Assign V"
-	assign_button.position = position + Vector2(282, 40)
-	assign_button.size = Vector2(98, 28)
-	assign_button.focus_mode = Control.FOCUS_NONE
-	assign_button.pressed.connect(_assign_skill_from_panel.bind(skill_id, "v"))
-	skill_tree_panel.add_child(assign_button)
-	skill_assign_buttons[skill_id] = assign_button
-
-
-func _build_loadout_ui() -> void:
-	loadout_bar = Control.new()
-	loadout_bar.name = "SkillLoadoutBar"
-	loadout_bar.position = Vector2(408, 644)
-	loadout_bar.size = Vector2(464, 66)
-	debug_canvas.add_child(loadout_bar)
-	if not is_instance_valid(player) or not player.has_method("get_loadout_slots"):
+func _layout_ui(force: bool = false) -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		viewport_size = Vector2(1280, 720)
+	if not force and viewport_size == last_viewport_size:
 		return
-	var slots: Array = player.get_loadout_slots()
-	for i in range(slots.size()):
-		var slot: Dictionary = slots[i]
-		var button := Button.new()
-		button.position = Vector2(i * 74, 0)
-		button.size = Vector2(68, 62)
-		button.focus_mode = Control.FOCUS_NONE
-		button.pressed.connect(_click_loadout_slot.bind(str(slot.get("id", ""))))
-		loadout_bar.add_child(button)
-		loadout_slot_buttons[str(slot.get("id", ""))] = button
+	last_viewport_size = viewport_size
+
+	if debug_label != null:
+		debug_label.call("setup")
+	if inventory_panel != null:
+		inventory_panel.call("layout", viewport_size)
+	if skill_tree_panel != null:
+		skill_tree_panel.call("layout", viewport_size)
+	if objective_panel != null:
+		objective_panel.call("layout", viewport_size)
+	if loadout_bar != null:
+		loadout_bar.call("layout", viewport_size)
+	_update_large_panel_focus_ui()
 
 
-func _build_objective_ui() -> void:
-	objective_panel = Control.new()
-	objective_panel.name = "ObjectivePanel"
-	objective_panel.position = Vector2(16, 220)
-	objective_panel.size = Vector2(330, 96)
-	debug_canvas.add_child(objective_panel)
-
-	var background := ColorRect.new()
-	background.color = PANEL_COLOR
-	background.size = objective_panel.size
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	objective_panel.add_child(background)
-
-	objective_title_label = _make_label("Objective", Vector2(10, 8), Vector2(190, 20), 16, LABEL_COLOR)
-	objective_panel.add_child(objective_title_label)
-	objective_step_label = _make_label("", Vector2(10, 33), Vector2(300, 20), 14, LABEL_COLOR)
-	objective_panel.add_child(objective_step_label)
-	objective_detail_label = _make_label("", Vector2(10, 58), Vector2(310, 30), 12, EMPTY_LABEL_COLOR)
-	objective_panel.add_child(objective_detail_label)
+func _update_large_panel_focus_ui() -> void:
+	var large_panel_visible := is_inventory_visible() or is_skill_tree_visible()
+	if debug_label != null:
+		debug_label.visible = not large_panel_visible
+	if objective_panel != null:
+		objective_panel.visible = not large_panel_visible
 
 
-func _update_objective_flow() -> void:
-	if objective_complete or not is_instance_valid(player):
-		_update_objective_ui()
+func _update_debug_label() -> void:
+	if debug_label == null:
 		return
-	var advanced := true
-	while advanced and not objective_complete:
-		advanced = false
-		if _is_objective_stage_done(objective_stage):
-			objective_stage += 1
-			advanced = true
-			if objective_stage >= OBJECTIVE_STEPS.size():
-				objective_complete = true
-	_update_objective_ui()
-
-
-func _is_objective_stage_done(stage: int) -> bool:
-	match stage:
-		0:
-			return get_tree().get_nodes_in_group("enemy").size() < 3 or int(player.get_current_xp()) > 0
-		1:
-			return _player_has_any_item()
-		2:
-			return player.has_method("get_equipped_weapon") and not player.get_equipped_weapon().is_empty()
-		3:
-			return player.has_method("get_level") and int(player.get_level()) >= 2
-		4:
-			return player.has_method("is_skill_unlocked") and bool(player.is_skill_unlocked("shield_charge"))
-		5:
-			return player.has_method("get_loadout_skill") and str(player.get_loadout_skill("v")) == "shield_charge"
-		6:
-			return player.has_method("get_skill_use_count") and int(player.get_skill_use_count("shield_charge")) > 0
-		7:
-			return not _is_enemy_named_alive("MummyBrute")
-	return false
-
-
-func _update_objective_ui() -> void:
-	if objective_step_label == null:
-		return
-	if objective_complete:
-		objective_title_label.text = "Objective Complete"
-		objective_step_label.text = "Vertical sandbox loop complete"
-		objective_detail_label.text = "Combat, loot, equip, XP, skill unlock, loadout, and skill use passed."
-		return
-	var step_text := str(OBJECTIVE_STEPS[clampi(objective_stage, 0, OBJECTIVE_STEPS.size() - 1)])
-	objective_title_label.text = "Objective %d/%d" % [objective_stage + 1, OBJECTIVE_STEPS.size()]
-	objective_step_label.text = step_text
-	objective_detail_label.text = _objective_detail_text(objective_stage)
-
-
-func _objective_detail_text(stage: int) -> String:
-	match stage:
-		0:
-			return "Defeat any mummy to start the growth loop."
-		1:
-			return "Click the dropped item; inventory-open pickup may hold it on cursor."
-		2:
-			return "Place a weapon into the active weapon slot."
-		3:
-			return "Earn XP until level 2."
-		4:
-			return "Open K and spend a skill point on Shield Charge."
-		5:
-			return "Assign Shield Charge to the V loadout slot."
-		6:
-			return "Press V after assignment to use Shield Charge."
-		7:
-			return "Finish by defeating MummyBrute."
-	return ""
-
-
-func _player_has_any_item() -> bool:
-	if not cursor_item.is_empty():
-		return true
-	if player.has_method("get_equipped_weapon") and not player.get_equipped_weapon().is_empty():
-		return true
-	if player.has_method("get_inventory_items"):
-		for item in player.get_inventory_items():
-			if item is Dictionary and not item.is_empty():
-				return true
-	return false
-
-
-func _is_enemy_named_alive(enemy_name: String) -> bool:
-	for enemy in get_tree().get_nodes_in_group("enemy"):
-		if is_instance_valid(enemy) and enemy.name == enemy_name:
-			return true
-	return false
+	debug_label.call("refresh", player, get_tree().get_nodes_in_group("enemy").size(), cursor_item, is_collision_debug_visible())
 
 
 func _update_inventory_ui() -> void:
-	if not is_instance_valid(player):
-		return
-	if not player.has_method("get_inventory_items"):
-		return
-
-	var equipped: Dictionary = {}
-	if player.has_method("get_equipped_weapon"):
-		equipped = player.get_equipped_weapon()
-	if equipped.is_empty():
-		equipment_icon.texture = null
-		equipment_name_label.text = "None"
-	else:
-		equipment_icon.texture = _load_icon(str(equipped.get("icon", "")))
-		equipment_name_label.text = str(equipped.get("name", "Weapon"))
-
-	var damage_text := "?"
-	if player.has_method("get_current_attack_damage"):
-		damage_text = str(player.get_current_attack_damage())
-	equipment_damage_label.text = "Damage: %s" % damage_text
-	if progression_level_label != null and player.has_method("get_level"):
-		progression_level_label.text = "Level: %d" % int(player.get_level())
-	if progression_xp_label != null and player.has_method("get_current_xp") and player.has_method("get_xp_to_next_level"):
-		progression_xp_label.text = "XP: %d / %d" % [int(player.get_current_xp()), int(player.get_xp_to_next_level())]
-	if progression_skill_points_label != null and player.has_method("get_available_skill_points"):
-		progression_skill_points_label.text = "Skill Points: %d" % int(player.get_available_skill_points())
-
-	var items: Array = player.get_inventory_items()
-	if selected_slot_index >= items.size() or (selected_slot_index >= 0 and items[selected_slot_index].is_empty()):
-		selected_slot_index = -1
-	for i in range(inventory_slot_icons.size()):
-		if i < items.size() and not items[i].is_empty():
-			var item: Dictionary = items[i]
-			inventory_slot_icons[i].texture = _load_icon(str(item.get("icon", "")))
-			inventory_slot_bonus_labels[i].text = "+%d" % int(item.get("damage_bonus", 0))
-		else:
-			inventory_slot_icons[i].texture = null
-			inventory_slot_bonus_labels[i].text = ""
-		inventory_slot_highlights[i].visible = i == selected_slot_index
-	_update_selected_item_details(items)
-	equipment_slot_highlight.visible = not cursor_item.is_empty() and str(cursor_item.get("equip_slot", "")) == "weapon"
-
-
-func _add_slot_background(parent: Control, texture: Texture2D) -> void:
-	var background := TextureRect.new()
-	background.texture = texture
-	background.size = SLOT_SIZE
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(background)
-
-
-func _make_label(text: String, position: Vector2, size: Vector2, font_size: int, color: Color) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.position = position
-	label.size = size
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return label
-
-
-func _load_icon(path: String) -> Texture2D:
-	if path.is_empty():
-		return null
-	if not icon_cache.has(path):
-		icon_cache[path] = load(path) as Texture2D
-	return icon_cache[path]
-
-
-func _select_inventory_slot(slot_index: int) -> void:
-	if not is_instance_valid(player) or not player.has_method("get_inventory_items"):
-		selected_slot_index = -1
-		return
-	var items: Array = player.get_inventory_items()
-	selected_slot_index = slot_index if slot_index < items.size() and not items[slot_index].is_empty() else -1
-	_update_inventory_ui()
-
-
-func _equip_selected_slot() -> void:
-	_suppress_player_attack_input()
-	if not cursor_item.is_empty():
-		_click_equipment_slot()
-		return
-	if selected_slot_index < 0:
-		return
-	if is_instance_valid(player) and player.has_method("equip_bag_slot"):
-		player.equip_bag_slot(selected_slot_index)
-	selected_slot_index = -1
-	_update_inventory_ui()
-
-
-func _update_selected_item_details(items: Array) -> void:
-	if not cursor_item.is_empty():
-		_set_item_detail_labels(cursor_item, "Cursor")
-		equip_button.disabled = str(cursor_item.get("equip_slot", "")) != "weapon"
-		cursor_status_label.text = "Cursor: %s" % str(cursor_item.get("name", "Item"))
-		cursor_status_label.add_theme_color_override("font_color", _item_color(cursor_item))
-		return
-
-	if selected_slot_index < 0 or selected_slot_index >= items.size():
-		selected_name_label.text = "None"
-		selected_name_label.add_theme_color_override("font_color", LABEL_COLOR)
-		selected_rarity_label.text = "Rarity: -"
-		selected_rarity_label.add_theme_color_override("font_color", EMPTY_LABEL_COLOR)
-		selected_type_label.text = "Type: -"
-		selected_slot_label.text = "Slot: -"
-		selected_damage_label.text = "Stat: -"
-		equip_button.disabled = true
-		cursor_status_label.text = "Cursor: Empty"
-		cursor_status_label.add_theme_color_override("font_color", EMPTY_LABEL_COLOR)
-		return
-
-	var item: Dictionary = items[selected_slot_index]
-	_set_item_detail_labels(item, "Selected")
-	equip_button.disabled = false
-
-
-func _set_item_detail_labels(item: Dictionary, source_label: String) -> void:
-	var rarity := str(item.get("rarity", "normal"))
-	var rarity_color := _item_color(item)
-	selected_name_label.text = "%s: %s" % [source_label, str(item.get("name", "Weapon"))]
-	selected_name_label.add_theme_color_override("font_color", rarity_color)
-	selected_rarity_label.text = "Rarity: %s" % rarity.capitalize()
-	selected_rarity_label.add_theme_color_override("font_color", rarity_color)
-	selected_type_label.text = "Type: %s" % str(item.get("item_type", item.get("type", "-"))).capitalize()
-	selected_slot_label.text = "Slot: %s" % str(item.get("equip_slot", "-")).capitalize()
-	selected_damage_label.text = "Stat Damage: +%d" % int(item.get("damage_bonus", 0))
-
-
-func _item_color(item: Dictionary) -> Color:
-	var rarity := str(item.get("rarity", "normal"))
-	return item.get("color", RARITY_COLORS.get(rarity, LABEL_COLOR))
+	if inventory_panel != null:
+		inventory_panel.call("refresh", player, cursor_item)
 
 
 func _update_skill_tree_ui() -> void:
-	if skill_tree_panel == null or not is_instance_valid(player):
-		return
-	if skill_points_panel_label != null and player.has_method("get_available_skill_points"):
-		skill_points_panel_label.text = "Skill Points: %d" % int(player.get_available_skill_points())
-	for skill_id in skill_node_labels.keys():
-		var skill: Dictionary = player.get_skill_definition(str(skill_id)) if player.has_method("get_skill_definition") else {}
-		var rank := int(player.get_skill_rank(str(skill_id))) if player.has_method("get_skill_rank") else 0
-		var can_unlock := bool(player.can_unlock_skill(str(skill_id))) if player.has_method("can_unlock_skill") else false
-		var unlocked := rank > 0
-		var required_level := int(skill.get("required_level", 1))
-		var cost := int(skill.get("unlock_cost", 1))
-		var prereq_text := "None"
-		var prereqs: Array = skill.get("required_skill_ids", [])
-		if not prereqs.is_empty():
-			var prereq_names := PackedStringArray()
-			for prereq in prereqs:
-				prereq_names.append(str(prereq))
-			prereq_text = ", ".join(prereq_names)
-		var label: Label = skill_node_labels[skill_id]
-		label.text = "%s\nRank: %d/%d  Cost: %d\nRequired: L%d  Prereq: %s\n%s" % [
-			str(skill.get("name", skill_id)),
-			rank,
-			int(skill.get("max_rank", 1)),
-			cost,
-			required_level,
-			prereq_text,
-			str(skill.get("description", "")),
-		]
-		label.add_theme_color_override("font_color", LABEL_COLOR if unlocked or can_unlock else EMPTY_LABEL_COLOR)
-		var unlock_button: Button = skill_unlock_buttons[skill_id]
-		unlock_button.text = "Ranked" if unlocked else "Unlock"
-		unlock_button.disabled = unlocked or not can_unlock
-		var assign_button: Button = skill_assign_buttons[skill_id]
-		assign_button.visible = str(skill.get("skill_type", "")) == "active"
-		assign_button.disabled = true
-		if player.has_method("can_assign_skill_to_slot"):
-			assign_button.disabled = not bool(player.can_assign_skill_to_slot(str(skill_id), "v"))
+	if skill_tree_panel != null:
+		skill_tree_panel.call("refresh", player)
 
 
 func _update_loadout_ui() -> void:
-	if loadout_bar == null or not is_instance_valid(player) or not player.has_method("get_loadout_slots"):
-		return
-	var slots: Array = player.get_loadout_slots()
-	for slot in slots:
-		var slot_id := str(slot.get("id", ""))
-		var button: Button = loadout_slot_buttons.get(slot_id, null)
-		if button == null:
-			continue
-		var skill_id := str(player.get_loadout_skill(slot_id))
-		var skill: Dictionary = player.get_skill_definition(skill_id) if not skill_id.is_empty() and player.has_method("get_skill_definition") else {}
-		var skill_name := "-" if skill_id.is_empty() else str(skill.get("name", skill_id))
-		button.text = "%s\n%s" % [str(slot.get("label", slot_id)).to_upper(), skill_name]
+	if loadout_bar != null:
+		loadout_bar.call("refresh", player)
+
+
+func _update_objective_flow() -> void:
+	if objective_panel != null:
+		objective_panel.call("update_flow", player, cursor_item)
 
 
 func _unlock_skill_from_panel(skill_id: String) -> void:
 	_suppress_player_attack_input()
 	if is_instance_valid(player) and player.has_method("unlock_skill"):
 		player.unlock_skill(skill_id)
-	selected_skill_id = skill_id
 	_update_skill_tree_ui()
 	_update_loadout_ui()
-
-
-func _assign_skill_from_panel(skill_id: String, slot_id: String) -> void:
-	_suppress_player_attack_input()
-	selected_skill_id = skill_id
-	assign_skill_to_loadout(skill_id, slot_id)
+	if loadout_bar != null:
+		loadout_bar.call("rebuild_picker_if_visible", player, get_viewport().get_visible_rect().size)
 
 
 func _click_loadout_slot(slot_id: String) -> void:
 	_suppress_player_attack_input()
-	if selected_skill_id.is_empty():
+	if loadout_bar == null:
 		return
-	assign_skill_to_loadout(selected_skill_id, slot_id)
+	if bool(loadout_bar.call("is_picker_for_slot", slot_id)):
+		_hide_loadout_picker()
+		return
+	loadout_bar.call("show_picker", player, slot_id, get_viewport().get_visible_rect().size)
+
+
+func _on_loadout_skill_selected(skill_id: String, slot_id: String) -> void:
+	_suppress_player_attack_input()
+	assign_skill_to_loadout(skill_id, slot_id)
+
+
+func _hide_loadout_picker() -> void:
+	if loadout_bar != null:
+		loadout_bar.call("hide_picker")
 
 
 func _click_inventory_slot(slot_index: int) -> void:
@@ -831,13 +408,17 @@ func _click_inventory_slot(slot_index: int) -> void:
 	if cursor_item.is_empty():
 		var item: Dictionary = player.take_bag_slot(slot_index)
 		if item.is_empty():
-			_select_inventory_slot(slot_index)
+			inventory_panel.call("select_slot", slot_index, player)
+			_update_inventory_ui()
 			return
 		cursor_item = item
-		selected_slot_index = -1
+		inventory_panel.call("clear_selection")
 	else:
 		cursor_item = player.place_bag_slot(slot_index, cursor_item)
-		selected_slot_index = slot_index if cursor_item.is_empty() else -1
+		if cursor_item.is_empty():
+			inventory_panel.call("select_slot", slot_index, player)
+		else:
+			inventory_panel.call("clear_selection")
 	_update_inventory_ui()
 	_update_cursor_item_ui()
 
@@ -850,9 +431,23 @@ func _click_equipment_slot() -> void:
 		cursor_item = player.take_equipped_weapon()
 	else:
 		cursor_item = player.place_equipped_weapon(cursor_item)
-	selected_slot_index = -1
+	inventory_panel.call("clear_selection")
 	_update_inventory_ui()
 	_update_cursor_item_ui()
+
+
+func _equip_selected_slot() -> void:
+	_suppress_player_attack_input()
+	if not cursor_item.is_empty():
+		_click_equipment_slot()
+		return
+	var selected_slot_index := int(inventory_panel.call("get_selected_slot_index")) if inventory_panel != null else -1
+	if selected_slot_index < 0:
+		return
+	if is_instance_valid(player) and player.has_method("equip_bag_slot"):
+		player.equip_bag_slot(selected_slot_index)
+	inventory_panel.call("clear_selection")
+	_update_inventory_ui()
 
 
 func _handle_world_left_click() -> bool:
@@ -875,7 +470,7 @@ func _click_ground_item(loot: Node) -> bool:
 		return false
 	if is_inventory_visible():
 		cursor_item = loot.collect_from_world()
-		selected_slot_index = -1
+		inventory_panel.call("clear_selection")
 		_update_inventory_ui()
 		_update_cursor_item_ui()
 		return true
@@ -898,7 +493,8 @@ func _drop_cursor_item(world_position: Vector2) -> void:
 	loot.global_position = _cursor_drop_position(world_position)
 	get_world_item_parent().add_child(loot)
 	cursor_item = {}
-	selected_slot_index = -1
+	if inventory_panel != null:
+		inventory_panel.call("clear_selection")
 	_update_inventory_ui()
 	_update_cursor_item_ui()
 
@@ -958,14 +554,12 @@ func _is_screen_point_in_skill_tree(screen_position: Vector2) -> bool:
 
 
 func _is_screen_point_in_loadout(screen_position: Vector2) -> bool:
-	return loadout_bar != null and loadout_bar.get_global_rect().has_point(screen_position)
+	return bool(loadout_bar.call("contains_screen_point", screen_position)) if loadout_bar != null else false
 
 
-func _slot_key_text(index: int) -> String:
-	if index == 9:
-		return "0"
-	return str(index + 1)
-
-
-func _format_vector(value: Vector2) -> String:
-	return "(%.2f, %.2f)" % [value.x, value.y]
+func _load_icon(path: String) -> Texture2D:
+	if path.is_empty():
+		return null
+	if not icon_cache.has(path):
+		icon_cache[path] = load(path) as Texture2D
+	return icon_cache[path]

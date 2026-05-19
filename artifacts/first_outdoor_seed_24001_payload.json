@@ -1,0 +1,864 @@
+{
+	"anchors": [
+		{
+			"id": "anchor_start",
+			"position": {
+				"x": 1771.11,
+				"y": 340.0
+			},
+			"required": true,
+			"type": "start",
+			"zone_id": "main_00_start"
+		},
+		{
+			"id": "anchor_main_00_start_exit",
+			"position": {
+				"x": 1771.11,
+				"y": 459.78
+			},
+			"required": false,
+			"type": "exit",
+			"zone_id": "main_00_start"
+		},
+		{
+			"id": "anchor_main_01_first_contact_entry",
+			"position": {
+				"x": 1884.73,
+				"y": 889.04
+			},
+			"required": false,
+			"type": "entry",
+			"zone_id": "main_01_first_contact"
+		},
+		{
+			"id": "anchor_main_01_first_contact_exit",
+			"position": {
+				"x": 1884.73,
+				"y": 1198.96
+			},
+			"required": false,
+			"type": "exit",
+			"zone_id": "main_01_first_contact"
+		},
+		{
+			"id": "anchor_main_02_road_entry",
+			"position": {
+				"x": 1697.14,
+				"y": 1607.3
+			},
+			"required": false,
+			"type": "entry",
+			"zone_id": "main_02_road"
+		},
+		{
+			"id": "anchor_main_02_road_exit",
+			"position": {
+				"x": 1697.14,
+				"y": 1888.7
+			},
+			"required": false,
+			"type": "exit",
+			"zone_id": "main_02_road"
+		},
+		{
+			"id": "anchor_main_03_fork_entry",
+			"position": {
+				"x": 1568.15,
+				"y": 2287.94
+			},
+			"required": false,
+			"type": "entry",
+			"zone_id": "main_03_fork"
+		},
+		{
+			"id": "anchor_main_03_fork_exit",
+			"position": {
+				"x": 1568.15,
+				"y": 2616.06
+			},
+			"required": false,
+			"type": "exit",
+			"zone_id": "main_03_fork"
+		},
+		{
+			"id": "anchor_route_fork",
+			"position": {
+				"x": 1568.15,
+				"y": 2452.0
+			},
+			"required": true,
+			"type": "fork",
+			"zone_id": "main_03_fork"
+		},
+		{
+			"id": "anchor_main_04_elite_pressure_entry",
+			"position": {
+				"x": 1301.81,
+				"y": 3001.38
+			},
+			"required": false,
+			"type": "entry",
+			"zone_id": "main_04_elite_pressure"
+		},
+		{
+			"id": "anchor_main_04_elite_pressure_exit",
+			"position": {
+				"x": 1301.81,
+				"y": 3310.62
+			},
+			"required": false,
+			"type": "exit",
+			"zone_id": "main_04_elite_pressure"
+		},
+		{
+			"id": "anchor_main_05_required_exit_entry",
+			"position": {
+				"x": 1157.38,
+				"y": 3708.18
+			},
+			"required": false,
+			"type": "entry",
+			"zone_id": "main_05_required_exit"
+		},
+		{
+			"id": "anchor_required_exit",
+			"position": {
+				"x": 1157.38,
+				"y": 3860.0
+			},
+			"required": true,
+			"type": "required_exit",
+			"zone_id": "main_05_required_exit"
+		},
+		{
+			"id": "anchor_required_branch",
+			"position": {
+				"x": 2439.14,
+				"y": 2510.22
+			},
+			"required": true,
+			"type": "required_branch",
+			"zone_id": "branch_required_east"
+		},
+		{
+			"id": "anchor_required_branch_entry",
+			"position": {
+				"x": 2191.66,
+				"y": 2510.22
+			},
+			"required": false,
+			"type": "entry",
+			"zone_id": "branch_required_east"
+		},
+		{
+			"id": "anchor_optional_pocket",
+			"position": {
+				"x": 938.73,
+				"y": 1888.16
+			},
+			"required": false,
+			"type": "optional_pocket",
+			"zone_id": "pocket_optional_02"
+		}
+	],
+	"blockers": [
+		{
+			"id": "blocker_north_edge",
+			"rect": {
+				"h": 112.0,
+				"w": 3600.0,
+				"x": 0.0,
+				"y": -112.0
+			},
+			"source": "north_edge",
+			"visual_id": "boundary_visual_north_edge"
+		},
+		{
+			"id": "blocker_south_edge",
+			"rect": {
+				"h": 112.0,
+				"w": 3600.0,
+				"x": 0.0,
+				"y": 4200.0
+			},
+			"source": "south_edge",
+			"visual_id": "boundary_visual_south_edge"
+		},
+		{
+			"id": "blocker_west_edge",
+			"rect": {
+				"h": 4424.0,
+				"w": 112.0,
+				"x": -112.0,
+				"y": -112.0
+			},
+			"source": "west_edge",
+			"visual_id": "boundary_visual_west_edge"
+		},
+		{
+			"id": "blocker_east_edge",
+			"rect": {
+				"h": 4424.0,
+				"w": 112.0,
+				"x": 3600.0,
+				"y": -112.0
+			},
+			"source": "east_edge",
+			"visual_id": "boundary_visual_east_edge"
+		}
+	],
+	"boundary_visuals": [
+		{
+			"blocker_id": "blocker_north_edge",
+			"id": "boundary_visual_north_edge",
+			"rect": {
+				"h": 112.0,
+				"w": 3600.0,
+				"x": 0.0,
+				"y": -112.0
+			},
+			"source": "north_edge"
+		},
+		{
+			"blocker_id": "blocker_south_edge",
+			"id": "boundary_visual_south_edge",
+			"rect": {
+				"h": 112.0,
+				"w": 3600.0,
+				"x": 0.0,
+				"y": 4200.0
+			},
+			"source": "south_edge"
+		},
+		{
+			"blocker_id": "blocker_west_edge",
+			"id": "boundary_visual_west_edge",
+			"rect": {
+				"h": 4424.0,
+				"w": 112.0,
+				"x": -112.0,
+				"y": -112.0
+			},
+			"source": "west_edge"
+		},
+		{
+			"blocker_id": "blocker_east_edge",
+			"id": "boundary_visual_east_edge",
+			"rect": {
+				"h": 4424.0,
+				"w": 112.0,
+				"x": 3600.0,
+				"y": -112.0
+			},
+			"source": "east_edge"
+		}
+	],
+	"corridors": [
+		{
+			"connection_id": "connection_00_main",
+			"id": "connection_00_main_corridor_a",
+			"rect": {
+				"h": 704.0,
+				"w": 360.0,
+				"x": 1591.11,
+				"y": 340.0
+			}
+		},
+		{
+			"connection_id": "connection_00_main",
+			"id": "connection_00_main_corridor_b",
+			"rect": {
+				"h": 360.0,
+				"w": 360.0,
+				"x": 1771.11,
+				"y": 864.0
+			}
+		},
+		{
+			"connection_id": "connection_01_main",
+			"id": "connection_01_main_corridor_a",
+			"rect": {
+				"h": 360.0,
+				"w": 360.0,
+				"x": 1697.14,
+				"y": 864.0
+			}
+		},
+		{
+			"connection_id": "connection_01_main",
+			"id": "connection_01_main_corridor_b",
+			"rect": {
+				"h": 704.0,
+				"w": 360.0,
+				"x": 1517.14,
+				"y": 1044.0
+			}
+		},
+		{
+			"connection_id": "connection_02_main",
+			"id": "connection_02_main_corridor_a",
+			"rect": {
+				"h": 704.0,
+				"w": 360.0,
+				"x": 1517.14,
+				"y": 1748.0
+			}
+		},
+		{
+			"connection_id": "connection_02_main",
+			"id": "connection_02_main_corridor_b",
+			"rect": {
+				"h": 360.0,
+				"w": 360.0,
+				"x": 1568.15,
+				"y": 2272.0
+			}
+		},
+		{
+			"connection_id": "connection_03_main",
+			"id": "connection_03_main_corridor_a",
+			"rect": {
+				"h": 704.0,
+				"w": 360.0,
+				"x": 1388.15,
+				"y": 2452.0
+			}
+		},
+		{
+			"connection_id": "connection_03_main",
+			"id": "connection_03_main_corridor_b",
+			"rect": {
+				"h": 360.0,
+				"w": 360.0,
+				"x": 1301.81,
+				"y": 2976.0
+			}
+		},
+		{
+			"connection_id": "connection_04_main",
+			"id": "connection_04_main_corridor_a",
+			"rect": {
+				"h": 360.0,
+				"w": 360.0,
+				"x": 1157.38,
+				"y": 2976.0
+			}
+		},
+		{
+			"connection_id": "connection_04_main",
+			"id": "connection_04_main_corridor_b",
+			"rect": {
+				"h": 704.0,
+				"w": 360.0,
+				"x": 977.38,
+				"y": 3156.0
+			}
+		},
+		{
+			"connection_id": "connection_05_required_branch",
+			"id": "connection_05_required_branch_corridor_a",
+			"rect": {
+				"h": 360.0,
+				"w": 360.0,
+				"x": 1388.15,
+				"y": 2452.0
+			}
+		},
+		{
+			"connection_id": "connection_05_required_branch",
+			"id": "connection_05_required_branch_corridor_b",
+			"rect": {
+				"h": 360.0,
+				"w": 870.99,
+				"x": 1568.15,
+				"y": 2330.22
+			}
+		},
+		{
+			"connection_id": "connection_06_optional_pocket",
+			"id": "connection_06_optional_pocket_corridor_a",
+			"rect": {
+				"h": 360.0,
+				"w": 758.42,
+				"x": 938.73,
+				"y": 1568.0
+			}
+		},
+		{
+			"connection_id": "connection_06_optional_pocket",
+			"id": "connection_06_optional_pocket_corridor_b",
+			"rect": {
+				"h": 360.0,
+				"w": 360.0,
+				"x": 758.73,
+				"y": 1748.0
+			}
+		}
+	],
+	"map_id": "first_outdoor",
+	"map_name": "Hollowfield Approach",
+	"objects": [
+		{
+			"id": "object_start_camp",
+			"position": {
+				"x": 1771.11,
+				"y": 340.0
+			},
+			"type": "camp_spawn_placeholder",
+			"zone_id": "main_00_start"
+		},
+		{
+			"id": "object_first_contact_hint",
+			"position": {
+				"x": 1853.65,
+				"y": 1157.35
+			},
+			"type": "combat_hint_marker",
+			"zone_id": "main_01_first_contact"
+		},
+		{
+			"id": "object_fork_marker",
+			"position": {
+				"x": 1723.29,
+				"y": 2605.74
+			},
+			"type": "fork_marker_placeholder",
+			"zone_id": "main_03_fork"
+		},
+		{
+			"id": "object_elite_reward_hint",
+			"position": {
+				"x": 1575.62,
+				"y": 3008.86
+			},
+			"type": "reward_hint_placeholder",
+			"zone_id": "main_04_elite_pressure"
+		},
+		{
+			"id": "object_required_exit",
+			"position": {
+				"x": 1157.38,
+				"y": 3860.0
+			},
+			"type": "next_area_exit_placeholder",
+			"zone_id": "main_05_required_exit"
+		},
+		{
+			"id": "object_required_branch_entrance",
+			"position": {
+				"x": 2407.88,
+				"y": 2475.09
+			},
+			"type": "dungeon_entrance_placeholder",
+			"zone_id": "branch_required_east"
+		},
+		{
+			"id": "object_optional_reward",
+			"position": {
+				"x": 953.05,
+				"y": 1990.96
+			},
+			"type": "reward_marker_placeholder",
+			"zone_id": "pocket_optional_02"
+		}
+	],
+	"offset": {
+		"x": 0.0,
+		"y": 0.0
+	},
+	"route_connections": [
+		{
+			"bend": "vertical_first",
+			"corridor_ids": [
+				"connection_00_main_corridor_a",
+				"connection_00_main_corridor_b"
+			],
+			"from": "main_00_start",
+			"id": "connection_00_main",
+			"kind": "main",
+			"to": "main_01_first_contact"
+		},
+		{
+			"bend": "horizontal_first",
+			"corridor_ids": [
+				"connection_01_main_corridor_a",
+				"connection_01_main_corridor_b"
+			],
+			"from": "main_01_first_contact",
+			"id": "connection_01_main",
+			"kind": "main",
+			"to": "main_02_road"
+		},
+		{
+			"bend": "vertical_first",
+			"corridor_ids": [
+				"connection_02_main_corridor_a",
+				"connection_02_main_corridor_b"
+			],
+			"from": "main_02_road",
+			"id": "connection_02_main",
+			"kind": "main",
+			"to": "main_03_fork"
+		},
+		{
+			"bend": "vertical_first",
+			"corridor_ids": [
+				"connection_03_main_corridor_a",
+				"connection_03_main_corridor_b"
+			],
+			"from": "main_03_fork",
+			"id": "connection_03_main",
+			"kind": "main",
+			"to": "main_04_elite_pressure"
+		},
+		{
+			"bend": "horizontal_first",
+			"corridor_ids": [
+				"connection_04_main_corridor_a",
+				"connection_04_main_corridor_b"
+			],
+			"from": "main_04_elite_pressure",
+			"id": "connection_04_main",
+			"kind": "main",
+			"to": "main_05_required_exit"
+		},
+		{
+			"bend": "vertical_first",
+			"corridor_ids": [
+				"connection_05_required_branch_corridor_a",
+				"connection_05_required_branch_corridor_b"
+			],
+			"from": "main_03_fork",
+			"id": "connection_05_required_branch",
+			"kind": "required_branch",
+			"to": "branch_required_east"
+		},
+		{
+			"bend": "horizontal_first",
+			"corridor_ids": [
+				"connection_06_optional_pocket_corridor_a",
+				"connection_06_optional_pocket_corridor_b"
+			],
+			"from": "main_02_road",
+			"id": "connection_06_optional_pocket",
+			"kind": "optional_pocket",
+			"to": "pocket_optional_02"
+		}
+	],
+	"seed": 24001,
+	"size": {
+		"x": 3600.0,
+		"y": 4200.0
+	},
+	"spawn_groups": [
+		{
+			"budget": 4,
+			"count": 2,
+			"id": "spawn_first_contact",
+			"type": "training_pack_placeholder",
+			"zone_id": "main_01_first_contact"
+		},
+		{
+			"budget": 3,
+			"count": 3,
+			"id": "spawn_road_02",
+			"type": "road_pack_placeholder",
+			"zone_id": "main_02_road"
+		},
+		{
+			"budget": 11,
+			"count": 1,
+			"id": "spawn_elite_pressure",
+			"type": "elite_pressure_placeholder",
+			"zone_id": "main_04_elite_pressure"
+		},
+		{
+			"budget": 8,
+			"count": 2,
+			"id": "spawn_required_branch_guard",
+			"type": "branch_guard_placeholder",
+			"zone_id": "branch_required_east"
+		},
+		{
+			"budget": 6,
+			"count": 2,
+			"id": "spawn_optional_pocket",
+			"type": "optional_pack_placeholder",
+			"zone_id": "pocket_optional_02"
+		}
+	],
+	"zones": [
+		{
+			"anchors": [
+				{
+					"id": "anchor_start",
+					"position": {
+						"x": 1771.11,
+						"y": 340.0
+					},
+					"required": true,
+					"type": "start",
+					"zone_id": "main_00_start"
+				},
+				{
+					"id": "anchor_main_00_start_exit",
+					"position": {
+						"x": 1771.11,
+						"y": 459.78
+					},
+					"required": false,
+					"type": "exit",
+					"zone_id": "main_00_start"
+				}
+			],
+			"id": "main_00_start",
+			"label": "Camp safe zone / player spawn",
+			"rect": {
+				"h": 427.79,
+				"w": 844.37,
+				"x": 1348.93,
+				"y": 126.11
+			},
+			"template_id": "camp_gate_clear",
+			"type": "start"
+		},
+		{
+			"anchors": [
+				{
+					"id": "anchor_main_01_first_contact_entry",
+					"position": {
+						"x": 1884.73,
+						"y": 889.04
+					},
+					"required": false,
+					"type": "entry",
+					"zone_id": "main_01_first_contact"
+				},
+				{
+					"id": "anchor_main_01_first_contact_exit",
+					"position": {
+						"x": 1884.73,
+						"y": 1198.96
+					},
+					"required": false,
+					"type": "exit",
+					"zone_id": "main_01_first_contact"
+				}
+			],
+			"id": "main_01_first_contact",
+			"label": "First Contact / 2-3 weak enemies",
+			"rect": {
+				"h": 553.41,
+				"w": 697.63,
+				"x": 1535.91,
+				"y": 767.29
+			},
+			"template_id": "weak_pack_verge",
+			"type": "first_contact"
+		},
+		{
+			"anchors": [
+				{
+					"id": "anchor_main_02_road_entry",
+					"position": {
+						"x": 1697.14,
+						"y": 1607.3
+					},
+					"required": false,
+					"type": "entry",
+					"zone_id": "main_02_road"
+				},
+				{
+					"id": "anchor_main_02_road_exit",
+					"position": {
+						"x": 1697.14,
+						"y": 1888.7
+					},
+					"required": false,
+					"type": "exit",
+					"zone_id": "main_02_road"
+				}
+			],
+			"id": "main_02_road",
+			"label": "Broken road / light roaming pack",
+			"rect": {
+				"h": 502.48,
+				"w": 675.26,
+				"x": 1359.51,
+				"y": 1496.76
+			},
+			"template_id": "broken_road_stones",
+			"type": "road"
+		},
+		{
+			"anchors": [
+				{
+					"id": "anchor_main_03_fork_entry",
+					"position": {
+						"x": 1568.15,
+						"y": 2287.94
+					},
+					"required": false,
+					"type": "entry",
+					"zone_id": "main_03_fork"
+				},
+				{
+					"id": "anchor_main_03_fork_exit",
+					"position": {
+						"x": 1568.15,
+						"y": 2616.06
+					},
+					"required": false,
+					"type": "exit",
+					"zone_id": "main_03_fork"
+				},
+				{
+					"id": "anchor_route_fork",
+					"position": {
+						"x": 1568.15,
+						"y": 2452.0
+					},
+					"required": true,
+					"type": "fork",
+					"zone_id": "main_03_fork"
+				}
+			],
+			"id": "main_03_fork",
+			"label": "Road fork / dungeon branch readable",
+			"rect": {
+				"h": 585.91,
+				"w": 806.27,
+				"x": 1165.02,
+				"y": 2159.04
+			},
+			"template_id": "fork_signpost",
+			"type": "fork"
+		},
+		{
+			"anchors": [
+				{
+					"id": "anchor_main_04_elite_pressure_entry",
+					"position": {
+						"x": 1301.81,
+						"y": 3001.38
+					},
+					"required": false,
+					"type": "entry",
+					"zone_id": "main_04_elite_pressure"
+				},
+				{
+					"id": "anchor_main_04_elite_pressure_exit",
+					"position": {
+						"x": 1301.81,
+						"y": 3310.62
+					},
+					"required": false,
+					"type": "exit",
+					"zone_id": "main_04_elite_pressure"
+				}
+			],
+			"id": "main_04_elite_pressure",
+			"label": "Elite pressure point before exit",
+			"rect": {
+				"h": 552.21,
+				"w": 788.83,
+				"x": 907.39,
+				"y": 2879.9
+			},
+			"template_id": "pressure_roots",
+			"type": "elite_pressure"
+		},
+		{
+			"anchors": [
+				{
+					"id": "anchor_main_05_required_exit_entry",
+					"position": {
+						"x": 1157.38,
+						"y": 3708.18
+					},
+					"required": false,
+					"type": "entry",
+					"zone_id": "main_05_required_exit"
+				},
+				{
+					"id": "anchor_required_exit",
+					"position": {
+						"x": 1157.38,
+						"y": 3860.0
+					},
+					"required": true,
+					"type": "required_exit",
+					"zone_id": "main_05_required_exit"
+				}
+			],
+			"id": "main_05_required_exit",
+			"label": "Next area soft gate / not priority",
+			"rect": {
+				"h": 542.23,
+				"w": 783.86,
+				"x": 765.45,
+				"y": 3588.88
+			},
+			"template_id": "sealed_exit_roots",
+			"type": "required_exit"
+		},
+		{
+			"anchors": [
+				{
+					"id": "anchor_required_branch",
+					"position": {
+						"x": 2439.14,
+						"y": 2510.22
+					},
+					"required": true,
+					"type": "required_branch",
+					"zone_id": "branch_required_east"
+				},
+				{
+					"id": "anchor_required_branch_entry",
+					"position": {
+						"x": 2191.66,
+						"y": 2510.22
+					},
+					"required": false,
+					"type": "entry",
+					"zone_id": "branch_required_east"
+				}
+			],
+			"id": "branch_required_east",
+			"label": "Dungeon entrance hook / Den-like target",
+			"rect": {
+				"h": 512.39,
+				"w": 773.4,
+				"x": 2052.44,
+				"y": 2254.02
+			},
+			"template_id": "rooted_cellar_entrance",
+			"type": "required_branch"
+		},
+		{
+			"anchors": [
+				{
+					"id": "anchor_optional_pocket",
+					"position": {
+						"x": 938.73,
+						"y": 1888.16
+					},
+					"required": false,
+					"type": "optional_pocket",
+					"zone_id": "pocket_optional_02"
+				}
+			],
+			"id": "pocket_optional_02",
+			"label": "Optional loot pocket / shrine",
+			"rect": {
+				"h": 466.42,
+				"w": 620.25,
+				"x": 628.6,
+				"y": 1654.95
+			},
+			"template_id": "loot_pocket_stones",
+			"type": "optional_pocket"
+		}
+	]
+}

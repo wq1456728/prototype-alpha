@@ -1,4 +1,4 @@
-# Agent 规则
+﻿# Agent 规则
 
 这个文件是所有项目 agent 的通用工作规则。具体任务以 [../TASK_BOARD.md](../TASK_BOARD.md) 为准。
 
@@ -86,6 +86,13 @@ Godot CLI、headless、smoke test、script test、automated validation 任务必
 - 也可以使用 PowerShell `Get-ChildItem`、`Select-String`、`Get-Content` fallback。
 - Validation output 要小：短 smoke tests、窄 debug scripts、selected log lines、file-specific diffs。
 - 除非必要，不贴完整脚本、完整日志、完整 repo diff。
+
+## 文档编码
+
+- 含中文的 Markdown 文档和项目 skill 文档必须保存为 UTF-8 with BOM。
+- 原因：Windows PowerShell 读取 UTF-8 no BOM 中文文件时，可能按本地代码页显示，导致后续 agent 看到乱码。
+- 如果新增或修改中文 `.md` / `SKILL.md`，完成前检查 BOM；没有 BOM 就补上。
+- 不要把文件转换成 GBK、ANSI 或 UTF-16。
 
 ## Reporting Format
 

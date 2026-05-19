@@ -1,4 +1,4 @@
 interface:
   display_name: "Prototype Alpha Task Audit"
   short_description: "Strict task completion audit for the Prototype Alpha ARPG."
-  default_prompt: "Use prototype-alpha-task-audit to strictly audit the active task against TASK_BOARD.md acceptance criteria."
+  default_prompt: "Use $prototype-alpha-task-audit to strictly audit the active task against TASK_BOARD.md acceptance criteria."

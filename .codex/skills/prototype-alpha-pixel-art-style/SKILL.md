@@ -1,47 +1,62 @@
----
+﻿---
 name: prototype-alpha-pixel-art-style
 description: Project art-direction rules for prototype-alpha 2D dark fantasy ARPG pixel assets. Use when Codex needs to rewrite prompts for character, enemy, skill effect, item, icon, or sprite-sheet generation; validate externally generated or downloaded assets; align animation frame specs; or prepare Godot-ready pixel art assets for this project.
 ---
 
-# prototype-alpha Pixel Art Style
+# Prototype Alpha Pixel Art Style
 
-## Overview
+## 职责边界
 
-Use this skill to keep prototype-alpha 2D dark fantasy ARPG pixel assets visually consistent. Codex does not have to generate the final image asset; use this skill to rewrite prompts, validate outputs, and prepare assets for Godot.
+这个 skill 是项目像素美术风格的 operational source of truth。它负责：
+
+- 重写素材 prompt
+- 约束 visual style
+- 检查 canvas / frame / transparency / silhouette
+- 给 Godot-ready asset 做基础规格验证
+
+它不负责提交 PixelLab job、poll UUID、select review frames、download output。那些操作使用 `pixellab-asset-generator`。
+
+更完整的美术方向见 `docs/ART_PIPELINE.md`；如果两者冲突，以 `docs/ART_PIPELINE.md` 为准。
 
 ## Core Workflow
 
-1. Rewrite the user's asset request into a complete English production prompt before generating or editing any asset.
-2. Apply the global style rules and the relevant asset-specific rules below.
-3. If the asset already exists, validate it against canvas size, visible bounds, feet baseline, frame count, transparency, and style consistency before wiring it into Godot.
-4. When preparing sprite sheets for Godot, prioritize stable frame size and feet alignment over detail.
+1. 把用户的素材需求改写成完整 English production prompt。
+2. 应用下面的 global style rules 和对应 asset-specific rules。
+3. 如果 asset 已存在，先验证 canvas size、visible bounds、feet baseline、frame count、transparency、style consistency，再接入 Godot。
+4. 准备 sprite sheet 时，stable frame size 和 feet alignment 优先于细节。
 
 ## Global Style Rules
 
-Use these rules for all generated, edited, downloaded, or imported assets unless the user explicitly overrides them:
+除非用户明确覆盖，所有 generated、edited、downloaded、imported assets 都遵守：
 
-- 2D dark fantasy ARPG asset for prototype-alpha.
-- Chronicon-like retro 16-bit pixel art.
-- Pseudo top-down / slightly angled side view.
-- Crisp pixels, no anti-aliasing, no blur, no soft painterly shading, no realistic lighting.
-- Clean 1px dark outline.
-- Limited palette with high silhouette readability.
-- Transparent PNG output.
-- No background, reflection, watermark, preview text, semi-transparent overlay, or ghost transparency on the character body.
+- 2D dark fantasy ARPG asset for Prototype Alpha。
+- Chronicon-like retro 16-bit pixel art。
+- Pseudo top-down / slightly angled side view。
+- Crisp pixels。
+- No anti-aliasing、no blur、no soft painterly shading、no realistic lighting。
+- Clean 1px dark outline。
+- Limited palette with high silhouette readability。
+- Transparent PNG output。
+- No background、reflection、watermark、preview text。
+- Character body pixels should be fully opaque；no semi-transparent ghost body pixels。
 
 ## Humanoid Character Rules
 
-- Use a 64x64 canvas.
-- Keep actual character height between 44 and 50 px.
-- Center the sprite horizontally.
-- Align feet near bottom center.
-- Treat the pivot as the bottom center between the feet.
-- Use a compact body, slightly oversized head, readable armor shapes, and exaggerated weapon size when applicable.
-- Avoid thin unreadable details, realistic long legs, anime full-body illustration proportions, or inconsistent character scale.
+- Canvas: 64x64 per frame。
+- Actual visible character height: 44-50 px。
+- Center horizontally。
+- Feet aligned near bottom center。
+- Pivot: bottom center between the feet。
+- Compact body。
+- Slightly oversized readable head is acceptable。
+- Armor and weapon shapes must be readable in motion。
+- Avoid thin unreadable details、realistic long legs、anime full-body proportions、inconsistent scale。
 
 ## Animation Rules
 
-Use the same canvas size for every frame in an animation set. Keep feet aligned, keep the character scale stable, and avoid camera movement.
+同一 animation set 必须保持相同 frame size、stable scale、feet aligned、no camera movement。
+
+Default humanoid frame counts:
 
 - idle: 4 frames
 - walk: 6 frames
@@ -49,43 +64,37 @@ Use the same canvas size for every frame in an animation set. Keep feet aligned,
 - hurt: 2 frames
 - death: 6 frames
 
-For combat animations, identify the visible active hit frame and align gameplay hit detection to that frame instead of triggering damage at animation start.
+Combat animations 必须识别 visible active hit frame。Gameplay hit detection 应该对齐该帧，而不是 animation start。
 
 ## Prompt Rewrite Rule
 
-Before generating or editing any image asset, rewrite the request into a full production prompt. Output the rewritten prompt first, then proceed with the requested generation, editing, or validation task.
+生成或编辑任何图像 asset 前，先输出完整 English production prompt。
 
 Prompt structure:
 
 ```text
-Create a [asset type] for prototype-alpha, a 2D dark fantasy ARPG. [Subject details]. Style: Chronicon-like retro 16-bit pixel art, crisp pixels, clean 1px dark outline, limited palette, high silhouette readability, pseudo top-down / slightly angled side view. Canvas/output: [size and frame layout], transparent PNG, no background, no shadow unless requested, no reflection, no watermark, no preview text. Character constraints: [height, feet baseline, pivot, proportions]. Animation constraints: [frame counts, stable scale, feet aligned, no camera movement]. Avoid: anti-aliasing, blur, soft painterly shading, realistic lighting, thin unreadable details, anime proportions, inconsistent frame sizes, semi-transparent body pixels.
+Create a [asset type] for Prototype Alpha, a 2D dark fantasy ARPG. [Subject details]. Style: Chronicon-like retro 16-bit pixel art, crisp pixels, clean 1px dark outline, limited palette, high silhouette readability, pseudo top-down / slightly angled side view. Canvas/output: [size and frame layout], transparent PNG, no background, no shadow unless requested, no reflection, no watermark, no preview text. Character constraints: [height, feet baseline, pivot, proportions]. Animation constraints: [frame counts, stable scale, feet aligned, no camera movement]. Avoid: anti-aliasing, blur, soft painterly shading, realistic lighting, thin unreadable details, anime proportions, inconsistent frame sizes, semi-transparent body pixels.
 ```
 
-If the user writes in Chinese, keep the production prompt in English for image-model reliability and optionally add a short Chinese explanation after it.
+如果用户中文描述素材，production prompt 仍然用英文；可以在 prompt 后附一句中文解释。
 
 ## Asset Validation Checklist
 
-When reviewing an existing asset, report pass/fail for:
+Review existing asset 时，报告 pass/fail：
 
-- Canvas size and frame grid.
-- Non-transparent pixel bounds.
-- Character height in pixels.
-- Feet baseline consistency across frames.
-- Horizontal center and bottom-center pivot suitability.
-- Frame count for each animation.
-- Transparent background with fully opaque body pixels.
-- Style consistency with dark fantasy ARPG 16-bit pixel art.
-- Godot import readiness for `SpriteFrames` / `AnimatedSprite2D`.
+- Canvas size and frame grid。
+- Non-transparent pixel bounds。
+- Character height in pixels。
+- Feet baseline consistency across frames。
+- Horizontal center and bottom-center pivot suitability。
+- Frame count for each animation。
+- Transparent background。
+- Fully opaque body pixels。
+- Style consistency with dark fantasy ARPG 16-bit pixel art。
+- Godot import readiness for `SpriteFrames` / `AnimatedSprite2D`。
 
-## Godot Preparation Guidance
+## Godot Preparation Boundary
 
-Prefer regular sprite sheets:
+本 skill 可以判断资产是否适合 Godot，但不负责具体 `SpriteFrames` wiring。
 
-- Consistent frame size.
-- Transparent PNG.
-- Regular grid layout.
-- Stable character position.
-- Feet aligned across frames.
-- Same camera angle and scale.
-
-Do not fix padding or baseline problems by changing `AnimatedSprite2D.scale`. Use frame padding, atlas margins, or corrected source sheets so gameplay hitboxes and animation swaps stay consistent.
+需要导入、切片、padding、baseline 修复、`AtlasTexture.margin`、hit-frame timing 时，使用 `godot-sprite-animation`。

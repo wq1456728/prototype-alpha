@@ -1,4 +1,4 @@
 interface:
   display_name: "prototype-alpha Pixel Art Style"
-  short_description: "Unify dark fantasy ARPG pixel assets."
-  default_prompt: "Use $prototype-alpha-pixel-art-style to rewrite and validate a Godot-ready pixel art asset request."
+  short_description: "Define and validate Prototype Alpha pixel-art style."
+  default_prompt: "Use $prototype-alpha-pixel-art-style to rewrite asset prompts, validate sprite/icon/VFX style, and check Godot-ready pixel-art specs. Do not call PixelLab tools unless $pixellab-asset-generator is also requested."

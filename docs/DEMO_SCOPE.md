@@ -1,4 +1,4 @@
-# Prototype Alpha Demo Scope
+﻿# Prototype Alpha Demo Scope
 
 This document freezes the current vertical-slice scope. If older notes conflict with this file, this file wins.
 
@@ -13,6 +13,13 @@ The target experience is:
 - Slower combat than modern high-speed action roguelites.
 - Clear short-term power growth through equipment, levels, and skills.
 - A playable 15-20 minute first-map demo for Windows.
+- The first outdoor map uses controlled semi-procedural generation: fixed Diablo-like structure, seed-based layout variation, and guaranteed quest-critical anchors.
+
+Resolution target:
+
+- Primary target resolution: `1920x1080`.
+- Minimum validation resolution: `1280x720`.
+- UI must be designed for 1080p first, but still remain inside the visible screen at 720p.
 
 ## Demo Structure
 
@@ -31,7 +38,7 @@ spawn / camp
 
 Required content:
 
-- One outdoor map.
+- One semi-procedural outdoor map.
 - One enterable dungeon.
 - One small boss.
 - One light quest thread that guides the player through the demo.
@@ -154,6 +161,7 @@ Avoid:
 Do not build these unless explicitly re-scoped:
 
 - Procedural dungeon generation.
+- Fully freeform procedural overworld generation.
 - Multiplayer.
 - Full save/load architecture.
 - Large skill trees.

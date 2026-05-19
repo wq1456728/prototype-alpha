@@ -23,8 +23,6 @@ const ATTACK_LOCK_TIME := 0.62
 const ATTACK_HIT_DELAY := 0.32
 const HURT_LOCK_TIME := 0.22
 const DEATH_CLEANUP_TIME := 1.6
-const PLAYER_SOFT_COLLISION_DISTANCE := 46.0
-const PLAYER_SOFT_COLLISION_FORCE := 135.0
 const ENEMY_SOFT_COLLISION_DISTANCE := 44.0
 const ENEMY_SOFT_COLLISION_FORCE := 115.0
 const MAX_SOFT_COLLISION_SPEED := 125.0
@@ -170,9 +168,6 @@ func _movement_direction(to_player: Vector2, distance: float) -> Vector2:
 
 func _soft_collision_velocity() -> Vector2:
 	var push := Vector2.ZERO
-
-	if is_instance_valid(player):
-		push += _push_from_node(player, PLAYER_SOFT_COLLISION_DISTANCE, PLAYER_SOFT_COLLISION_FORCE)
 
 	for enemy in get_tree().get_nodes_in_group("enemy"):
 		if enemy == self or not is_instance_valid(enemy):

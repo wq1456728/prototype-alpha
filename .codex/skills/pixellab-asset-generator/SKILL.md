@@ -1,67 +1,79 @@
----
+﻿---
 name: pixellab-asset-generator
 description: Generate, inspect, animate, and prepare game-ready pixel art assets through the configured PixelLab MCP server. Use when Codex needs to create characters, enemies, props, weapons, icons, skill effects, map objects, top-down/Wang tilesets, sidescroller tilesets, isometric tiles, object variants, or PixelLab animations for this Godot prototype; also use when checking PixelLab job status or downloading/importing generated assets.
 ---
 
 # PixelLab Asset Generator
 
-## Overview
+## 职责边界
 
-Use the PixelLab MCP tools directly to create project assets, then prepare the completed PNG/ZIP output for Godot. PixelLab MCP creation tools are asynchronous: submit the job, keep the returned UUID, and check completion with the matching `get_*` tool.
+这个 skill 只管 PixelLab MCP 工具流程：
+
+- 选择 PixelLab tool
+- 创建 generation job
+- 保存 UUID
+- 查询 job status
+- 处理 review frames
+- 获取 PNG/ZIP 输出
+- 导入到项目资产目录
+
+它不定义项目美术风格。视觉风格、prompt 文字、canvas 规则、sprite validation 以 `prototype-alpha-pixel-art-style` 为准。
+
+PixelLab MCP creation tools 是异步的：提交 job 后保存返回 UUID，再用对应 `get_*` tool 查询完成状态。
 
 ## First Rules
 
-- Use PixelLab MCP tools, not REST calls, for `/mcp` workflows. If PixelLab tools are unavailable, tell the user MCP is not loaded instead of trying to curl the MCP endpoint.
-- Pair this skill with `prototype-alpha-pixel-art-style` before generating visual assets for this project. Rewrite vague or Chinese asset requests into an English production prompt that matches the project style.
-- Pair with `godot-sprite-animation` when importing, slicing, aligning, or wiring character sprite sheets or animation frames.
-- Keep API tokens out of generated files, logs, and final responses.
-- For destructive PixelLab actions such as `delete_object` or `delete_character`, only proceed when the user explicitly asks.
+- 使用 PixelLab MCP tools，不要用 REST/curl 访问 `/mcp`。
+- 如果 PixelLab tools 不可用，直接告诉用户 MCP 没有加载，不要尝试绕过。
+- 生成本项目视觉资产前，搭配 `prototype-alpha-pixel-art-style`。
+- 导入、切片、对齐、接入 character sprite sheet 时，搭配 `godot-sprite-animation`。
+- 不要把 API token 写入文件、日志或最终回复。
+- `delete_object`、`delete_character` 等 destructive PixelLab actions 必须用户明确要求才执行。
 
 ## Workflow
 
-1. Clarify the asset type from the request: character, animation, object, map object, top-down tileset, sidescroller tileset, isometric tile, or tile variations.
-2. Rewrite the visual prompt using the project pixel-art style rules unless the user gave a strict prompt.
-3. Choose the smallest suitable PixelLab tool. Prefer one-direction/static object generation for icons and props; use multi-direction assets only when gameplay needs rotation.
-4. Submit the PixelLab MCP job and record the returned UUID in the response or implementation notes.
-5. Poll with the matching `get_*` tool when the user asks for status, when importing into Godot, or after enough time has passed.
-6. When complete, download or reference the returned PNG/ZIP URL and place assets under the existing project asset tree, usually `assets/raw`, `assets/processed`, `assets/sprites`, `assets/animations`, `assets/vfx`, or `assets/ui` based on usage.
-7. Validate transparent background, canvas size, pixel readability, frame consistency, and Godot import readiness before wiring gameplay.
+1. 判断 asset type：character、animation、object、map object、top-down tileset、sidescroller tileset、isometric tile、tile variations。
+2. 通过 `prototype-alpha-pixel-art-style` 得到最终 visual prompt，除非用户已经给了严格 final prompt。
+3. 选择最小合适 PixelLab tool。Icon/prop 优先一方向 static object；只有 gameplay 需要旋转时才用 multi-direction。
+4. 提交 PixelLab MCP job，并记录返回 UUID。
+5. 用户要求查状态、需要导入 Godot、或等待足够时间后，用对应 `get_*` tool poll。
+6. 完成后获取 PNG/ZIP URL，并按用途放入现有 asset tree，例如 `assets/raw`、`assets/processed`、`assets/sprites`、`assets/animations`、`assets/vfx`、`assets/ui`。
+7. 接入 gameplay 前，用 `prototype-alpha-pixel-art-style` 和必要的 `godot-sprite-animation` 做 style / Godot-readiness validation。
 
 ## Tool Selection
 
-- Characters: use `create_character`, `get_character`, `animate_character`, `create_character_state`, `list_characters`.
-- Static props, weapons, pickups, icons, and object rotations: use `create_object`, `get_object`, `create_object_state`, `animate_object`, `list_objects`.
-- In-map decorations with transparent background and optional style matching: use `create_map_object`, `get_map_object`.
-- Top-down terrain transitions for Godot TileMaps: use `create_topdown_tileset`, `get_topdown_tileset`, `list_topdown_tilesets`.
-- Sidescroller platform terrain: use `create_sidescroller_tileset`, `get_sidescroller_tileset`.
-- Individual isometric blocks/items: use `create_isometric_tile`, `get_isometric_tile`.
-- Multiple shaped tile variations: use `create_tiles_pro`, `get_tiles_pro`.
+- Characters: `create_character`, `get_character`, `animate_character`, `create_character_state`, `list_characters`
+- Static props / weapons / pickups / icons / object rotations: `create_object`, `get_object`, `create_object_state`, `animate_object`, `list_objects`
+- In-map decorations: `create_map_object`, `get_map_object`
+- Top-down terrain transitions: `create_topdown_tileset`, `get_topdown_tileset`, `list_topdown_tilesets`
+- Sidescroller platform terrain: `create_sidescroller_tileset`, `get_sidescroller_tileset`
+- Isometric blocks/items: `create_isometric_tile`, `get_isometric_tile`
+- Multiple shaped tile variations: `create_tiles_pro`, `get_tiles_pro`
 
-See `references/pixellab-mcp.md` for a compact parameter guide.
+更细的参数提示见 `references/pixellab-mcp.md`。
 
 ## PixelLab Job Handling
 
-- Creation tools return immediately. Do not assume the asset is complete until the matching `get_*` result says completed and provides image/download URLs.
-- It is valid to queue template animations immediately after character creation if the character ID is available.
-- For custom character animations without `template_animation_id`, first call without `confirm_cost` to inspect the generation cost, show the user the cost and cheaper template-animation option, then set `confirm_cost=true` only after explicit approval.
-- For `create_object` with `directions=1` and `n_frames > 1`, expect review status. Use `get_object` to inspect candidates, then `select_object_frames` to keep chosen indices or `dismiss_review` if none are usable.
-- Download URLs use UUIDs as access keys. Treat them as shareable but avoid posting unnecessary links in code or docs.
+- Creation tools 立即返回；不要假设 asset 已完成。
+- 只有对应 `get_*` result 显示 completed 并提供 image/download URL 时，才算完成。
+- Character 创建后，如果已有 character ID，可以继续 queue template animation。
+- Custom character animation 没有 `template_animation_id` 时，第一次不要设置 `confirm_cost=true`。先查看 generation cost，告诉用户成本和更便宜的 template animation 选项，用户明确同意后才能确认。
+- `create_object` 使用 `directions=1` 且 `n_frames > 1` 时，可能进入 review status。用 `get_object` 查看 candidates，再用 `select_object_frames` 保留，或 `dismiss_review` 放弃。
+- Download URL 使用 UUID 作为 access key。可以用于下载，但不要把不必要的链接写进代码或文档。
 
 ## Godot Import Guidance
 
-- Keep originals separate from processed Godot-ready files. Use existing folders rather than creating a new asset hierarchy unless the task needs one.
-- Prefer transparent PNGs and regular grids for sprite sheets.
-- For characters, preserve stable frame size and bottom-center pivot expectations.
-- For terrain, prefer PixelLab Wang/top-down tilesets when the request is for seamless TileMap transitions.
-- When wiring assets into scenes or scripts, verify with project conventions before adding new loaders, resources, or naming schemes.
+- 原始输出和 processed Godot-ready 文件分开。
+- 使用现有目录，不要无理由创建新 asset hierarchy。
+- Pixel style、canvas size、frame grid、pivot rules 交给 `prototype-alpha-pixel-art-style`。
+- Terrain seamless TileMap transition 优先考虑 PixelLab Wang/top-down tilesets。
+- 接入 scene/script 前，先确认项目已有命名和 loader/resource 约定。
 
 ## Status Response Pattern
 
-When reporting a PixelLab generation result to the user, include:
+报告 PixelLab generation 结果时包含：
 
-- Asset type and prompt summary.
-- PixelLab UUID.
-- Current status: queued, processing, review, completed, or failed.
-- Next action: wait/check later, select review frames, download/import, or revise prompt.
-
-Source documentation: https://api.pixellab.ai/mcp/docs
+- Asset type 和 prompt summary。
+- PixelLab UUID。
+- Current status：queued、processing、review、completed、failed。
+- Next action：wait/check later、select review frames、download/import、revise prompt。

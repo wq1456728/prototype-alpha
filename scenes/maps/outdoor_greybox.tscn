@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/maps/outdoor_greybox.gd" id="1_outdoor"]
+[ext_resource type="PackedScene" path="res://scenes/player/knight_player.tscn" id="2_player"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_debug"]
+font_size = 16
+font_color = Color(0.9, 0.88, 0.72, 1)
+
+[node name="OutdoorGreybox" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_outdoor")
+
+[node name="WorldEntities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="KnightPlayer" parent="WorldEntities" instance=ExtResource("2_player")]
+position = Vector2(1220, 300)
+
+[node name="DebugCanvas" type="CanvasLayer" parent="."]
+
+[node name="DebugLabel" type="Label" parent="DebugCanvas"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 360.0
+offset_bottom = 150.0
+label_settings = SubResource("LabelSettings_debug")
+text = "Enemies: 0"

@@ -1,4 +1,4 @@
-# 项目计划
+﻿# 项目计划
 
 这个文件是 Prototype Alpha vertical slice 的长期计划。它描述“要按什么顺序把系统和内容做出来”，具体当前执行任务以 [TASK_BOARD.md](../TASK_BOARD.md) 为准。
 
@@ -9,6 +9,7 @@
 - 15-20 分钟 Windows demo。
 - Godot 4.6。
 - 2D dark fantasy ARPG。
+- Primary target resolution: `1920x1080`；minimum validation resolution: `1280x720`。
 - Diablo II-like 的刷宝、装备和成长节奏。
 - Chronicon-like 的 WASD 控制与 pseudo top-down 表现。
 - 一张 outdoor map。
@@ -136,29 +137,35 @@ Acceptance:
 - Sandbox 有一条短的 beginning-to-completion flow。
 - 后续增加 armor/accessory/consumable、更多 rarity、更多 skills、更多 classes 时，不需要替换核心骨架。
 
-## Milestone 4: Outdoor Greybox
+## Milestone 4: First Outdoor Semi-Procedural Map
 
 Goal:
 
-把已经证明可用的 vertical sandbox loop 和 UI 搬进第一张 outdoor greybox。
+把已经证明可用的 vertical sandbox loop 和 UI 搬进第一张 outdoor map，并把这张图从手工 greybox 改成受控随机生成系统。
 
 Tasks:
 
-- 创建 outdoor map layout。
-- 添加 spawn / camp area。
-- 添加 combat zones。
-- 设计 first item drop moment。
-- 设计 first level-up 或 skill-unlock moment。
-- 添加 elite 或 tougher encounter。
-- 添加 dungeon entrance。
-- 添加简单 quest direction。
+- 先实现通用半随机地图生成核心，再接第一张 outdoor map config。
+- 定义第一张图的固定关卡骨架：camp、first contact、fork、dungeon entrance、loot pocket、elite pressure、next area exit。
+- 建立 seed 可复现的 map generation 流程。
+- 建立区域模板数据：`MapGenerationConfig`、`ZoneTemplate`、`AnchorPoint`、`RouteConnection`、`SpawnRule`、`BoundaryRule`。
+- 让算法随机选择区域模板、路线弯曲、支线左右、怪物群落、奖励点和装饰 prop。
+- 保证所有关键锚点必定存在且可达。
+- 保证 visual boundary 和 collision / soft blocker 一起生成。
+- 把 first item drop、first level-up、skill unlock、hotbar skill use 和 elite pressure 放进生成规则，而不是写死在单个手工场景。
+- 添加 seed debug、map payload debug、可达性检查、边界检查和 1080p screenshot 验证。
 
 Acceptance:
 
-- Player 可以从 spawn 走到 dungeon entrance。
+- 通用 map generator 可以独立通过 3 个 seed 的 smoke test。
+- 第一张 outdoor map 可以通过 config 使用通用 generator 生成。
+- Player 可以从 camp 走到 dungeon entrance 和 next area exit。
+- 至少 3 个固定 seed 都能生成不同但结构正确的第一张图。
 - Outdoor section 调参后可支持约 5-10 分钟游玩。
 - Player 至少获得一次明显 early power gain。
+- 主路、分岔、奖励点、怪物群落和边界在 1080p 下可读。
 - Outdoor flow 复用 sandbox 已验证系统，不发明新系统。
+- 后续替换素材时不需要重写地图生成规则。
 
 ## Milestone 5: Horizontal Prototype Expansion
 

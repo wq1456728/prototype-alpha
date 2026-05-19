@@ -1,4 +1,4 @@
 interface:
   display_name: "PixelLab Asset Generator"
-  short_description: "Generate game-ready pixel art assets through PixelLab MCP."
-  default_prompt: "Use $pixellab-asset-generator to create or import a Godot-ready pixel art asset with PixelLab MCP."
+  short_description: "Call PixelLab MCP jobs, check status, and import generated assets."
+  default_prompt: "Use $pixellab-asset-generator only for PixelLab MCP tool work: create jobs, poll UUIDs, select review frames, download outputs, or import completed assets. Pair with $prototype-alpha-pixel-art-style for visual style rules."

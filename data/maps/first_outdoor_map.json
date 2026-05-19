@@ -1,0 +1,191 @@
+{
+  "map_id": "first_outdoor",
+  "map_name": "Hollowfield Approach",
+  "target_playtime_minutes": {"min": 5, "max": 10},
+  "map_size": {"x": 3600, "y": 4200},
+  "map_offset": {"x": 0, "y": 0},
+  "generator": {
+    "map_margin": 340,
+    "corridor_width": 360,
+    "main_path_min_zones": 6,
+    "main_path_max_zones": 6,
+    "optional_pocket_chance": 1.0,
+    "branch_distance_range": {"min": 760, "max": 980},
+    "branch_y_offset_range": {"min": -120, "max": 140},
+    "route_x_jitter": 340,
+    "zone_padding": 96
+  },
+  "required_anchors": [
+    "camp_spawn",
+    "first_contact",
+    "road_fork",
+    "dungeon_entrance",
+    "elite_pressure",
+    "next_area_exit"
+  ],
+  "zone_sequence": [
+    "camp",
+    "first_contact",
+    "road",
+    "fork",
+    "elite_pressure",
+    "next_area_exit"
+  ],
+  "zone_types": {
+    "start": {
+      "label": "Camp safe zone / player spawn",
+      "base_size": {"w": 780, "h": 440},
+      "templates": ["camp_gate_clear", "camp_gate_broken_fence"]
+    },
+    "first_contact": {
+      "label": "First Contact / 2-3 weak enemies",
+      "base_size": {"w": 680, "h": 500},
+      "templates": ["weak_pack_verge", "weak_pack_roadside"]
+    },
+    "road": {
+      "label": "Broken road / light roaming pack",
+      "base_size": {"w": 680, "h": 460},
+      "templates": ["broken_road_cart", "broken_road_stones"]
+    },
+    "fork": {
+      "label": "Road fork / dungeon branch readable",
+      "base_size": {"w": 780, "h": 560},
+      "templates": ["fork_signpost", "fork_roots"]
+    },
+    "elite_pressure": {
+      "label": "Elite pressure point before exit",
+      "base_size": {"w": 760, "h": 540},
+      "templates": ["pressure_roots", "pressure_broken_cart"]
+    },
+    "required_exit": {
+      "label": "Next area soft gate / not priority",
+      "base_size": {"w": 780, "h": 500},
+      "templates": ["sealed_exit_roots", "scout_sign_exit"]
+    },
+    "required_branch": {
+      "label": "Dungeon entrance hook / Den-like target",
+      "base_size": {"w": 760, "h": 540},
+      "templates": ["corrupted_hollow_entrance", "rooted_cellar_entrance"]
+    },
+    "optional_pocket": {
+      "label": "Optional loot pocket / shrine",
+      "base_size": {"w": 620, "h": 420},
+      "templates": ["roadside_shrine", "loot_pocket_stones"]
+    }
+  },
+  "opening_pacing": {
+    "camp_safe_radius": 420,
+    "first_contact_min_distance_from_spawn": 620,
+    "first_contact_enemy_count": 3,
+    "first_weapon_drop_target_minutes": {"min": 2, "max": 4},
+    "main_road_is_visual_guide_not_hard_corridor": true,
+    "dungeon_branch_is_primary_hook": true,
+    "next_area_exit_is_soft_gate": true
+  },
+  "enemy_pool": {
+    "weak_training": {
+      "scene": "res://scenes/enemy/mummy_enemy.tscn",
+      "group": "outdoor_training",
+      "count": 3,
+      "max_hp": 30,
+      "move_speed": 38,
+      "attack_damage": 5,
+      "xp_reward": 8,
+      "drops_loot": false
+    },
+    "road_patrol": {
+      "scene": "res://scenes/enemy/mummy_enemy.tscn",
+      "group": "outdoor_road",
+      "count": 2,
+      "max_hp": 38,
+      "move_speed": 44,
+      "attack_damage": 7,
+      "xp_reward": 9,
+      "drops_loot": false
+    },
+    "loot_captain": {
+      "scene": "res://scenes/enemy/mummy_enemy.tscn",
+      "group": "outdoor_loot",
+      "count": 1,
+      "max_hp": 52,
+      "move_speed": 46,
+      "attack_damage": 8,
+      "xp_reward": 16,
+      "drops_loot": true
+    },
+    "optional_shrine": {
+      "scene": "res://scenes/enemy/mummy_enemy.tscn",
+      "group": "outdoor_shrine",
+      "count": 3,
+      "max_hp": 44,
+      "move_speed": 48,
+      "attack_damage": 8,
+      "xp_reward": 11,
+      "drops_loot": false
+    },
+    "elite_pressure": {
+      "scene": "res://scenes/enemy/mummy_enemy.tscn",
+      "group": "outdoor_entrance",
+      "count": 3,
+      "max_hp": 68,
+      "move_speed": 50,
+      "attack_damage": 11,
+      "xp_reward": 16,
+      "drops_loot": false,
+      "elite_index": 2,
+      "elite_max_hp": 118,
+      "elite_attack_damage": 18,
+      "elite_xp_reward": 24
+    }
+  },
+  "reward_rules": {
+    "early_weapon_drop": {
+      "zone_type": "road",
+      "source_enemy_pool": "loot_captain",
+      "drop_table": "mummy_weapon",
+      "guaranteed": true
+    },
+    "optional_shrine_or_chest": {
+      "zone_type": "optional_pocket",
+      "marker_type": "shrine_or_loot_marker",
+      "guaranteed": true
+    }
+  },
+  "boundary_rules": {
+    "soft_boundary_sources": ["dead_tree", "rock", "broken_fence", "corrupted_root"],
+    "visual_requires_blocker": true,
+    "prop_collision_matches_visual_size": true
+  },
+  "asset_slots": {
+    "ground_tileset": "res://assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png",
+    "corrupted_ground": "res://assets/sprites/tiles/outdoor_01/tile_outdoor01_corrupted_ground_32.png",
+    "dead_tree_a": "res://assets/sprites/props/outdoor_01/prop_outdoor01_dead_tree_64_a.png",
+    "dead_tree_b": "res://assets/sprites/props/outdoor_01/prop_outdoor01_dead_tree_64_b.png",
+    "rock_a": "res://assets/sprites/props/outdoor_01/prop_outdoor01_rock_small_32_a.png",
+    "rock_b": "res://assets/sprites/props/outdoor_01/prop_outdoor01_rock_small_32_b.png",
+    "broken_fence_a": "res://assets/sprites/props/outdoor_01/prop_outdoor01_broken_fence_64_a.png",
+    "broken_fence_b": "res://assets/sprites/props/outdoor_01/prop_outdoor01_broken_fence_64_b.png",
+    "corrupted_root_a": "res://assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_roots_64_a.png",
+    "corrupted_root_b": "res://assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_roots_64_b.png",
+    "camp_gate": "res://assets/sprites/props/outdoor_01/prop_outdoor01_camp_gate_128.png",
+    "dungeon_entrance": "res://assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_hollow_128.png",
+    "shrine_or_loot_marker": "res://assets/sprites/props/outdoor_01/prop_outdoor01_shrine_96.png",
+    "route_sign_or_scout_marker": "res://assets/sprites/props/outdoor_01/prop_outdoor01_signpost_64.png",
+    "broken_cart": "res://assets/sprites/props/outdoor_01/prop_outdoor01_broken_cart_96.png",
+    "debug_map_icons": "placeholder:debug_map_icons_32"
+  },
+  "seed_review": {
+    "fixed_review_seeds": [24001, 24002, 24003],
+    "reject_if": [
+      "camp_exit_unclear",
+      "first_contact_too_close_to_spawn",
+      "first_contact_surrounds_player",
+      "dungeon_branch_too_hidden",
+      "route_is_snake_maze_or_hard_corridor",
+      "large_empty_space_without_visual_guide",
+      "fork_main_and_branch_unclear",
+      "next_exit_more_prominent_than_dungeon_hook",
+      "visual_boundary_blocker_mismatch"
+    ]
+  }
+}

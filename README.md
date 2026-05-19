@@ -1,8 +1,10 @@
-# Prototype Alpha
+﻿# Prototype Alpha
 
 Prototype Alpha 是一个 Godot 4.6 2D dark fantasy ARPG demo。
 
-当前目标是做一个 15-20 分钟 Windows vertical slice：Diablo II-like 的刷宝和成长节奏，Chronicon-like 的 WASD 控制，以及 pseudo top-down pixel-art 表现。
+当前目标是做一个 15-20 分钟 Windows vertical slice：Diablo II-like 的刷宝、成长和第一张野外图节奏，Chronicon-like 的 WASD 控制，以及 pseudo top-down pixel-art 表现。
+
+主目标分辨率是 `1920x1080`；`1280x720` 只作为最小验证下限。
 
 ## 文档入口
 
@@ -21,7 +23,7 @@ Prototype Alpha 是一个 Godot 4.6 2D dark fantasy ARPG demo。
 
 ## 当前 Demo 目标
 
-- 一张 outdoor map。
+- 一张 seed 可复现的半随机 outdoor map。
 - 一个可进入 dungeon。
 - 一个 small boss。
 - 一条轻量 quest thread。
@@ -51,6 +53,7 @@ move
 - Short-term power growth。
 - Loot clarity。
 - Fast in-game iteration。
+- First outdoor semi-procedural map generation。
 
 ## 范围控制
 
@@ -58,6 +61,7 @@ move
 
 - Multiplayer。
 - Procedural dungeon generation。
+- Fully freeform procedural overworld generation。
 - Full save/load architecture。
 - Large skill trees。
 - Rune systems。

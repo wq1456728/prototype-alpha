@@ -1,4 +1,4 @@
----
+﻿---
 name: prototype-alpha-task-audit
 description: Strict task-completion audit for this Godot 4.6 2D dark fantasy ARPG prototype. Use when Codex is asked to review whether a TASK_BOARD.md task is truly complete, verify acceptance criteria, audit implementation quality after a task agent reports done, or judge whether a change fits the project's Diablo II-like loot/progression logic and Chronicon-like control/UI/readability direction.
 ---

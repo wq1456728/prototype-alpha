@@ -268,7 +268,7 @@ func _run() -> void:
 		return
 	print("combat_sandbox loot ok: damage %d -> walkover %d -> equip %d weapon=%s bag=%d cursor=%s loot_left=%d enemies_left=%d feedback_after_hit=%d" % [before_damage, after_pickup_damage, after_equip_damage, weapon_name, _filled_bag_count(player), current_scene.call("has_cursor_item"), get_nodes_in_group("loot").size(), get_nodes_in_group("enemy").size(), feedback_after_hit])
 	print("combat_sandbox progression ok: xp %d -> %d level %d -> %d damage %d -> %d skill_points %d -> %d shield_charge=unlocked" % [before_xp, after_kill_xp, before_level, after_level, before_level_damage, after_level_damage, before_skill_points, after_skill_points])
-	quit(0)
+	await _finish(0)
 
 
 func _first_loot() -> Node:
@@ -325,6 +325,15 @@ func _filled_bag_count(player: Node) -> int:
 func _loadout_slot_count(player: Node) -> int:
 	var slots: Array = player.call("get_loadout_slots")
 	return slots.size()
+
+
+func _finish(exit_code: int) -> void:
+	await create_timer(1.7).timeout
+	if current_scene != null:
+		current_scene.queue_free()
+	for _i in range(6):
+		await process_frame
+	quit(exit_code)
 
 
 func _wait_for_scene() -> bool:

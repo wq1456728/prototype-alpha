@@ -79,11 +79,21 @@ func _validate_scene_structure(scene: Node) -> bool:
 	if int(scene.call("get_prop_blocker_count")) < 18:
 		_fail("prop_blocker_count_too_low=%d" % int(scene.call("get_prop_blocker_count")))
 		return false
+	var object_validation: Dictionary = scene.call("get_object_definition_validation")
+	if not bool(object_validation.get("ok", false)):
+		_fail("object_definition_validation errors=%s" % object_validation.get("errors", []))
+		return false
+	if not _validate_placed_objects(scene):
+		return false
+	if not _validate_boundary_pass_payload(scene):
+		return false
 	if not _validate_prop_collision_fit(scene):
 		return false
 	if not _validate_collision_layers(scene):
 		return false
-	if not await _validate_readable_boundary_blocks(scene):
+	if not _validate_boundary_does_not_use_large_readable_rects(scene):
+		return false
+	if not await _validate_boundary_contour_blocks(scene):
 		return false
 	if not _validate_enemy_soft_collision_ignores_player():
 		return false
@@ -91,6 +101,96 @@ func _validate_scene_structure(scene: Node) -> bool:
 	if loadout_bar == null or loadout_bar.get_child_count() != 6:
 		_fail("loadout_bar_invalid")
 		return false
+	return true
+
+
+func _validate_placed_objects(scene: Node) -> bool:
+	var placed: Array = scene.call("get_placed_object_payload")
+	if placed.is_empty():
+		_fail("placed_objects_empty")
+		return false
+	for object_payload in placed:
+		var placed_object: Dictionary = object_payload
+		if str(placed_object.get("object_def", "")).is_empty():
+			_fail("placed_object_missing_def=%s" % str(placed_object.get("id", "")))
+			return false
+		if bool(placed_object.get("uses_fallback", false)):
+			_fail("placed_object_uses_fallback=%s" % str(placed_object.get("id", "")))
+			return false
+		var collision: Dictionary = placed_object.get("collision_shape", {})
+		var shape := str(collision.get("shape", ""))
+		if not ["rect", "circle", "capsule"].has(shape):
+			_fail("placed_object_bad_collision_shape=%s shape=%s" % [str(placed_object.get("id", "")), shape])
+			return false
+		if shape == "capsule" and not ["vertical", "horizontal"].has(str(collision.get("orientation", ""))):
+			_fail("placed_object_capsule_bad_orientation=%s" % str(placed_object.get("id", "")))
+			return false
+	return true
+
+
+func _validate_boundary_pass_payload(scene: Node) -> bool:
+	var payload: Dictionary = scene.call("get_boundary_pass_payload")
+	if int(payload.get("cell_size", 0)) != 64:
+		_fail("boundary_cell_size_invalid=%s" % str(payload.get("cell_size", null)))
+		return false
+	if Array(payload.get("walkable_cells", [])).is_empty() or Array(payload.get("boundary_cells", [])).is_empty() or Array(payload.get("blocked_cells", [])).is_empty():
+		_fail("boundary_mask_missing walkable=%d boundary=%d blocked=%d" % [
+			Array(payload.get("walkable_cells", [])).size(),
+			Array(payload.get("boundary_cells", [])).size(),
+			Array(payload.get("blocked_cells", [])).size(),
+		])
+		return false
+	if Array(payload.get("contour_segments", [])).is_empty() or Array(payload.get("corner_points", [])).is_empty():
+		_fail("boundary_contour_payload_missing segments=%d corners=%d" % [
+			Array(payload.get("contour_segments", [])).size(),
+			Array(payload.get("corner_points", [])).size(),
+		])
+		return false
+	var uncovered := 0
+	for cell in payload.get("boundary_cells", []):
+		if not bool(Dictionary(cell).get("covered", false)):
+			uncovered += 1
+	if uncovered > 0:
+		_fail("boundary_uncovered_cells=%d" % uncovered)
+		return false
+	var families := {}
+	var contour_by_id := {}
+	for contour_value in payload.get("contour_segments", []):
+		var contour: Dictionary = contour_value
+		contour_by_id[str(contour.get("id", ""))] = contour
+	for segment in payload.get("boundary_segments", []):
+		var segment_dict: Dictionary = segment
+		families[str(segment_dict.get("material_family", ""))] = true
+		if int(segment_dict.get("gap_cells", 0)) > 2:
+			_fail("boundary_gap_too_large segment=%s" % str(segment_dict.get("id", "")))
+			return false
+	if families.size() > 1:
+		_fail("boundary_material_family_count=%d" % families.size())
+		return false
+	for object_payload in payload.get("boundary_objects", []):
+		var boundary_object: Dictionary = object_payload
+		if str(boundary_object.get("material_family", "")) != "rock":
+			_fail("boundary_object_not_rock_family=%s family=%s" % [str(boundary_object.get("id", "")), str(boundary_object.get("material_family", ""))])
+			return false
+		if not ["boundary_contour", "boundary_contour_corner"].has(str(boundary_object.get("zone_or_edge_source", ""))):
+			_fail("boundary_object_not_on_contour=%s source=%s" % [str(boundary_object.get("id", "")), str(boundary_object.get("zone_or_edge_source", ""))])
+			return false
+		if not boundary_object.has("sort_y"):
+			_fail("boundary_object_missing_sort_y=%s" % str(boundary_object.get("id", "")))
+			return false
+		if str(boundary_object.get("zone_or_edge_source", "")) == "boundary_contour":
+			var contour_id := str(boundary_object.get("contour_segment_id", ""))
+			var contour: Dictionary = contour_by_id.get(contour_id, {})
+			if str(contour.get("orientation", "")) == "horizontal":
+				var object_position: Dictionary = boundary_object.get("position", {})
+				var contour_start: Dictionary = contour.get("start", {})
+				if float(object_position.get("y", 0.0)) < float(contour_start.get("y", 0.0)) + 4.0:
+					_fail("horizontal_boundary_object_not_covering_line=%s object_y=%.1f line_y=%.1f" % [
+						str(boundary_object.get("id", "")),
+						float(object_position.get("y", 0.0)),
+						float(contour_start.get("y", 0.0)),
+					])
+					return false
 	return true
 
 
@@ -106,13 +206,13 @@ func _validate_prop_collision_fit(scene: Node) -> bool:
 		var blocker_rect: Rect2 = blockers[blocker_name]
 		var width_ratio := blocker_rect.size.x / maxf(visual_rect.size.x, 0.01)
 		var height_ratio := blocker_rect.size.y / maxf(visual_rect.size.y, 0.01)
-		if width_ratio < 0.25 or height_ratio < 0.20 or width_ratio > 1.01 or height_ratio > 0.72:
+		if width_ratio < 0.10 or height_ratio < 0.08 or width_ratio > 1.01 or height_ratio > 0.86:
 			_fail("prop_collision_mismatch=%s ratio=%.2fx%.2f visual=%s blocker=%s" % [blocker_name, width_ratio, height_ratio, visual_rect, blocker_rect])
 			return false
 		if blocker_rect.get_center().y <= visual_rect.get_center().y:
 			_fail("prop_collision_not_bottom_weighted=%s visual=%s blocker=%s" % [blocker_name, visual_rect, blocker_rect])
 			return false
-		if blocker_rect.end.y > visual_rect.end.y + 1.0 or blocker_rect.end.y < visual_rect.position.y + visual_rect.size.y * 0.62:
+		if blocker_rect.end.y > visual_rect.end.y + 6.0 or blocker_rect.end.y < visual_rect.position.y + visual_rect.size.y * 0.58:
 			_fail("prop_collision_bad_bottom_alignment=%s visual=%s blocker=%s" % [blocker_name, visual_rect, blocker_rect])
 			return false
 	return true
@@ -147,30 +247,76 @@ func _validate_collision_layers(scene: Node) -> bool:
 	return true
 
 
-func _validate_readable_boundary_blocks(scene: Node) -> bool:
+func _validate_boundary_does_not_use_large_readable_rects(scene: Node) -> bool:
+	var blocker_root := scene.get_node_or_null("FirstOutdoorBlockers")
+	if blocker_root == null:
+		_fail("boundary_blocker_root_missing")
+		return false
+	for blocker in blocker_root.get_children():
+		var body := blocker as StaticBody2D
+		if body == null:
+			continue
+		if str(body.get_meta("source", "")) == "readable_boundary":
+			_fail("readable_boundary_rect_still_present=%s" % body.name)
+			return false
+	return true
+
+
+func _validate_boundary_contour_blocks(scene: Node) -> bool:
 	var player := get_first_node_in_group("player") as CharacterBody2D
 	if player == null:
 		_fail("boundary_player_missing")
 		return false
-	var bounds: Rect2 = scene.call("get_playable_bounds")
+	var payload: Dictionary = scene.call("get_boundary_pass_payload")
+	var cell_size := int(payload.get("cell_size", 64))
 	var original_position := player.global_position
-	var checks := [
-		[Vector2(bounds.get_center().x, 190.0), Vector2(0.0, -170.0), "top"],
-		[Vector2(bounds.get_center().x, bounds.end.y - 190.0), Vector2(0.0, 170.0), "bottom"],
-		[Vector2(190.0, bounds.get_center().y), Vector2(-170.0, 0.0), "left"],
-		[Vector2(bounds.end.x - 190.0, bounds.get_center().y), Vector2(170.0, 0.0), "right"],
-	]
-	for check in checks:
-		player.global_position = check[0]
-		await physics_frame
-		if not player.test_move(player.global_transform, check[1]):
-			player.global_position = original_position
+	var checked := 0
+	for cell_value in payload.get("boundary_cells", []):
+		var cell: Dictionary = cell_value
+		if not bool(cell.get("covered", false)):
+			continue
+		var x := int(cell.get("x", 0))
+		var y := int(cell.get("y", 0))
+		for edge_value in Array(cell.get("edges", [])):
+			var edge := str(edge_value)
+			var check := _boundary_collision_check(x, y, edge, cell_size)
+			player.global_position = check["position"]
 			await physics_frame
-			_fail("readable_boundary_open side=%s position=%s motion=%s" % [check[2], check[0], check[1]])
-			return false
+			if not player.test_move(player.global_transform, check["motion"]):
+				player.global_position = original_position
+				await physics_frame
+				_fail("boundary_contour_open cell=%d,%d edge=%s position=%s motion=%s" % [x, y, edge, check["position"], check["motion"]])
+				return false
+			checked += 1
+			if checked >= 80:
+				player.global_position = original_position
+				await physics_frame
+				return true
 	player.global_position = original_position
 	await physics_frame
+	if checked <= 0:
+		_fail("boundary_contour_no_checks")
+		return false
 	return true
+
+
+func _boundary_collision_check(x: int, y: int, edge: String, cell_size: int) -> Dictionary:
+	var left := float(x * cell_size)
+	var right := float((x + 1) * cell_size)
+	var top := float(y * cell_size)
+	var bottom := float((y + 1) * cell_size)
+	var center_x := (left + right) * 0.5
+	var center_y := (top + bottom) * 0.5
+	match edge:
+		"north":
+			return {"position": Vector2(center_x, bottom + 56.0), "motion": Vector2(0.0, -96.0)}
+		"south":
+			return {"position": Vector2(center_x, top - 56.0), "motion": Vector2(0.0, 96.0)}
+		"west":
+			return {"position": Vector2(right + 56.0, center_y), "motion": Vector2(-96.0, 0.0)}
+		"east":
+			return {"position": Vector2(left - 56.0, center_y), "motion": Vector2(96.0, 0.0)}
+	return {"position": Vector2(center_x, center_y), "motion": Vector2.ZERO}
 
 
 func _validate_enemy_soft_collision_ignores_player() -> bool:

@@ -4,6 +4,9 @@ const OUTDOOR_OBJECTIVE_PANEL_SCRIPT := preload("res://scripts/ui/outdoor_object
 const CONFIG_SCRIPT := preload("res://scripts/maps/procedural/map_generation_config.gd")
 const GENERATOR_SCRIPT := preload("res://scripts/maps/procedural/map_generator.gd")
 const DEBUG_SCRIPT := preload("res://scripts/maps/procedural/map_generation_debug.gd")
+const OBJECT_CATALOG_SCRIPT := preload("res://scripts/maps/procedural/map_object_definition.gd")
+const OBJECT_FACTORY_SCRIPT := preload("res://scripts/maps/procedural/map_object_factory.gd")
+const BOUNDARY_PASS_SCRIPT := preload("res://scripts/maps/procedural/generated_boundary_pass.gd")
 const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const OUTDOOR_COLLISION := preload("res://scripts/physics/outdoor_collision.gd")
 
@@ -38,6 +41,10 @@ var prop_visual_rects := {}
 var prop_blocker_rects := {}
 var prop_blocker_sources := {}
 var asset_cache := {}
+var object_catalog
+var object_factory
+var boundary_pass
+var boundary_payload := {}
 
 
 func _ready() -> void:
@@ -49,6 +56,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_update_world_entity_z_indices()
 	var viewport_size := get_viewport().get_visible_rect().size
 	if viewport_size != last_viewport_size:
 		_layout_ui()
@@ -77,6 +85,7 @@ func _spawn_wave() -> void:
 
 func _load_first_outdoor_config() -> void:
 	map_config = CONFIG_SCRIPT.from_json_file(FIRST_OUTDOOR_CONFIG_PATH)
+	object_catalog = OBJECT_CATALOG_SCRIPT.load_from_file()
 	var file := FileAccess.open(FIRST_OUTDOOR_CONFIG_PATH, FileAccess.READ)
 	if file == null:
 		push_error("FirstOutdoor: missing config %s" % FIRST_OUTDOOR_CONFIG_PATH)
@@ -102,6 +111,7 @@ func _build_generated_world() -> void:
 
 	props_root = Node2D.new()
 	props_root.name = "FirstOutdoorProps"
+	props_root.y_sort_enabled = true
 	world_entities_root.add_child(props_root)
 
 	debug_overlay_root = Node2D.new()
@@ -109,11 +119,15 @@ func _build_generated_world() -> void:
 	debug_overlay_root.visible = false
 	add_child(debug_overlay_root)
 
+	object_factory = OBJECT_FACTORY_SCRIPT.new()
+	object_factory.setup(object_catalog, props_root, boundary_root)
+
 	_add_background_rect("OutdoorCanvas", Rect2(Vector2.ZERO, layout.map_size), Color(0.075, 0.09, 0.075, 1.0), -140)
 	_add_layout_ground()
 	_add_layout_boundaries()
 	_add_layout_markers()
 	_add_route_props()
+	_add_generated_boundary_pass()
 	_add_debug_overlay()
 	_place_player_at_spawn()
 
@@ -147,6 +161,141 @@ func _add_layout_boundaries() -> void:
 		var rect: Rect2 = visual.get("rect", Rect2())
 		_add_background_rect(str(visual.get("id", "")), rect, Color(0.045, 0.065, 0.045, 1.0), -132)
 		boundary_visual_count += 1
+
+
+func _add_generated_boundary_pass() -> void:
+	boundary_pass = BOUNDARY_PASS_SCRIPT.new()
+	boundary_payload = boundary_pass.generate(layout, config_data.get("boundary_style", {}), object_factory, generation_seed)
+	var validation: Dictionary = boundary_pass.validate(int(config_data.get("boundary_style", {}).get("max_gap_cells", 2)))
+	if not bool(validation.get("ok", false)):
+		push_warning("FirstOutdoor boundary pass validation: %s" % str(validation.get("errors", [])))
+	_add_boundary_contour_blockers()
+	_refresh_factory_payload_cache()
+
+
+func _add_boundary_contour_blockers() -> void:
+	for segment in boundary_payload.get("contour_segments", []):
+		_add_contour_segment_blocker(segment)
+	for corner in boundary_payload.get("corner_points", []):
+		var corner_data: Dictionary = corner
+		var position := _vector_from_payload(corner_data.get("position", {}))
+		var size := 14.0
+		_add_blocker_rect("BoundaryContourCorner_%s" % str(corner_data.get("id", "")).replace(",", "_"), Rect2(position - Vector2(size, size) * 0.5, Vector2(size, size)), "boundary_contour")
+
+
+func _add_contour_segment_blocker(segment: Dictionary) -> void:
+	var start := _vector_from_payload(segment.get("start", {}))
+	var end := _vector_from_payload(segment.get("end", {}))
+	var thickness := 10.0
+	var overlap := 2.0
+	var rect := Rect2()
+	if str(segment.get("orientation", "")) == "horizontal":
+		var left := minf(start.x, end.x)
+		var right := maxf(start.x, end.x)
+		rect = Rect2(Vector2(left - overlap, start.y - thickness * 0.5), Vector2(right - left + overlap * 2.0, thickness))
+	else:
+		var top := minf(start.y, end.y)
+		var bottom := maxf(start.y, end.y)
+		rect = Rect2(Vector2(start.x - thickness * 0.5, top - overlap), Vector2(thickness, bottom - top + overlap * 2.0))
+	_add_blocker_rect("BoundaryContour_%s" % str(segment.get("id", "")), rect, "boundary_contour")
+
+
+func _collect_boundary_contour_segment(
+	horizontal_segments: Dictionary,
+	vertical_segments: Dictionary,
+	horizontal_vertices: Dictionary,
+	vertical_vertices: Dictionary,
+	x: int,
+	y: int,
+	edge: String,
+	pass_cell_size: int
+) -> void:
+	var left := x * pass_cell_size
+	var right := (x + 1) * pass_cell_size
+	var top := y * pass_cell_size
+	var bottom := (y + 1) * pass_cell_size
+	match edge:
+		"north":
+			_add_interval(horizontal_segments, bottom, left, right)
+			_add_vertex(horizontal_vertices, left, bottom)
+			_add_vertex(horizontal_vertices, right, bottom)
+		"south":
+			_add_interval(horizontal_segments, top, left, right)
+			_add_vertex(horizontal_vertices, left, top)
+			_add_vertex(horizontal_vertices, right, top)
+		"west":
+			_add_interval(vertical_segments, right, top, bottom)
+			_add_vertex(vertical_vertices, right, top)
+			_add_vertex(vertical_vertices, right, bottom)
+		"east":
+			_add_interval(vertical_segments, left, top, bottom)
+			_add_vertex(vertical_vertices, left, top)
+			_add_vertex(vertical_vertices, left, bottom)
+
+
+func _add_interval(segments: Dictionary, line_key: int, start: int, end: int) -> void:
+	var intervals: Array = segments.get(line_key, [])
+	intervals.append({"start": mini(start, end), "end": maxi(start, end)})
+	segments[line_key] = intervals
+
+
+func _add_vertex(vertices: Dictionary, x: int, y: int) -> void:
+	vertices["%d,%d" % [x, y]] = Vector2(x, y)
+
+
+func _add_merged_boundary_segments(segments: Dictionary, horizontal: bool) -> void:
+	var thickness := 22.0
+	var overlap := 4.0
+	for line_key in segments.keys():
+		var intervals: Array = segments[line_key]
+		intervals.sort_custom(func(a, b): return int(Dictionary(a).get("start", 0)) < int(Dictionary(b).get("start", 0)))
+		var merged := []
+		for interval_value in intervals:
+			var interval: Dictionary = interval_value
+			var start := int(interval.get("start", 0))
+			var end := int(interval.get("end", 0))
+			if merged.is_empty() or start > int(merged[-1].get("end", 0)):
+				merged.append({"start": start, "end": end})
+			else:
+				merged[-1]["end"] = maxi(int(merged[-1].get("end", 0)), end)
+		for run_value in merged:
+			var run: Dictionary = run_value
+			var start := float(run.get("start", 0))
+			var end := float(run.get("end", 0))
+			var line := float(line_key)
+			var rect := Rect2()
+			if horizontal:
+				rect = Rect2(Vector2(start - overlap, line - thickness * 0.5), Vector2(end - start + overlap * 2.0, thickness))
+			else:
+				rect = Rect2(Vector2(line - thickness * 0.5, start - overlap), Vector2(thickness, end - start + overlap * 2.0))
+			_add_blocker_rect("BoundaryContour_%s_%d_%d" % ["H" if horizontal else "V", int(line_key), int(start)], rect, "boundary_contour")
+
+
+func _add_boundary_corner_plugs(horizontal_vertices: Dictionary, vertical_vertices: Dictionary) -> void:
+	var size := 26.0
+	for key in horizontal_vertices.keys():
+		if not vertical_vertices.has(key):
+			continue
+		var point: Vector2 = horizontal_vertices[key]
+		var rect := Rect2(point - Vector2(size, size) * 0.5, Vector2(size, size))
+		_add_blocker_rect("BoundaryCorner_%s" % str(key).replace(",", "_"), rect, "boundary_contour")
+
+
+func _refresh_factory_payload_cache() -> void:
+	prop_visual_rects.clear()
+	prop_blocker_rects.clear()
+	prop_blocker_sources.clear()
+	prop_blocker_count = 0
+	for placed in object_factory.get_payload():
+		var object_id := str(placed.get("id", ""))
+		var blocker_id := str(placed.get("blocker_id", ""))
+		if object_id.is_empty() or blocker_id.is_empty():
+			continue
+		prop_visual_rects[object_id] = _rect_from_payload(placed.get("visual_rect", {}))
+		prop_blocker_sources[blocker_id] = str(placed.get("object_def", ""))
+		var collision: Dictionary = placed.get("collision_shape", {})
+		prop_blocker_rects[blocker_id] = _approx_collision_rect(_vector_from_payload(placed.get("position", {})), collision)
+		prop_blocker_count += 1
 
 
 func _add_layout_markers() -> void:
@@ -186,60 +335,40 @@ func _add_route_props() -> void:
 	var pressure_rect: Rect2 = _find_zone_by_type("elite_pressure").get("rect", Rect2())
 	var exit_rect: Rect2 = _find_zone_by_type("required_exit").get("rect", Rect2())
 
-	_add_prop_with_blocker("CampGate", "camp_gate", start_rect.get_center() + Vector2(0, start_rect.size.y * 0.32), LARGE_PROP_SCALE, "camp_gate", 0.86)
-	_add_prop_with_blocker("CampSignpost", "route_sign_or_scout_marker", start_rect.get_center() + Vector2(start_rect.size.x * 0.32, start_rect.size.y * 0.22), DEFAULT_PROP_SCALE, "route_sign", 0.7)
+	_place_defined_prop("CampGate", "camp_gate", start_rect.get_center() + Vector2(0, start_rect.size.y * 0.32), ["camp", "gate"])
+	_place_defined_prop("CampSignpost", "route_sign_or_scout_marker", start_rect.get_center() + Vector2(start_rect.size.x * 0.32, start_rect.size.y * 0.22), ["route_sign"])
 
 	_add_edge_props_for_zone(first_rect, "FirstContact")
-	_add_prop_with_blocker("BrokenCart", "broken_cart", road_rect.get_center() + Vector2(road_rect.size.x * 0.24, -road_rect.size.y * 0.14), DEFAULT_PROP_SCALE, "broken_cart", 0.82)
-	_add_prop_with_blocker("RoadRockA", "rock_a", road_rect.get_center() + Vector2(-road_rect.size.x * 0.34, road_rect.size.y * 0.22), SMALL_PROP_SCALE, "rock", 0.9)
-	_add_prop_with_blocker("RoadRockB", "rock_b", road_rect.get_center() + Vector2(road_rect.size.x * 0.36, road_rect.size.y * 0.24), SMALL_PROP_SCALE, "rock", 0.9)
+	_place_defined_prop("BrokenCart", "broken_cart", road_rect.get_center() + Vector2(road_rect.size.x * 0.24, -road_rect.size.y * 0.14), ["road", "cart"])
+	_place_defined_prop("RoadRockA", "rock_a", road_rect.get_center() + Vector2(-road_rect.size.x * 0.34, road_rect.size.y * 0.22), ["road", "rock"])
+	_place_defined_prop("RoadRockB", "rock_b", road_rect.get_center() + Vector2(road_rect.size.x * 0.36, road_rect.size.y * 0.24), ["road", "rock"])
 
-	_add_prop_with_blocker("ForkSignpost", "route_sign_or_scout_marker", fork_rect.get_center() + Vector2(-fork_rect.size.x * 0.18, -fork_rect.size.y * 0.22), DEFAULT_PROP_SCALE, "route_sign", 0.7)
-	_add_prop_with_blocker("ForkFenceA", "broken_fence_a", fork_rect.get_center() + Vector2(-fork_rect.size.x * 0.42, fork_rect.size.y * 0.18), DEFAULT_PROP_SCALE, "broken_fence", 0.88)
-	_add_prop_with_blocker("ForkFenceB", "broken_fence_b", fork_rect.get_center() + Vector2(fork_rect.size.x * 0.38, -fork_rect.size.y * 0.12), DEFAULT_PROP_SCALE, "broken_fence", 0.88)
+	_place_defined_prop("ForkSignpost", "route_sign_or_scout_marker", fork_rect.get_center() + Vector2(-fork_rect.size.x * 0.18, -fork_rect.size.y * 0.22), ["fork", "route_sign"])
+	_place_defined_prop("ForkFenceA", "broken_fence_a", fork_rect.get_center() + Vector2(-fork_rect.size.x * 0.42, fork_rect.size.y * 0.18), ["fork", "fence"])
+	_place_defined_prop("ForkFenceB", "broken_fence_b", fork_rect.get_center() + Vector2(fork_rect.size.x * 0.38, -fork_rect.size.y * 0.12), ["fork", "fence"])
 
 	if pocket_rect.size != Vector2.ZERO:
-		_add_prop_with_blocker("OptionalShrine", "shrine_or_loot_marker", pocket_rect.get_center(), LARGE_PROP_SCALE, "shrine", 0.9)
+		_place_defined_prop("OptionalShrine", "shrine_or_loot_marker", pocket_rect.get_center(), ["optional_pocket", "shrine"])
 		_add_edge_props_for_zone(pocket_rect, "OptionalPocket")
 
-	_add_prop_with_blocker("CorruptedHollow", "dungeon_entrance", branch_rect.get_center(), 1.95, "dungeon_entrance", 0.9)
-	_add_prop_with_blocker("HollowRootA", "corrupted_root_a", branch_rect.get_center() + Vector2(-branch_rect.size.x * 0.32, branch_rect.size.y * 0.25), LARGE_PROP_SCALE, "corrupted_root", 0.82)
-	_add_prop_with_blocker("HollowRootB", "corrupted_root_b", branch_rect.get_center() + Vector2(branch_rect.size.x * 0.32, branch_rect.size.y * 0.24), LARGE_PROP_SCALE, "corrupted_root", 0.82)
+	_place_defined_prop("CorruptedHollow", "dungeon_entrance", branch_rect.get_center(), ["dungeon_entrance", "hook"])
+	_place_defined_prop("HollowRootA", "corrupted_root_a", branch_rect.get_center() + Vector2(-branch_rect.size.x * 0.32, branch_rect.size.y * 0.25), ["dungeon_entrance", "root"])
+	_place_defined_prop("HollowRootB", "corrupted_root_b", branch_rect.get_center() + Vector2(branch_rect.size.x * 0.32, branch_rect.size.y * 0.24), ["dungeon_entrance", "root"])
 
 	_add_edge_props_for_zone(pressure_rect, "Pressure")
-	_add_prop_with_blocker("PressureRootsA", "corrupted_root_a", pressure_rect.get_center() + Vector2(-pressure_rect.size.x * 0.34, 0), DEFAULT_PROP_SCALE, "corrupted_root", 0.82)
-	_add_prop_with_blocker("PressureRootsB", "corrupted_root_b", pressure_rect.get_center() + Vector2(pressure_rect.size.x * 0.34, 0), DEFAULT_PROP_SCALE, "corrupted_root", 0.82)
+	_place_defined_prop("PressureRootsA", "corrupted_root_a", pressure_rect.get_center() + Vector2(-pressure_rect.size.x * 0.34, 0), ["pressure", "root"])
+	_place_defined_prop("PressureRootsB", "corrupted_root_b", pressure_rect.get_center() + Vector2(pressure_rect.size.x * 0.34, 0), ["pressure", "root"])
 
-	_add_prop_with_blocker("NextExitSign", "route_sign_or_scout_marker", exit_rect.get_center() + Vector2(-exit_rect.size.x * 0.22, -exit_rect.size.y * 0.18), DEFAULT_PROP_SCALE, "soft_gate_sign", 0.7)
-	_add_prop_with_blocker("NextExitRoots", "corrupted_root_b", exit_rect.get_center() + Vector2(exit_rect.size.x * 0.2, exit_rect.size.y * 0.2), LARGE_PROP_SCALE, "soft_gate_roots", 0.82)
-
-	_add_outer_soft_boundary_props()
-	_add_readable_boundary_blockers()
+	_place_defined_prop("NextExitSign", "route_sign_or_scout_marker", exit_rect.get_center() + Vector2(-exit_rect.size.x * 0.22, -exit_rect.size.y * 0.18), ["next_exit", "soft_gate"])
+	_place_defined_prop("NextExitRoots", "corrupted_root_b", exit_rect.get_center() + Vector2(exit_rect.size.x * 0.2, exit_rect.size.y * 0.2), ["next_exit", "soft_gate"])
 
 
 func _add_edge_props_for_zone(rect: Rect2, prefix: String) -> void:
 	if rect.size == Vector2.ZERO:
 		return
-	_add_prop_with_blocker("%sTreeA" % prefix, "dead_tree_a", rect.position + Vector2(70, rect.size.y * 0.5), DEFAULT_PROP_SCALE, "dead_tree", 0.72)
-	_add_prop_with_blocker("%sTreeB" % prefix, "dead_tree_b", Vector2(rect.end.x - 72, rect.position.y + rect.size.y * 0.42), DEFAULT_PROP_SCALE, "dead_tree", 0.72)
-	_add_prop_with_blocker("%sRockA" % prefix, "rock_a", rect.position + Vector2(rect.size.x * 0.22, rect.size.y - 58), SMALL_PROP_SCALE, "rock", 0.9)
-
-
-func _add_outer_soft_boundary_props() -> void:
-	var bounds := Rect2(Vector2.ZERO, layout.map_size)
-	var step := 210
-	var top_y := 74.0
-	var bottom_y := layout.map_size.y - 74.0
-	for x in range(260, int(layout.map_size.x - 180), step):
-		var top_asset := "dead_tree_a" if (x / step) % 2 == 0 else "broken_fence_a"
-		var bottom_asset := "corrupted_root_a" if x > layout.map_size.x * 0.35 and x < layout.map_size.x * 0.65 else "dead_tree_b"
-		_add_prop_with_blocker("BoundaryTop%d" % x, top_asset, Vector2(x, top_y), DEFAULT_PROP_SCALE, "boundary_prop", 0.76)
-		_add_prop_with_blocker("BoundaryBottom%d" % x, bottom_asset, Vector2(x, bottom_y), DEFAULT_PROP_SCALE, "boundary_prop", 0.76)
-	for y in range(360, int(layout.map_size.y - 260), step):
-		var left_asset := "dead_tree_a" if (y / step) % 2 == 0 else "rock_a"
-		var right_asset := "dead_tree_b" if (y / step) % 2 == 0 else "rock_b"
-		_add_prop_with_blocker("BoundaryLeft%d" % y, left_asset, Vector2(74, y), DEFAULT_PROP_SCALE, "boundary_prop", 0.76)
-		_add_prop_with_blocker("BoundaryRight%d" % y, right_asset, Vector2(layout.map_size.x - 74, y), DEFAULT_PROP_SCALE, "boundary_prop", 0.76)
+	_place_defined_prop("%sTreeA" % prefix, "dead_tree_a", rect.position + Vector2(70, rect.size.y * 0.5), [prefix, "tree"])
+	_place_defined_prop("%sTreeB" % prefix, "dead_tree_b", Vector2(rect.end.x - 72, rect.position.y + rect.size.y * 0.42), [prefix, "tree"])
+	_place_defined_prop("%sRockA" % prefix, "rock_a", rect.position + Vector2(rect.size.x * 0.22, rect.size.y - 58), [prefix, "rock"])
 
 
 func _spawn_first_outdoor_encounters() -> void:
@@ -360,7 +489,14 @@ func get_playable_bounds() -> Rect2:
 
 
 func get_generated_payload() -> Dictionary:
-	return layout.to_payload() if layout != null else {}
+	if layout == null:
+		return {}
+	var payload := layout.to_payload()
+	payload["boundary_pass"] = boundary_payload.duplicate(true)
+	payload["placed_objects"] = object_factory.get_payload() if object_factory != null else []
+	payload["object_defs_used"] = object_catalog.to_payload_used(object_factory.get_object_defs_used()) if object_catalog != null and object_factory != null else []
+	payload["object_definition_warnings"] = object_factory.get_warnings() if object_factory != null else []
+	return payload
 
 
 func get_validation_result() -> Dictionary:
@@ -372,7 +508,7 @@ func get_generation_seed() -> int:
 
 
 func get_boundary_collider_count() -> int:
-	return boundary_collider_count
+	return boundary_root.get_child_count() if boundary_root != null else boundary_collider_count
 
 
 func get_boundary_visual_count() -> int:
@@ -393,6 +529,18 @@ func get_prop_visual_rects() -> Dictionary:
 
 func get_prop_blocker_sources() -> Dictionary:
 	return prop_blocker_sources.duplicate(true)
+
+
+func get_boundary_pass_payload() -> Dictionary:
+	return boundary_payload.duplicate(true)
+
+
+func get_placed_object_payload() -> Array:
+	return object_factory.get_payload() if object_factory != null else []
+
+
+func get_object_definition_validation() -> Dictionary:
+	return object_catalog.validate() if object_catalog != null else {"ok": false, "errors": ["missing catalog"], "warnings": []}
 
 
 func get_first_contact_enemy_count() -> int:
@@ -453,25 +601,75 @@ func _add_tiled_rect(rect: Rect2, texture: Texture2D, region: Rect2, node_name: 
 			tile_root.add_child(tile)
 
 
-func _add_prop_with_blocker(prop_name: String, asset_key: String, prop_position: Vector2, prop_scale: float, blocker_source: String, blocker_ratio: float) -> Sprite2D:
-	var texture := _asset(asset_key)
-	var prop := Sprite2D.new()
-	prop.name = prop_name
-	prop.texture = texture
-	prop.position = prop_position
-	prop.scale = Vector2(prop_scale, prop_scale)
-	prop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	props_root.add_child(prop)
+func _place_defined_prop(prop_name: String, object_def: String, foot_position: Vector2, tags: Array = []) -> Dictionary:
+	return object_factory.place_object(prop_name, object_def, foot_position, tags)
 
-	var collision_rects := OUTDOOR_COLLISION.prop_collision_rects(texture, prop_position, prop_scale, asset_key, blocker_source, blocker_ratio)
-	var visual_rect: Rect2 = collision_rects.get("visual_rect", Rect2())
-	var blocker_rect: Rect2 = collision_rects.get("blocker_rect", Rect2())
-	_add_blocker_rect("%sBlocker" % prop_name, blocker_rect, blocker_source)
-	prop_blocker_count += 1
-	prop_visual_rects[prop_name] = visual_rect
-	prop_blocker_rects["%sBlocker" % prop_name] = blocker_rect
-	prop_blocker_sources["%sBlocker" % prop_name] = blocker_source
-	return prop
+
+func _update_world_entity_z_indices() -> void:
+	if world_entities_root == null:
+		return
+	for node in world_entities_root.get_children():
+		if node == props_root:
+			continue
+		if node is Node2D and node is CanvasItem:
+			_apply_absolute_z_index(node as CanvasItem, _collision_sort_y(node as Node2D))
+	if props_root == null:
+		return
+	for prop in props_root.get_children():
+		if prop is Node2D and prop is CanvasItem:
+			_apply_absolute_z_index(prop as CanvasItem, _collision_sort_y(prop as Node2D))
+
+
+func _apply_absolute_z_index(item: CanvasItem, sort_y: float) -> void:
+	item.z_as_relative = false
+	item.z_index = clampi(int(round(sort_y)), -4095, 4095)
+
+
+func _collision_sort_y(node: Node2D) -> float:
+	if node.has_meta("sort_y"):
+		return float(node.get_meta("sort_y"))
+	var bottom_y := -INF
+	for child in node.get_children():
+		var shape_node := child as CollisionShape2D
+		if shape_node != null and shape_node.shape != null:
+			bottom_y = maxf(bottom_y, _collision_shape_bottom_y(shape_node))
+	if bottom_y > -INF:
+		return bottom_y
+	return node.global_position.y
+
+
+func _collision_shape_bottom_y(shape_node: CollisionShape2D) -> float:
+	if shape_node.shape is RectangleShape2D:
+		var rectangle := shape_node.shape as RectangleShape2D
+		var half_size := rectangle.size * 0.5
+		return _max_transformed_y(shape_node.global_transform, [
+			Vector2(-half_size.x, -half_size.y),
+			Vector2(half_size.x, -half_size.y),
+			Vector2(half_size.x, half_size.y),
+			Vector2(-half_size.x, half_size.y),
+		])
+	if shape_node.shape is CircleShape2D:
+		var circle := shape_node.shape as CircleShape2D
+		var radius := circle.radius * maxf(absf(shape_node.global_scale.x), absf(shape_node.global_scale.y))
+		return shape_node.global_position.y + radius
+	if shape_node.shape is CapsuleShape2D:
+		var capsule := shape_node.shape as CapsuleShape2D
+		var half_height := capsule.height * 0.5
+		var radius := capsule.radius
+		return _max_transformed_y(shape_node.global_transform, [
+			Vector2(-radius, -half_height),
+			Vector2(radius, -half_height),
+			Vector2(radius, half_height),
+			Vector2(-radius, half_height),
+		])
+	return shape_node.global_position.y
+
+
+func _max_transformed_y(transform: Transform2D, points: Array) -> float:
+	var max_y := -INF
+	for point in points:
+		max_y = maxf(max_y, (transform * (point as Vector2)).y)
+	return max_y
 
 
 func _add_readable_boundary_blockers() -> void:
@@ -528,6 +726,50 @@ func _asset(asset_key: String) -> Texture2D:
 	var texture := load(path) as Texture2D if not path.is_empty() and not path.begins_with("placeholder:") else null
 	asset_cache[asset_key] = texture
 	return texture
+
+
+func _rect_from_payload(value) -> Rect2:
+	if not (value is Dictionary):
+		return Rect2()
+	var data: Dictionary = value
+	return Rect2(
+		float(data.get("x", 0.0)),
+		float(data.get("y", 0.0)),
+		float(data.get("w", 0.0)),
+		float(data.get("h", 0.0))
+	)
+
+
+func _vector_from_payload(value) -> Vector2:
+	if not (value is Dictionary):
+		return Vector2.ZERO
+	var data: Dictionary = value
+	return Vector2(float(data.get("x", 0.0)), float(data.get("y", 0.0)))
+
+
+func _approx_collision_rect(foot_position: Vector2, collision: Dictionary) -> Rect2:
+	var offset := _vector_from_payload(collision.get("offset", {}))
+	match str(collision.get("shape", "")):
+		"rect":
+			var size := _size_from_payload(collision.get("size", {}))
+			return Rect2(foot_position + offset - size * 0.5, size)
+		"circle":
+			var radius := float(collision.get("radius", 0.0))
+			return Rect2(foot_position + offset - Vector2(radius, radius), Vector2(radius * 2.0, radius * 2.0))
+		"capsule":
+			var radius := float(collision.get("radius", 0.0))
+			var height := float(collision.get("height", radius * 2.0))
+			if str(collision.get("orientation", "vertical")) == "horizontal":
+				return Rect2(foot_position + offset - Vector2(height * 0.5, radius), Vector2(height, radius * 2.0))
+			return Rect2(foot_position + offset - Vector2(radius, height * 0.5), Vector2(radius * 2.0, height))
+	return Rect2(foot_position + offset - Vector2(16, 12), Vector2(32, 24))
+
+
+func _size_from_payload(value) -> Vector2:
+	if not (value is Dictionary):
+		return Vector2.ZERO
+	var data: Dictionary = value
+	return Vector2(float(data.get("w", 0.0)), float(data.get("h", 0.0)))
 
 
 func _make_atlas_texture(texture: Texture2D, region: Rect2) -> AtlasTexture:

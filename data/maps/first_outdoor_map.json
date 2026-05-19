@@ -156,6 +156,24 @@
     "visual_requires_blocker": true,
     "prop_collision_matches_visual_size": true
   },
+  "boundary_style": {
+    "cell_size": 64,
+    "material_families": [
+      {
+        "id": "rock",
+        "object_defs": ["rock_a", "rock_b"],
+        "weight": 1.0
+      }
+    ],
+    "max_families_per_map": 1,
+    "visuals_per_cell": 2,
+    "vertical_visuals_per_cell": 3,
+    "corner_visuals_per_cell": 4,
+    "horizontal_visual_line_cover": 8,
+    "segment_min_cells": 10,
+    "segment_max_cells": 24,
+    "max_gap_cells": 2
+  },
   "asset_slots": {
     "ground_tileset": "res://assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png",
     "corrupted_ground": "res://assets/sprites/tiles/outdoor_01/tile_outdoor01_corrupted_ground_32.png",

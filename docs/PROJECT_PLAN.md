@@ -151,7 +151,10 @@ Tasks:
 - 建立区域模板数据：`MapGenerationConfig`、`ZoneTemplate`、`AnchorPoint`、`RouteConnection`、`SpawnRule`、`BoundaryRule`。
 - 让算法随机选择区域模板、路线弯曲、支线左右、怪物群落、奖励点和装饰 prop。
 - 保证所有关键锚点必定存在且可达。
-- 保证 visual boundary 和 collision / soft blocker 一起生成。
+- 建立 map object definition：每种 prop 自己声明 texture、sprite offset、y-sort foot point 和 collision footprint。
+- 支持 `rect`、`circle`、`capsule` 等基础 footprint collision，不把整张图片当碰撞。
+- 从 zones + corridors 生成 walkable mask / boundary cells / blocked area。
+- 沿 playable area 外缘生成连续 visual boundary，并同步生成 collision / blocker。
 - 把 first item drop、first level-up、skill unlock、hotbar skill use 和 elite pressure 放进生成规则，而不是写死在单个手工场景。
 - 添加 seed debug、map payload debug、可达性检查、边界检查和 1080p screenshot 验证。
 
@@ -164,6 +167,8 @@ Acceptance:
 - Outdoor section 调参后可支持约 5-10 分钟游玩。
 - Player 至少获得一次明显 early power gain。
 - 主路、分岔、奖励点、怪物群落和边界在 1080p 下可读。
+- 生成地图不能出现大片黑色 void 贴着可玩路线；可走区域外缘必须被连续素材封住。
+- Prop collision 基于 object definition 的 foot point / footprint，不再靠 texture size 粗略推导。
 - Outdoor flow 复用 sandbox 已验证系统，不发明新系统。
 - 后续替换素材时不需要重写地图生成规则。
 

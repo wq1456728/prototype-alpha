@@ -59,6 +59,43 @@ static func add_blocker_rect(parent: Node, blocker_name: String, rect: Rect2, so
 	return body
 
 
+static func add_collision_shape_from_definition(parent: Node, blocker_name: String, definition_id: String, definition: Dictionary, foot_position: Vector2) -> StaticBody2D:
+	var body := StaticBody2D.new()
+	body.name = blocker_name
+	body.collision_layer = COLLISION_LAYERS.WORLD
+	body.collision_mask = 0
+	body.position = foot_position
+	body.set_meta("object_def", definition_id)
+	body.set_meta("source", "object_definition")
+
+	var collision: Dictionary = definition.get("collision", {})
+	var shape_node := CollisionShape2D.new()
+	shape_node.position = _vector2_from_dict(collision.get("offset", {}), Vector2.ZERO)
+	match str(collision.get("shape", "")):
+		"rect":
+			var rectangle := RectangleShape2D.new()
+			rectangle.size = _size_from_dict(collision.get("size", {}), Vector2(32, 24))
+			shape_node.shape = rectangle
+		"circle":
+			var circle := CircleShape2D.new()
+			circle.radius = float(collision.get("radius", 16.0))
+			shape_node.shape = circle
+		"capsule":
+			var capsule := CapsuleShape2D.new()
+			capsule.radius = float(collision.get("radius", 12.0))
+			capsule.height = float(collision.get("height", 36.0))
+			if str(collision.get("orientation", "vertical")) == "horizontal":
+				shape_node.rotation = PI * 0.5
+			shape_node.shape = capsule
+		_:
+			var fallback := RectangleShape2D.new()
+			fallback.size = Vector2(32, 24)
+			shape_node.shape = fallback
+	body.add_child(shape_node)
+	parent.add_child(body)
+	return body
+
+
 static func readable_boundary_specs(bounds: Rect2, thickness: float = READABLE_BOUNDARY_THICKNESS) -> Array:
 	return [
 		{"name": "ReadableBoundaryTop", "rect": Rect2(bounds.position.x, bounds.position.y, bounds.size.x, thickness), "source": "readable_boundary"},
@@ -103,3 +140,17 @@ static func prop_collision_profile(asset_key: String, blocker_source: String, fa
 			profile_key = "corrupted_root"
 	var fallback := clampf(fallback_ratio, 0.45, 1.0)
 	return PROP_COLLISION_PROFILES.get(profile_key, {"width": fallback, "height": minf(fallback, 0.55), "bottom": 0.84})
+
+
+static func _vector2_from_dict(value, fallback: Vector2) -> Vector2:
+	if not (value is Dictionary):
+		return fallback
+	var data: Dictionary = value
+	return Vector2(float(data.get("x", fallback.x)), float(data.get("y", fallback.y)))
+
+
+static func _size_from_dict(value, fallback: Vector2) -> Vector2:
+	if not (value is Dictionary):
+		return fallback
+	var data: Dictionary = value
+	return Vector2(float(data.get("w", fallback.x)), float(data.get("h", fallback.y)))

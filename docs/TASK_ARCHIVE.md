@@ -366,3 +366,90 @@ Risks / Design Conclusion:
 - Prop blocker 使用矩形近似，不是逐像素或精确轮廓；对当时 greybox 阶段足够，但后续正式素材替换时仍需重新对齐。
 - 自动测试覆盖关键点位和 route loop，但不能替代长时间手动边界扫图。
 - 2026-05-18 设计结论：TASK-020 到 TASK-022 只作为技术链路参考归档；旧 outdoor greybox 不再作为第一张地图继续迭代。后续方向改为第一张 outdoor map 的半随机生成系统。
+
+## TASK-023: Semi-Procedural Map Generator Core
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-18 审查：`pass with risks`。
+- `tools/smoke_map_generator_core.gd` 已通过 Godot wrapper。
+- 3 个固定 seed 可生成、可验证、同 seed deterministic、不同 seed 有差异。
+- Debug scene 能生成 boundary visuals / blockers。
+- 实现方向符合任务要求，只借鉴 Diablo II map payload 的结构感：seed、map id/name、offset/size、objects、collision/blocker data；没有复制 Diablo II 数据、算法或依赖外部 D2 安装。
+
+Result:
+
+- Added seed-reproducible semi-procedural layout core。
+- Added external dummy config、logical layout payload、route graph / corridors、required branch / exit anchors、optional pocket。
+- Added placeholder map objects / spawn groups、boundary visual / blocker pairs、labeled debug scene builder、structured validation、stable payload hash。
+- Core API existed at completion:
+  - `MapGenerator.generate(config, seed)`
+  - `GeneratedMapLayout.to_payload()`
+  - `MapGenerationDebug.validate_layout(layout)`
+  - `MapGenerationDebug.build_scene(parent, layout)`
+
+Files changed:
+
+- `data/maps/procedural_dummy_config.json`
+- `scripts/maps/procedural/map_generation_config.gd`
+- `scripts/maps/procedural/generated_map_layout.gd`
+- `scripts/maps/procedural/map_generator.gd`
+- `scripts/maps/procedural/map_generation_debug.gd`
+- `scripts/maps/procedural/procedural_map_test.gd`
+- `scenes/maps/procedural_map_test.tscn`
+- `tools/smoke_map_generator_core.gd`
+
+Validation:
+
+- `powershell -ExecutionPolicy Bypass -File tools\run_godot.ps1 --headless --path . --script res://tools/smoke_map_generator_core.gd` passed。
+
+Risks:
+
+- V1 reachability intentionally validates graph/corridor overlap only; real player navigation remains for later tasks。
+- Boundary at completion was still outer rectangle blocker pairs, not complete collision map / tile mask。
+
+## TASK-024: First Outdoor Map Config And Asset Hookup
+
+Status: done
+
+Task agent status: done
+
+Audit / User Review:
+
+- 2026-05-19 用户复审：`fail for visual boundary / collision model`。
+- 第一张 outdoor config 和 generated scene 能跑，但生成图仍然像 debug layout：zone/corridor 外有大面积黑色 void，边缘没有连续封闭素材。
+- Prop collision 仍然主要从 texture size / source ratio 推导，不是每个 object 自己声明 footprint、y-sort point 和 collision shape。
+- 结论：不能继续扩地牢、任务、职业或更多内容；必须先做 `TASK-025`。
+
+Result:
+
+- Added `data/maps/first_outdoor_map.json`。
+- Added `scenes/maps/first_outdoor_generated.tscn` and `scripts/maps/first_outdoor_generated.gd`。
+- First outdoor map uses TASK-023 generator and first outdoor config。
+- Connected existing player、combat、loot pickup/equipment、XP、skill/Hotbar UI、route/objective flow、outdoor props、soft boundaries、dungeon hook、next-area soft gate、and first weapon loop。
+- Added smoke and capture tools for generated first outdoor map。
+
+Files changed:
+
+- `data/maps/first_outdoor_map.json`
+- `scripts/maps/first_outdoor_generated.gd`
+- `scenes/maps/first_outdoor_generated.tscn`
+- `tools/smoke_first_outdoor_generated.gd`
+- `tools/capture_first_outdoor_seed_view.gd`
+- `scripts/maps/procedural/map_generator.gd`
+- `artifacts/first_outdoor_seed_24001_payload.json`
+
+Validation:
+
+- `tools/smoke_map_generator_core.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_first_outdoor_generated.gd` passed through `tools/run_godot.ps1`。
+- `tools/capture_first_outdoor_seed_view.gd` passed through `tools/run_godot.ps1`；headless capture writes payload-only because headless renderer does not provide a viewport image。
+
+Risks:
+
+- Route feel、dungeon branch readability、and next-exit priority still need user/design-lead visual review in interactive Godot run。
+- Collision and boundary model failed user review and is now handled by TASK-025。

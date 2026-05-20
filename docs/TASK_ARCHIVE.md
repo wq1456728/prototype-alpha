@@ -453,3 +453,91 @@ Risks:
 
 - Route feel、dungeon branch readability、and next-exit priority still need user/design-lead visual review in interactive Godot run。
 - Collision and boundary model failed user review and is now handled by TASK-025。
+
+## TASK-025: Map Object Definitions And Generated Boundary Pass
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-20 审查：`pass with accepted deviations`。
+- `tools/smoke_map_object_definitions.gd`、`tools/smoke_first_outdoor_generated.gd`、`tools/smoke_map_generator_core.gd` 已通过。
+- 用户确认制作过程中允许 horizontal capsule 等实现调整，本任务放行。
+- 已接受偏离：`data/maps/map_object_defs.json` 中部分 object 使用 `horizontal capsule`，而原任务文字写的是第一版 capsule 只接受 `vertical`。此处按用户确认视为 scope 调整，不再作为阻断项。
+- 后续风险：`scripts/maps/procedural/generated_boundary_pass.gd` 的 `_mark_all_boundary_cells_covered()` 会把所有 boundary cells 标记为 covered，payload 没有逐 cell 记录具体由哪个 boundary object 覆盖。当前放行，但后续做更严格 map QA 时应补 coverage attribution。
+
+Result:
+
+- 新增 map object definition catalog，让每个 prop / boundary object 从定义读取 texture、scale、sprite offset、foot point、collision shape、collision offset、blocks_player 和 tags。
+- 支持 `rect`、`circle`、`capsule` footprint collision，并把 object node position 作为 foot point / y-sort point。
+- 树、洞口、门等高物体不再按整张 sprite 做大矩形碰撞，而是按脚底 footprint 配置。
+- 新增 generated boundary pass，从 zones + corridors 生成 `walkable_cells`、`boundary_cells`、`blocked_cells`、contour、boundary objects 和 boundary blocker。
+- 第一张 outdoor map 不再只依赖四个大外圈 blocker；边界改为沿 playable area 外缘连续摆放 boundary objects。
+- 当前第一张图 config 使用单一 rock family，避免边界读起来像随机素材拼盘。
+
+Files changed:
+
+- `data/maps/map_object_defs.json`
+- `data/maps/first_outdoor_map.json`
+- `scripts/maps/procedural/map_object_definition.gd`
+- `scripts/maps/procedural/map_object_factory.gd`
+- `scripts/maps/procedural/generated_boundary_pass.gd`
+- `scripts/maps/first_outdoor_generated.gd`
+- `scripts/physics/outdoor_collision.gd`
+- `tools/smoke_first_outdoor_generated.gd`
+- `tools/smoke_map_object_definitions.gd`
+- `artifacts/first_outdoor_seed_24001_payload.json`
+
+Validation:
+
+- `tools/smoke_map_object_definitions.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_first_outdoor_generated.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_map_generator_core.gd` passed through `tools/run_godot.ps1`。
+- `tools/capture_first_outdoor_seed_view.gd` passed through `tools/run_godot.ps1`。
+
+Risks / Required Follow-up:
+
+- Boundary tracing 是 V1 grid-based deterministic segments，不是最终 artist pass。
+- 当前 debug viewer 仍然看不清真实 `walkable_cells`、`boundary_cells`、`blocked_cells`，所以需要 TASK-026 先补 walkable overlay，再继续判断地图形状是否合理。
+
+## TASK-026: Procedural Map Walkable Overlay Viewer
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-20 审查：`pass with risks`。
+- `Procedural Map Test` 已支持 `Layout View`、`Walkable View`、`Combined View`。
+- 工具能切到 `first_outdoor_map.json` + seed `24001`，legend 显示 mode、config、seed、cell size、walkable / boundary / blocked cell counts。
+- Overlay 直接复用 `GeneratedBoundaryPass` 的 walkable / boundary / blocked payload，没有改 `MapGenerator.generate()` 或 `FirstOutdoorGenerated` 可玩逻辑。
+- 验证通过：`smoke_procedural_map_walkable_overlay.gd`、`smoke_map_generator_core.gd`、`smoke_first_outdoor_generated.gd`。
+- 残余风险：smoke 只能证明 payload 和节点切换存在，不能替代肉眼审查颜色区分、zone/corridor 形状和边界是否真正舒服。
+
+Result:
+
+- `Procedural Map Test` 从单纯 layout debug viewer 变成可审查 walkable mask 的工具。
+- 支持查看 `walkable_cells`、`boundary_cells`、`blocked_cells` 和 contour。
+- 支持 first outdoor config shortcut，方便用第一张图配置审查 seed。
+
+Files changed:
+
+- `scripts/maps/procedural/procedural_map_test.gd`
+- `tools/smoke_procedural_map_walkable_overlay.gd`
+- `TASK_BOARD.md`
+
+Validation:
+
+- `tools/smoke_procedural_map_walkable_overlay.gd` passed。
+- `tools/smoke_first_outdoor_generated.gd` passed。
+- `tools/smoke_map_generator_core.gd` passed。
+
+Risks / Required Follow-up:
+
+- 现在已经能看清 walkable mask，下一步不要继续盲调算法。
+- 需要先把 Camp 固定 scene 接口和 P0 terrain asset vocabulary 定住，再进入 walkable shape / terrain paint。
+
+

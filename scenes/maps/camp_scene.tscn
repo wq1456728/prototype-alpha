@@ -1,0 +1,275 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/maps/camp_scene.gd" id="1_camp"]
+[ext_resource type="PackedScene" uid="uid://bq6vamkc3jcll" path="res://scenes/player/knight_player.tscn" id="2_player"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_camp_gate_128.png" id="3_gate"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_signpost_64.png" id="4_sign"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_shrine_96.png" id="5_shrine"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_broken_cart_96.png" id="6_cart"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_broken_fence_64_a.png" id="7_fence_a"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_broken_fence_64_b.png" id="8_fence_b"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_rock_small_32_a.png" id="9_rock"]
+[ext_resource type="Texture2D" path="res://assets/sprites/props/outdoor_01/prop_outdoor01_dead_tree_64_a.png" id="10_tree"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bounds_h"]
+size = Vector2(1600, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bounds_v"]
+size = Vector2(80, 900)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_exit"]
+size = Vector2(260, 110)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_placeholder"]
+size = Vector2(76, 42)
+
+[sub_resource type="LabelSettings" id="LabelSettings_camp_helper"]
+font_size = 18
+font_color = Color(0.88, 0.82, 0.62, 1)
+outline_size = 4
+outline_color = Color(0.03, 0.025, 0.015, 0.85)
+
+[node name="CampScene" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_camp")
+
+[node name="Background" type="ColorRect" parent="."]
+z_index = -140
+offset_left = -120.0
+offset_top = -120.0
+offset_right = 2040.0
+offset_bottom = 1280.0
+color = Color(0.055, 0.07, 0.055, 1)
+
+[node name="Ground" type="Node2D" parent="."]
+
+[node name="CampGround" type="ColorRect" parent="Ground"]
+z_index = -120
+offset_left = 160.0
+offset_top = 140.0
+offset_right = 1760.0
+offset_bottom = 1040.0
+color = Color(0.135, 0.122, 0.085, 1)
+
+[node name="TrampledCenter" type="ColorRect" parent="Ground"]
+z_index = -116
+offset_left = 430.0
+offset_top = 390.0
+offset_right = 1270.0
+offset_bottom = 800.0
+color = Color(0.17, 0.145, 0.095, 1)
+
+[node name="ExitRoad" type="ColorRect" parent="Ground"]
+z_index = -115
+offset_left = 830.0
+offset_top = 720.0
+offset_right = 1090.0
+offset_bottom = 1040.0
+color = Color(0.19, 0.16, 0.105, 1)
+
+[node name="StashPatch" type="ColorRect" parent="Ground"]
+z_index = -114
+offset_left = 1210.0
+offset_top = 430.0
+offset_right = 1500.0
+offset_bottom = 630.0
+color = Color(0.115, 0.105, 0.077, 1)
+
+[node name="CampBounds" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="North" type="CollisionShape2D" parent="CampBounds"]
+position = Vector2(960, 100)
+shape = SubResource("RectangleShape2D_bounds_h")
+
+[node name="South" type="CollisionShape2D" parent="CampBounds"]
+position = Vector2(960, 1080)
+shape = SubResource("RectangleShape2D_bounds_h")
+
+[node name="West" type="CollisionShape2D" parent="CampBounds"]
+position = Vector2(120, 590)
+shape = SubResource("RectangleShape2D_bounds_v")
+
+[node name="East" type="CollisionShape2D" parent="CampBounds"]
+position = Vector2(1800, 590)
+shape = SubResource("RectangleShape2D_bounds_v")
+
+[node name="Props" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="NorthFenceA" type="Sprite2D" parent="Props"]
+position = Vector2(470, 190)
+scale = Vector2(1.45, 1.45)
+texture_filter = 1
+texture = ExtResource("7_fence_a")
+
+[node name="NorthFenceB" type="Sprite2D" parent="Props"]
+position = Vector2(650, 190)
+scale = Vector2(1.45, 1.45)
+texture_filter = 1
+texture = ExtResource("8_fence_b")
+
+[node name="WestTree" type="Sprite2D" parent="Props"]
+position = Vector2(245, 510)
+scale = Vector2(1.55, 1.55)
+texture_filter = 1
+texture = ExtResource("10_tree")
+
+[node name="EastRockA" type="Sprite2D" parent="Props"]
+position = Vector2(1600, 735)
+scale = Vector2(1.85, 1.85)
+texture_filter = 1
+texture = ExtResource("9_rock")
+
+[node name="CampGate" type="Sprite2D" parent="Props"]
+position = Vector2(960, 820)
+scale = Vector2(1.65, 1.65)
+texture_filter = 1
+texture = ExtResource("3_gate")
+
+[node name="CampSignpost" type="Sprite2D" parent="Props"]
+position = Vector2(1125, 815)
+scale = Vector2(1.35, 1.35)
+texture_filter = 1
+texture = ExtResource("4_sign")
+
+[node name="SupplyCart" type="Sprite2D" parent="Props"]
+position = Vector2(1305, 530)
+scale = Vector2(1.25, 1.25)
+texture_filter = 1
+texture = ExtResource("6_cart")
+
+[node name="NPCPlaceholders" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="QuestGiverPlaceholder" type="StaticBody2D" parent="NPCPlaceholders"]
+position = Vector2(600, 520)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NPCPlaceholders/QuestGiverPlaceholder"]
+position = Vector2(0, 10)
+shape = SubResource("RectangleShape2D_placeholder")
+
+[node name="Visual" type="ColorRect" parent="NPCPlaceholders/QuestGiverPlaceholder"]
+offset_left = -32.0
+offset_top = -80.0
+offset_right = 32.0
+offset_bottom = 20.0
+color = Color(0.34, 0.29, 0.18, 1)
+
+[node name="Label" type="Label" parent="NPCPlaceholders/QuestGiverPlaceholder"]
+offset_left = -66.0
+offset_top = -112.0
+offset_right = 94.0
+offset_bottom = -84.0
+text = "Quest NPC"
+label_settings = SubResource("LabelSettings_camp_helper")
+
+[node name="GuardPlaceholder" type="StaticBody2D" parent="NPCPlaceholders"]
+position = Vector2(790, 705)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NPCPlaceholders/GuardPlaceholder"]
+position = Vector2(0, 10)
+shape = SubResource("RectangleShape2D_placeholder")
+
+[node name="Visual" type="ColorRect" parent="NPCPlaceholders/GuardPlaceholder"]
+offset_left = -30.0
+offset_top = -76.0
+offset_right = 30.0
+offset_bottom = 20.0
+color = Color(0.26, 0.28, 0.23, 1)
+
+[node name="Label" type="Label" parent="NPCPlaceholders/GuardPlaceholder"]
+offset_left = -42.0
+offset_top = -108.0
+offset_right = 110.0
+offset_bottom = -80.0
+text = "Guard"
+label_settings = SubResource("LabelSettings_camp_helper")
+
+[node name="Interactables" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="StashPlaceholder" type="StaticBody2D" parent="Interactables"]
+position = Vector2(1370, 545)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactables/StashPlaceholder"]
+shape = SubResource("RectangleShape2D_placeholder")
+
+[node name="Visual" type="ColorRect" parent="Interactables/StashPlaceholder"]
+offset_left = -48.0
+offset_top = -44.0
+offset_right = 48.0
+offset_bottom = 18.0
+color = Color(0.21, 0.135, 0.075, 1)
+
+[node name="Label" type="Label" parent="Interactables/StashPlaceholder"]
+offset_left = -32.0
+offset_top = -78.0
+offset_right = 108.0
+offset_bottom = -50.0
+text = "Stash"
+label_settings = SubResource("LabelSettings_camp_helper")
+
+[node name="WaypointPlaceholder" type="StaticBody2D" parent="Interactables"]
+position = Vector2(1040, 420)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactables/WaypointPlaceholder"]
+shape = SubResource("RectangleShape2D_placeholder")
+
+[node name="Sprite2D" type="Sprite2D" parent="Interactables/WaypointPlaceholder"]
+position = Vector2(0, -38)
+scale = Vector2(1.2, 1.2)
+texture_filter = 1
+texture = ExtResource("5_shrine")
+
+[node name="Label" type="Label" parent="Interactables/WaypointPlaceholder"]
+offset_left = -52.0
+offset_top = -110.0
+offset_right = 130.0
+offset_bottom = -82.0
+text = "Waypoint"
+label_settings = SubResource("LabelSettings_camp_helper")
+
+[node name="WorldEntities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="KnightPlayer" parent="WorldEntities" instance=ExtResource("2_player")]
+position = Vector2(520, 580)
+
+[node name="CampSpawn" type="Marker2D" parent="."]
+position = Vector2(520, 580)
+
+[node name="CampExitToOutdoor" type="Area2D" parent="."]
+position = Vector2(960, 905)
+collision_mask = 2
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CampExitToOutdoor"]
+shape = SubResource("RectangleShape2D_exit")
+
+[node name="DebugLabels" type="Node2D" parent="."]
+
+[node name="ExitLabel" type="Label" parent="DebugLabels"]
+offset_left = 825.0
+offset_top = 955.0
+offset_right = 1160.0
+offset_bottom = 984.0
+text = "CampExitToOutdoor"
+label_settings = SubResource("LabelSettings_camp_helper")
+
+[node name="SpawnLabel" type="Label" parent="DebugLabels"]
+offset_left = 455.0
+offset_top = 615.0
+offset_right = 690.0
+offset_bottom = 644.0
+text = "CampSpawn"
+label_settings = SubResource("LabelSettings_camp_helper")

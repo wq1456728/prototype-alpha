@@ -27,6 +27,7 @@ func generate(layout: GeneratedMapLayout, boundary_style: Dictionary, factory: M
 
 	_build_walkable_cells(layout)
 	_build_boundary_cells(layout)
+	_apply_connection_openings(layout, boundary_style)
 	_build_contour_lines()
 	_build_blocked_cells(layout)
 	_place_boundary_objects(boundary_style, factory, seed)
@@ -109,6 +110,47 @@ func _build_boundary_cells(layout: GeneratedMapLayout) -> void:
 			var edges: Array = boundary_cells[next_key]["edges"]
 			if not edges.has(neighbor["edge"]):
 				edges.append(neighbor["edge"])
+
+
+func _apply_connection_openings(layout: GeneratedMapLayout, boundary_style: Dictionary) -> void:
+	var openings: Array = boundary_style.get("connection_openings", [])
+	for opening_value in openings:
+		var opening: Dictionary = opening_value
+		var anchor := layout.find_anchor_by_type(str(opening.get("anchor_type", "")))
+		if anchor.is_empty():
+			warnings.append("boundary connection opening missing anchor: %s" % str(opening.get("id", "")))
+			continue
+		var center: Vector2 = anchor.get("position", Vector2.ZERO)
+		var width := float(opening.get("width", float(cell_size) * 6.0))
+		var depth := float(opening.get("depth", float(cell_size) * 4.0))
+		var rect := _opening_rect(center, width, depth, str(opening.get("edge", "north")))
+		_remove_boundary_cells_in_rect(rect)
+		walkable_cells[_cell_key(Vector2i(int(floor(center.x / float(cell_size))), int(floor(center.y / float(cell_size)))))] = {
+			"x": int(floor(center.x / float(cell_size))),
+			"y": int(floor(center.y / float(cell_size))),
+		}
+
+
+func _opening_rect(center: Vector2, width: float, depth: float, edge: String) -> Rect2:
+	match edge:
+		"south":
+			return Rect2(Vector2(center.x - width * 0.5, center.y), Vector2(width, depth))
+		"east":
+			return Rect2(Vector2(center.x, center.y - width * 0.5), Vector2(depth, width))
+		"west":
+			return Rect2(Vector2(center.x - depth, center.y - width * 0.5), Vector2(depth, width))
+	return Rect2(Vector2(center.x - width * 0.5, center.y - depth), Vector2(width, depth))
+
+
+func _remove_boundary_cells_in_rect(rect: Rect2) -> void:
+	var remove_keys := []
+	for key in boundary_cells.keys():
+		var cell: Dictionary = boundary_cells[key]
+		var center := _cell_center(int(cell.get("x", 0)), int(cell.get("y", 0)))
+		if rect.has_point(center):
+			remove_keys.append(key)
+	for key in remove_keys:
+		boundary_cells.erase(key)
 
 
 func _build_blocked_cells(layout: GeneratedMapLayout) -> void:

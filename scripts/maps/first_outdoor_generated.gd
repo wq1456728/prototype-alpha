@@ -11,6 +11,7 @@ const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const OUTDOOR_COLLISION := preload("res://scripts/physics/outdoor_collision.gd")
 
 const FIRST_OUTDOOR_CONFIG_PATH := "res://data/maps/first_outdoor_map.json"
+const CAMP_SCENE_PATH := "res://scenes/maps/camp_scene.tscn"
 const TILE_SIZE := 32
 const CAMP_EXIT_MIN_DISTANCE := 290.0
 const DUNGEON_ENTRANCE_RADIUS := 170.0
@@ -156,11 +157,89 @@ func _add_layout_ground() -> void:
 func _add_layout_boundaries() -> void:
 	for blocker in layout.blockers:
 		var rect: Rect2 = blocker.get("rect", Rect2())
-		_add_blocker_rect(str(blocker.get("id", "")), rect, str(blocker.get("source", "")))
+		var blocker_id := str(blocker.get("id", ""))
+		var source := str(blocker.get("source", ""))
+		var parts := _split_rect_for_connection_openings(rect, source)
+		for index in range(parts.size()):
+			var part: Rect2 = parts[index]
+			if part.size.x <= 0.0 or part.size.y <= 0.0:
+				continue
+			var part_id := blocker_id if parts.size() == 1 else "%s_part_%02d" % [blocker_id, index]
+			_add_blocker_rect(part_id, part, source)
 	for visual in layout.boundary_visuals:
 		var rect: Rect2 = visual.get("rect", Rect2())
-		_add_background_rect(str(visual.get("id", "")), rect, Color(0.045, 0.065, 0.045, 1.0), -132)
-		boundary_visual_count += 1
+		var visual_id := str(visual.get("id", ""))
+		var source := str(visual.get("source", ""))
+		var parts := _split_rect_for_connection_openings(rect, source)
+		for index in range(parts.size()):
+			var part: Rect2 = parts[index]
+			if part.size.x <= 0.0 or part.size.y <= 0.0:
+				continue
+			var part_id := visual_id if parts.size() == 1 else "%s_part_%02d" % [visual_id, index]
+			_add_background_rect(part_id, part, Color(0.045, 0.065, 0.045, 1.0), -132)
+			boundary_visual_count += 1
+
+
+func _split_rect_for_connection_openings(rect: Rect2, source: String) -> Array:
+	var opening := _connection_opening_rect_for_source(source)
+	if opening.size == Vector2.ZERO or not rect.intersects(opening):
+		return [rect]
+	if source == "north_edge" or source == "south_edge":
+		var parts := []
+		var left_width := maxf(0.0, opening.position.x - rect.position.x)
+		var right_x := opening.end.x
+		var right_width := maxf(0.0, rect.end.x - right_x)
+		if left_width > 0.0:
+			parts.append(Rect2(rect.position, Vector2(left_width, rect.size.y)))
+		if right_width > 0.0:
+			parts.append(Rect2(Vector2(right_x, rect.position.y), Vector2(right_width, rect.size.y)))
+		return parts
+	if source == "west_edge" or source == "east_edge":
+		var parts := []
+		var top_height := maxf(0.0, opening.position.y - rect.position.y)
+		var bottom_y := opening.end.y
+		var bottom_height := maxf(0.0, rect.end.y - bottom_y)
+		if top_height > 0.0:
+			parts.append(Rect2(rect.position, Vector2(rect.size.x, top_height)))
+		if bottom_height > 0.0:
+			parts.append(Rect2(Vector2(rect.position.x, bottom_y), Vector2(rect.size.x, bottom_height)))
+		return parts
+	return [rect]
+
+
+func _connection_opening_rect_for_source(source: String) -> Rect2:
+	var edge := ""
+	match source:
+		"north_edge":
+			edge = "north"
+		"south_edge":
+			edge = "south"
+		"west_edge":
+			edge = "west"
+		"east_edge":
+			edge = "east"
+		_:
+			return Rect2()
+	var boundary_style: Dictionary = config_data.get("boundary_style", {})
+	for opening_value in Array(boundary_style.get("connection_openings", [])):
+		var opening: Dictionary = opening_value
+		if str(opening.get("edge", "")) != edge:
+			continue
+		var anchor := layout.find_anchor_by_type(str(opening.get("anchor_type", "")))
+		if anchor.is_empty():
+			continue
+		var center: Vector2 = anchor.get("position", Vector2.ZERO)
+		var width := float(opening.get("width", 0.0))
+		var depth := float(opening.get("depth", 0.0))
+		if edge == "north":
+			return Rect2(Vector2(center.x - width * 0.5, -depth), Vector2(width, depth + center.y))
+		if edge == "south":
+			return Rect2(Vector2(center.x - width * 0.5, center.y), Vector2(width, depth + layout.map_size.y - center.y))
+		if edge == "west":
+			return Rect2(Vector2(-depth, center.y - width * 0.5), Vector2(depth + center.x, width))
+		if edge == "east":
+			return Rect2(Vector2(center.x, center.y - width * 0.5), Vector2(depth + layout.map_size.x - center.x, width))
+	return Rect2()
 
 
 func _add_generated_boundary_pass() -> void:
@@ -303,6 +382,8 @@ func _add_layout_markers() -> void:
 	var start_anchor := layout.find_anchor_by_type("start")
 	var spawn_position: Vector2 = start_anchor.get("position", start_zone.get("rect", Rect2()).get_center())
 	_add_route_marker("CampSpawn", spawn_position)
+	_add_route_marker("CampEntrance", spawn_position)
+	_add_route_marker("CampEntranceSpawn", spawn_position)
 
 	var first_contact_zone := _find_zone_by_type("first_contact")
 	_add_route_marker("FirstContact", Rect2(first_contact_zone.get("rect", Rect2())).get_center())
@@ -399,6 +480,9 @@ func _spawn_pool_in_zone(pool_id: String, zone: Dictionary, offset: Vector2 = Ve
 func _spawn_configured_mummy(enemy_name: String, pool: Dictionary, spawn_position: Vector2, is_elite: bool) -> Node2D:
 	var enemy := MUMMY_SCENE.instantiate()
 	enemy.name = enemy_name
+	enemy.enemy_display_name = str(pool.get("display_name", "Mummy"))
+	enemy.sprite_root = str(pool.get("sprite_root", "res://assets/sprites/enemies/mummy"))
+	enemy.sprite_file_prefix = str(pool.get("sprite_file_prefix", "enemy_mummy"))
 	enemy.global_position = spawn_position
 	enemy.max_hp = int(pool.get("elite_max_hp", pool.get("max_hp", 40))) if is_elite else int(pool.get("max_hp", 40))
 	enemy.move_speed = float(pool.get("move_speed", 44.0))
@@ -478,6 +562,14 @@ func is_dungeon_entrance_reached() -> bool:
 func get_route_marker_position(marker_name: String) -> Vector2:
 	var marker: Marker2D = route_markers.get(marker_name, null)
 	return marker.global_position if marker != null else Vector2.ZERO
+
+
+func get_camp_entrance_position() -> Vector2:
+	return get_route_marker_position("CampEntranceSpawn")
+
+
+func get_camp_return_target_path() -> String:
+	return CAMP_SCENE_PATH
 
 
 func get_dungeon_entrance_position() -> Vector2:

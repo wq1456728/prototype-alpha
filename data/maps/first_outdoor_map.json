@@ -85,6 +85,9 @@
   "enemy_pool": {
 	"weak_training": {
 	  "scene": "res://scenes/enemy/mummy_enemy.tscn",
+	  "display_name": "Mummy",
+	  "sprite_root": "res://assets/sprites/enemies/mummy",
+	  "sprite_file_prefix": "enemy_mummy",
 	  "group": "outdoor_training",
 	  "count": 3,
 	  "max_hp": 30,
@@ -95,6 +98,9 @@
 	},
 	"road_patrol": {
 	  "scene": "res://scenes/enemy/mummy_enemy.tscn",
+	  "display_name": "Snake",
+	  "sprite_root": "res://assets/sprites/enemies/snake",
+	  "sprite_file_prefix": "enemy_snake",
 	  "group": "outdoor_road",
 	  "count": 2,
 	  "max_hp": 38,
@@ -105,6 +111,9 @@
 	},
 	"loot_captain": {
 	  "scene": "res://scenes/enemy/mummy_enemy.tscn",
+	  "display_name": "Hyena",
+	  "sprite_root": "res://assets/sprites/enemies/hyena",
+	  "sprite_file_prefix": "enemy_hyena",
 	  "group": "outdoor_loot",
 	  "count": 1,
 	  "max_hp": 52,
@@ -115,6 +124,9 @@
 	},
 	"optional_shrine": {
 	  "scene": "res://scenes/enemy/mummy_enemy.tscn",
+	  "display_name": "Snake",
+	  "sprite_root": "res://assets/sprites/enemies/snake",
+	  "sprite_file_prefix": "enemy_snake",
 	  "group": "outdoor_shrine",
 	  "count": 3,
 	  "max_hp": 44,
@@ -125,6 +137,9 @@
 	},
 	"elite_pressure": {
 	  "scene": "res://scenes/enemy/mummy_enemy.tscn",
+	  "display_name": "Hyena",
+	  "sprite_root": "res://assets/sprites/enemies/hyena",
+	  "sprite_file_prefix": "enemy_hyena",
 	  "group": "outdoor_entrance",
 	  "count": 3,
 	  "max_hp": 68,
@@ -172,7 +187,16 @@
 	"horizontal_visual_line_cover": 8,
 	"segment_min_cells": 10,
 	"segment_max_cells": 24,
-	"max_gap_cells": 2
+	"max_gap_cells": 2,
+	"connection_openings": [
+	  {
+		"id": "fixed_town_to_wilderness",
+		"anchor_type": "start",
+		"edge": "north",
+		"width": 768,
+		"depth": 360
+	  }
+	]
   },
   "asset_slots": {
 	"ground_tileset": "res://assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png",

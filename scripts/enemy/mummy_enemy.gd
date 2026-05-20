@@ -18,6 +18,9 @@ const DEATH_SFX := preload("res://assets/audio/sfx/enemy_mummy_death.mp3")
 @export var ai_max_think_time := 1.1
 @export var drops_loot := true
 @export var xp_reward := 20
+@export var sprite_root := "res://assets/sprites/enemies/mummy"
+@export var sprite_file_prefix := "enemy_mummy"
+@export var enemy_display_name := "Mummy"
 
 const ATTACK_LOCK_TIME := 0.62
 const ATTACK_HIT_DELAY := 0.32
@@ -26,7 +29,6 @@ const DEATH_CLEANUP_TIME := 1.6
 const ENEMY_SOFT_COLLISION_DISTANCE := 44.0
 const ENEMY_SOFT_COLLISION_FORCE := 115.0
 const MAX_SOFT_COLLISION_SPEED := 125.0
-const SPRITE_ROOT := "res://assets/sprites/enemies/mummy"
 const SPRITE_FRAME_WIDTH := 64
 const SPRITE_FRAME_HEIGHT := 64
 const HIT_FLASH_TIME := 0.12
@@ -327,23 +329,24 @@ func _play(anim_name: StringName, restart: bool = false) -> void:
 func _build_sprite_frames() -> SpriteFrames:
 	var frames := SpriteFrames.new()
 	frames.remove_animation("default")
-	_add_frames(frames, "idle", "idle", 4, 6.0, true)
-	_add_frames(frames, "walk", "walk", 6, 8.0, true)
-	_add_frames(frames, "attack", "attack", 6, 10.0, false)
-	_add_frames(frames, "hurt", "hurt", 2, 10.0, false)
-	_add_frames(frames, "death", "death", 6, 8.0, false)
+	_add_frames(frames, "idle", "idle", 6.0, true)
+	_add_frames(frames, "walk", "walk", 8.0, true)
+	_add_frames(frames, "attack", "attack", 10.0, false)
+	_add_frames(frames, "hurt", "hurt", 10.0, false)
+	_add_frames(frames, "death", "death", 8.0, false)
 	return frames
 
 
-func _add_frames(frames: SpriteFrames, anim_name: StringName, prefix: String, count: int, speed: float, loops: bool) -> void:
+func _add_frames(frames: SpriteFrames, anim_name: StringName, prefix: String, speed: float, loops: bool) -> void:
 	frames.add_animation(anim_name)
 	frames.set_animation_speed(anim_name, speed)
 	frames.set_animation_loop(anim_name, loops)
-	var sheet_path := "%s/enemy_mummy_%s_side.png" % [SPRITE_ROOT, prefix]
+	var sheet_path := "%s/%s_%s_side.png" % [sprite_root, sprite_file_prefix, prefix]
 	var sheet := load(sheet_path) as Texture2D
 	if sheet == null:
 		return
 
+	var count: int = maxi(1, int(sheet.get_width() / SPRITE_FRAME_WIDTH))
 	for i in range(count):
 		frames.add_frame(anim_name, _make_atlas_frame(sheet, i))
 

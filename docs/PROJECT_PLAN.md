@@ -1,4 +1,4 @@
-﻿# 项目计划
+# 项目计划
 
 这个文件是 Prototype Alpha vertical slice 的长期计划。它描述“要按什么顺序把系统和内容做出来”，具体当前执行任务以 [TASK_BOARD.md](../TASK_BOARD.md) 为准。
 
@@ -141,10 +141,15 @@ Acceptance:
 
 Goal:
 
-把已经证明可用的 vertical sandbox loop 和 UI 搬进第一张 outdoor map，并把这张图从手工 greybox 改成受控随机生成系统。
+把已经证明可用的 vertical sandbox loop 和 UI 搬进 persistent `MainWorld`，采用固定 Town / Base + 半随机 Wilderness 的结构，而不是 Town scene 切换到 Wilderness scene。第一张 outdoor 从基地出口附近在同一 world space 中生成。
 
 Tasks:
 
+- 建立 `MainWorld`：`Player`、`Camera2D`、`FixedTown`、`GeneratedRegion` 同时存在。
+- 固定 Town / Base 不走 procedural generator；用户可以手动调整布局和美术。
+- Wilderness 不作为独立切换 scene，而是从 `TownExitSocket` 附近 instantiate 到同一 world 坐标系。
+- 建立 fixed transition chunk：Town exit -> wilderness entry。
+- 第一版 chunk generation 先做一次性 room / chunk graph assembly，不做无限 streaming。
 - 先实现通用半随机地图生成核心，再接第一张 outdoor map config。
 - 定义第一张图的固定关卡骨架：camp、first contact、fork、dungeon entrance、loot pocket、elite pressure、next area exit。
 - 建立 seed 可复现的 map generation 流程。
@@ -161,8 +166,10 @@ Tasks:
 Acceptance:
 
 - 通用 map generator 可以独立通过 3 个 seed 的 smoke test。
-- 第一张 outdoor map 可以通过 config 使用通用 generator 生成。
-- Player 可以从 camp 走到 dungeon entrance 和 next area exit。
+- `MainWorld` 中 fixed town 和 generated region 位于同一个 world coordinate space。
+- 玩家离开 Town 后，回头仍能看到 Town；不通过传统 scene switching 进入 Wilderness。
+- 第一张 outdoor / wilderness region 可以通过 config 使用通用 generator 从 Town socket 附近生成。
+- Player 可以从 fixed Town 走到 dungeon entrance 和 next area exit。
 - 至少 3 个固定 seed 都能生成不同但结构正确的第一张图。
 - Outdoor section 调参后可支持约 5-10 分钟游玩。
 - Player 至少获得一次明显 early power gain。

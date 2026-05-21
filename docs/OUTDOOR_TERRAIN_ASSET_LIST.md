@@ -83,11 +83,54 @@ assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_roots_64_a.png
 assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_roots_64_b.png
 ```
 
-Current read:
+Current read after TASK-029 asset follow-up:
 
 - Boundary / landmark placeholders are enough to start Camp and outdoor rough layout.
-- Terrain vocabulary is still weak.
-- Highest priority missing assets are road / transition / decal.
+- Road / transition / decal vocabulary now has named `available` files for the first terrain paint pass.
+- New PixelLab Camp support props and decals are in `assets/sprites`, but they are `available`, not `accepted`; user review is still required before treating them as final gameplay art.
+- `TASK-029` uses the table below as the frozen current contract. Older TASK-027 tables are retained for history and rough category notes.
+
+## TASK-029 Frozen Inventory
+
+`accepted` 仍只表示用户明确确认。下面新补入的素材全部标为 `available`，供后续 `TASK-031` terrain paint / Camp polish 使用。
+
+| ID | Priority | Use case | Asset type | Required form | Size | Transparency | Naming pattern | Current path | Fallback path | Status | Blocks TASK-031 | Owner / next action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `grass_dead_base` | P0 | outdoor base ground | terrain | single tile / tileset | 32x32 | no | `tile_outdoor01_grass_dead_base_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_grass_dead_base_32_a.png` | `assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png` | available | no | user review visual quality |
+| `dirt_base` | P0 | dry dirt field / camp floor | terrain | tileset fallback | 32x32 | no | `tileset_outdoor01_ground_32.png` | `assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png` | none | placeholder | no | replace with dedicated tile later |
+| `mud_trampled_base` | P0 | trampled camp / pressure areas | terrain/decal | decal first pass | 64x64 | yes | `decal_camp01_trampled_ground_64_a.png` | `assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png` | none | available | no | user review visual quality |
+| `dirt_road_center` | P0 | readable road spine | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_center_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_center_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_center_32_b.png` | none | available | no | TASK-031 integrate into paint rules |
+| `dirt_road_edge_blend` | P0 | road edge into field | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_edge_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_edge_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_edge_32_b.png` | none | available | no | TASK-031 integrate into paint rules |
+| `dirt_road_corner_blend` | P0 | road bends / forks | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_corner_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_corner_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_corner_32_b.png` | none | available | no | TASK-031 integrate into paint rules |
+| `dirt_road_end_fade` | P0 | road end / fade into field | terrain | single tile | 32x32 | no | `tile_outdoor01_dirt_road_end_fade_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_end_fade_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
+| `road_noise_decal` | P0 | break up road repetition | decal | transparent PNG | 64x64 | yes | `decal_outdoor01_road_noise_64_a.png` | `assets/sprites/decals/outdoor_01/decal_outdoor01_road_noise_64_a.png` | none | available | no | use sparingly in terrain paint |
+| `grass_to_dirt_transition` | P0 | soft field to dirt edge | terrain | single transition tile | 32x32 | no | `tile_outdoor01_grass_to_dirt_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_grass_to_dirt_blend_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
+| `dirt_to_corruption_blend` | P0 | corrupted approach | terrain | single transition tile | 32x32 | no | `tile_outdoor01_dirt_to_corruption_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_to_corruption_blend_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
+| `corruption_edge_blend` | P0 | irregular corruption edge | terrain | single transition tile | 32x32 | no | `tile_outdoor01_corruption_edge_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_corruption_edge_blend_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
+| `corrupted_ground_patch` | P0 | infected ground patch | terrain | single tile | 64x32 | mixed | `tile_outdoor01_corrupted_ground_32.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_corrupted_ground_32.png` | none | placeholder | no | replace with better patch later |
+| `root_stain_decal` | P0 | corruption detail | decal | transparent PNG | 64x64 | yes | `decal_outdoor01_root_stain_64_a.png` | `assets/sprites/decals/outdoor_01/decal_outdoor01_root_stain_64_a.png` | none | available | no | user review visual quality |
+| `dark_crack_decal` | P0 | corruption detail | decal | transparent PNG | 64x64 | yes | `decal_outdoor01_dark_crack_64_a.png` | `assets/sprites/decals/outdoor_01/decal_outdoor01_dark_crack_64_a.png` | none | available | no | currently shares source generation with root stain |
+| `thorn_weed_decal` | P1 | corrupted small detail | decal | transparent PNG | 32x32 | yes | `decal_outdoor01_thorn_weed_32_a.png` | `assets/sprites/decals/outdoor_01/decal_outdoor01_thorn_weed_32_a.png` | none | available | no | optional scatter pass |
+| `rock_small` | P0 | boundary blocker | prop | transparent PNG | 32x32 | yes | `prop_outdoor01_rock_small_32_<variant>.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_rock_small_32_a.png`, `assets/sprites/props/outdoor_01/prop_outdoor01_rock_small_32_b.png` | none | available | no | already used by boundary pass |
+| `dead_tree` | P0 | soft boundary / landmark noise | prop | transparent PNG | 64x64 | yes | `prop_outdoor01_dead_tree_64_<variant>.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_dead_tree_64_a.png`, `assets/sprites/props/outdoor_01/prop_outdoor01_dead_tree_64_b.png` | none | available | no | already used by boundary pass |
+| `broken_fence` | P0 | outdoor/camp rough boundary | prop | transparent PNG | 64x64 | yes | `prop_outdoor01_broken_fence_64_<variant>.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_broken_fence_64_a.png`, `assets/sprites/props/outdoor_01/prop_outdoor01_broken_fence_64_b.png` | none | available | no | already used by boundary pass |
+| `corrupted_root_wall` | P0 | dungeon-side blocker | prop | transparent PNG | 64x64 | yes | `prop_outdoor01_corrupted_roots_64_<variant>.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_roots_64_a.png`, `assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_roots_64_b.png` | none | available | no | already used by boundary pass |
+| `camp_gate` | P0 | town/camp exit marker | prop | transparent PNG | 128x128 | yes | `prop_outdoor01_camp_gate_128.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_camp_gate_128.png` | none | available | no | current camp exit marker |
+| `dungeon_entrance` | P0 | first quest hook | prop | transparent PNG | 128x128 | yes | `prop_outdoor01_corrupted_hollow_128.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_hollow_128.png` | none | available | no | current dungeon hook |
+| `next_area_marker` | P1 | route/soft gate marker | prop | transparent PNG | 64x64 | yes | `prop_outdoor01_signpost_64.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_signpost_64.png` | none | available | no | optional outdoor marker |
+| `shrine_or_loot_marker` | P1 | optional reward marker | prop | transparent PNG | 96x96 | yes | `prop_outdoor01_shrine_96.png` | `assets/sprites/props/outdoor_01/prop_outdoor01_shrine_96.png` | none | available | no | optional pocket / placeholder waypoint |
+| `camp_palisade_wall` | P1 | camp defensive silhouette | prop | transparent PNG | 96x96 | yes | `prop_camp01_palisade_wall_96_a.png` | `assets/sprites/props/camp_01/prop_camp01_palisade_wall_96_a.png` | broken fence | available | no | user review; add collisions before placement |
+| `camp_wood_fence_straight` | P1 | camp fence run | prop | transparent PNG | 96x64 | yes | `prop_camp01_wood_fence_straight_96_a.png` | `assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png` | broken fence | available | no | user-requested camp material |
+| `camp_wood_fence_corner` | P1 | camp fence turn | prop | transparent PNG | 96x96 | yes | `prop_camp01_wood_fence_corner_96_a.png` | `assets/sprites/props/camp_01/prop_camp01_wood_fence_corner_96_a.png` | broken fence | available | no | user-requested camp material |
+| `camp_wood_fence_broken` | P1 | damaged camp fence | prop | transparent PNG | 96x64 | yes | `prop_camp01_wood_fence_broken_96_a.png` | `assets/sprites/props/camp_01/prop_camp01_wood_fence_broken_96_a.png` | broken fence | available | no | user-requested camp material |
+| `camp_wood_fence_gate_side` | P1 | camp entrance side post | prop | transparent PNG | 96x96 | yes | `prop_camp01_wood_fence_gate_side_96_a.png` | `assets/sprites/props/camp_01/prop_camp01_wood_fence_gate_side_96_a.png` | `prop_outdoor01_camp_gate_128.png` | available | no | user-requested camp material |
+| `camp_tent` | P1 | camp identity prop | prop | transparent PNG | 128x128 | yes | `prop_camp01_tent_128_a.png` | `assets/sprites/props/camp_01/prop_camp01_tent_128_a.png` | none | available | no | user review; add collisions before placement |
+| `campfire` | P1 | camp identity / interactable marker | prop | transparent PNG | 64x64 | yes | `prop_camp01_campfire_64_a.png` | `assets/sprites/props/camp_01/prop_camp01_campfire_64_a.png` | shrine fallback | available | no | later can animate |
+| `crate_barrel_stack` | P1 | supply cluster | prop | transparent PNG | 96x96 | yes | `prop_camp01_crate_barrel_stack_96_a.png` | `assets/sprites/props/camp_01/prop_camp01_crate_barrel_stack_96_a.png` | `prop_outdoor01_broken_cart_96.png` | available | no | user review; add collisions before placement |
+| `stash_chest` | P1 | stash placeholder | prop | transparent PNG | 64x64 | yes | `prop_camp01_stash_chest_64_a.png` | `assets/sprites/props/camp_01/prop_camp01_stash_chest_64_a.png` | ColorRect placeholder | available | no | connect to stash logic later |
+| `waypoint_marker` | P1 | waypoint / return marker | prop | transparent PNG | 96x96 | yes | `prop_camp01_waypoint_marker_96_a.png` | `assets/sprites/props/camp_01/prop_camp01_waypoint_marker_96_a.png` | shrine fallback | available | no | connect to travel UI later |
+| `npc_placeholder` | P1 | neutral quest giver stand-in | sprite | transparent PNG | 64x96 | yes | `npc_camp01_quest_giver_idle_64_a.png` | `assets/sprites/npc/camp_01/npc_camp01_quest_giver_idle_64_a.png` | ColorRect placeholder | available | no | replace with animated NPC later |
+| `camp_trampled_ground_decal` | P1 | camp floor wear | decal | transparent PNG | 64x64 | yes | `decal_camp01_trampled_ground_64_a.png` | `assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png` | none | available | no | scatter under camp props |
 
 ## TASK-027 P0 Audit
 

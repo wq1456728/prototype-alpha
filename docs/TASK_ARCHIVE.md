@@ -540,4 +540,125 @@ Risks / Required Follow-up:
 - 现在已经能看清 walkable mask，下一步不要继续盲调算法。
 - 需要先把 Camp 固定 scene 接口和 P0 terrain asset vocabulary 定住，再进入 walkable shape / terrain paint。
 
+## TASK-027: Camp Scene Contract, Outdoor Transition, And P0 Asset Intake
+
+Status: done
+
+Task agent status: done
+
+Audit / Direction Status:
+
+- 2026-05-21 用户复审后，旧 `CampScene -> FirstOutdoorGenerated` 的传统 scene switching 方向被废弃为主流程。
+- 新方向：采用 persistent `MainWorld`，其中 `FixedTown` 和 `GeneratedRegion` 同时存在于同一个 world space。
+- `TASK-027` 产出的 Camp rough layout、素材盘点、节点契约和 smoke 仍有参考价值，但 world flow 已由 `TASK-028` 重构。
+
+Result:
+
+- Added fixed `CampScene` with `CampSpawn`、`CampExitToOutdoor`、`CampBounds`、`Ground`、`Props`、`NPCPlaceholders`、`Interactables` and reusable placeholder layout。
+- Reused current outdoor props for Camp rough layout: camp gate、signpost、shrine、broken cart、rock、dead tree、broken fence。
+- Added Camp transition payload contract and target spawn marker expectations。
+- Updated `docs/OUTDOOR_TERRAIN_ASSET_LIST.md` with first P0 audit fields。
+
+Files changed:
+
+- `scenes/maps/camp_scene.tscn`
+- `scripts/maps/camp_scene.gd`
+- `scripts/maps/first_outdoor_generated.gd`
+- `tools/smoke_camp_scene_contract.gd`
+- `docs/OUTDOOR_TERRAIN_ASSET_LIST.md`
+- `project.godot`
+- `TASK_BOARD.md`
+
+Validation:
+
+- `tools/smoke_camp_scene_contract.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_first_outdoor_generated.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_map_generator_core.gd` passed through `tools/run_godot.ps1`。
+
+Risks / Required Follow-up:
+
+- Camp visuals were intentionally rough and placeholder-heavy。
+- Final Rogue Encampment-like feel requires dedicated Camp props and a fixed-town visual assembly pass。
+- Traditional scene switching is no longer the main world flow。
+
+## TASK-028: Persistent MainWorld, FixedTown, And GeneratedRegion Contract
+
+Status: done
+
+Task agent status: done
+
+Result:
+
+- Added persistent `MainWorld` structure with `FixedTown` and `GeneratedRegion` in the same world coordinate space。
+- Player remains under stable `WorldEntities` parent instead of being teleported into a separate outdoor scene。
+- Generated wilderness starts near the town exit and keeps a connection opening so the player can leave camp and return visually。
+- Added enemy variety support using existing enemy assets: Mummy、Snake、Hyena。
+- Added MainWorld smoke coverage for scene load、fixed town、generated region、town exit socket、generated start anchor、player parent stability、spawn bounds、enemy variety、and connection motion。
+
+Files changed:
+
+- `scenes/world/main_world.tscn`
+- `scripts/world/main_world.gd`
+- `tools/smoke_main_world_contract.gd`
+- `project.godot`
+- `scripts/enemy/mummy_enemy.gd`
+- `scripts/maps/first_outdoor_generated.gd`
+- `data/maps/first_outdoor_map.json`
+- `TASK_BOARD.md`
+
+Validation:
+
+- `tools/smoke_main_world_contract.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_first_outdoor_generated.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_camp_scene_contract.gd` passed through `tools/run_godot.ps1`。
+- `tools/smoke_map_generator_core.gd` passed through `tools/run_godot.ps1`。
+
+Risks / Required Follow-up:
+
+- `MainWorld` currently reuses first outdoor implementation pieces pragmatically; later tasks may want to extract reusable generated-region builders。
+- Town visual quality is still placeholder-heavy。
+- Road / transition / decal assets remained a blocker until `TASK-029`。
+
+## TASK-029: Outdoor Terrain Vocabulary Freeze And Missing Asset Follow-up
+
+Status: done
+
+Task agent status: done
+
+Audit Status:
+
+- 2026-05-21 初审：`fail`。阻断点是缺少 `dirt_road_end_fade`，以及 asset inventory smoke 没有覆盖 frozen inventory 里所有 `available` 素材。
+- 2026-05-21 复审：`pass with risks`。两个阻断点已修复：`dirt_road_end_fade` 已加入 frozen inventory、TASK-031 minimum visual set 和 smoke；asset smoke 已从 26 项扩展到 39 项，覆盖所有 `available` 素材，包括已有 boundary / landmark props。
+
+Result:
+
+- Added `TASK-029 Frozen Inventory` to `docs/OUTDOOR_TERRAIN_ASSET_LIST.md` with required columns: `ID`、`Priority`、`Use case`、`Asset type`、`Required form`、`Size`、`Transparency`、`Naming pattern`、`Current path`、`Fallback path`、`Status`、`Blocks TASK-031`、`Owner / next action`。
+- Promoted existing raw 32px outdoor tile candidates into named road / transition vocabulary: road center、road edge、road corner、road end / fade、grass-to-dirt、dirt-to-corruption、corruption edge。
+- Added PixelLab-generated transparent decals: road noise、root stain、dark crack、thorn weed、camp trampled ground。
+- Added Camp support assets: wooden fence straight / corner / broken / gate side、palisade wall、tent、campfire、stash chest、crate/barrel stack、waypoint marker、NPC placeholder。
+- New assets are marked `available`, not `accepted`; user review is still required before treating them as final gameplay art。
+
+Files changed:
+
+- `docs/OUTDOOR_TERRAIN_ASSET_LIST.md`
+- `tools/smoke_task29_asset_inventory.gd`
+- `assets/sprites/tiles/outdoor_01/*`
+- `assets/sprites/decals/outdoor_01/*`
+- `assets/sprites/props/camp_01/*`
+- `assets/sprites/npc/camp_01/*`
+- `TASK_BOARD.md`
+
+Validation:
+
+- `powershell -ExecutionPolicy Bypass -File tools\run_godot.ps1 --headless --editor --quit --path .` passed。
+- `powershell -ExecutionPolicy Bypass -File tools\run_godot.ps1 --headless --path . --script res://tools/smoke_task29_asset_inventory.gd` passed with `Task29AssetInventory smoke: PASS count=39`。
+- `git diff --check` passed。
+
+Risks / Required Follow-up:
+
+- PixelLab `create_tiles_pro` listed the generated tile job but `get_tiles_pro` returned not found, so terrain tile coverage was finalized from existing raw tile candidates instead。
+- Some road / transition tiles are `available` placeholders, not final art；TASK-031 can start, but user should judge visual quality in scene。
+- `root_stain_decal` and `dark_crack_decal` currently share the same generated source image under different filenames；acceptable for first pass, but should split into distinct art later if repetition is visible。
+- Camp support assets are not yet assembled into the fixed town; this is now `TASK-030`。
+
 

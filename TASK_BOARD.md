@@ -150,7 +150,7 @@ Acceptance:
 - 不做完整任务系统。
 - 不做 quest reward、洞窟清怪条件、任务日志 UI。
 - 不重写 outdoor generator。
-- 不做 TASK-031 terrain paint。
+- 不做后续 terrain paint。
 - 不把 Camp 改成随机生成。
 - 不因为素材还不是最终美术而阻塞第一版固定摆放。
 - 不删除用户手动调整过的 scene 内容；如果必须替换，先确认它属于旧 placeholder。
@@ -204,7 +204,7 @@ Risks:
 - Some collision boxes are conservative first-pass shapes and may need hand tuning after visual inspection.
 
 Recommended next task:
-TASK-031 First Outdoor Terrain Paint Pass
+TASK-031 Asset Footprint Draft And Collision Preview Tool
 ```
 
 ## 最近完成摘要
@@ -217,15 +217,169 @@ TASK-031 First Outdoor Terrain Paint Pass
 
 详细历史和审查结论见 [docs/TASK_ARCHIVE.md](docs/TASK_ARCHIVE.md)。
 
+## 当前任务
+
+### TASK-031: Asset Footprint Draft And Collision Preview Tool
+
+Status: todo
+
+Goal:
+
+建立一个半自动工具，为新导入的 sprite / prop / enemy / interactable 生成第一版 collision footprint、interaction area、sprite offset 和 sort point 建议，并提供可读的碰撞预览。这个工具用于先解决 `TASK-030` 后暴露出的 Camp 碰撞调参问题，再服务后续 outdoor props / dungeon entrance。
+
+Why:
+
+- `TASK-030` 已把 Camp 视觉素材摆进去，但用户复查发现碰撞仍有明显问题；继续手调前需要更好的可视化和 draft 工具。
+- 当前 prop、角色、入口、倒地物、栅栏等资产的碰撞语义不同，单纯按整张图片或底部固定比例生成碰撞会经常错。
+- 人工逐个调 collision footprint 成本高，且容易遗漏 `sprite_offset`、`sort_y`、interaction area 等配套数据。
+- Agent 比较适合给素材标 `asset_type`，算法可以根据类型生成更可靠的 draft，再由用户 / agent review。
+
+Input:
+
+```text
+image_path
+asset_type
+optional asset_id
+optional orientation
+optional intended_behavior
+optional output_path
+```
+
+Required asset types:
+
+```text
+character
+enemy
+prop_low
+prop_tall
+barrier
+entrance
+interactable
+decal
+ground_tile
+```
+
+First target assets:
+
+```text
+Camp fence straight / vertical-rotated fence
+Camp fence corner
+Camp gate side post
+Camp tent
+Camp stash chest
+Camp crate / barrel stack
+Camp waypoint
+Campfire
+NPC placeholder
+Existing dungeon entrance
+Existing dead tree / rock / broken cart
+```
+
+Type behavior:
+
+- `character` / `enemy`：生成脚底小 ellipse / capsule，表示站位和挤碰，不按整张身体。
+- `prop_tall`：只挡底座 / 树干 / 支撑区域，不挡树冠、帐篷顶部等高处视觉。
+- `prop_low`：接近物体底部整体 footprint，例如石头、箱子、倒地马车。
+- `barrier`：生成横向 / 纵向连续 blocker，例如栅栏、墙、根须。
+- `entrance`：支持多段 collision parts，中间保留 opening；不能整张入口图挡死。
+- `interactable`：生成 collision footprint 和 interaction area，两者分开。
+- `decal` / `ground_tile`：默认 no collision。
+
+Recommended output: `FootprintDraft`
+
+```json
+{
+  "asset_id": "prop_example",
+  "image_path": "res://assets/sprites/props/example.png",
+  "asset_type": "prop_low",
+  "image_size": {"w": 96, "h": 96},
+  "sprite": {
+    "visual_bounds": {"x": 4, "y": 18, "w": 88, "h": 66},
+    "foot_point": {"x": 48, "y": 78},
+    "sprite_offset": {"x": 0, "y": -30},
+    "sort_y_offset": 0
+  },
+  "collision": {
+    "enabled": true,
+    "shape": "rect",
+    "orientation": "horizontal",
+    "size": {"x": 82, "y": 18},
+    "radius": 0,
+    "offset": {"x": 0, "y": -9},
+    "parts": []
+  },
+  "interaction": {
+    "enabled": false,
+    "shape": "none",
+    "size": {"x": 0, "y": 0},
+    "offset": {"x": 0, "y": 0}
+  },
+  "analysis": {
+    "confidence": 0.76,
+    "needs_review": true,
+    "reason": "prop_low uses lower visible band as footprint",
+    "warnings": []
+  }
+}
+```
+
+Entrance example requirement:
+
+```text
+collision.parts:
+- left_blocker
+- right_blocker
+opening:
+- center
+- size
+interaction:
+- enabled true
+- covers entrance trigger area
+```
+
+Implementation notes:
+
+- Use PNG alpha mask to detect visible bounds.
+- Ignore fully transparent pixels and tiny alpha noise.
+- Analyze lower visible band, but band ratio must depend on `asset_type`。
+- Output confidence and `needs_review`; low confidence must not be silently accepted。
+- Output should be convertible into `map_object_defs.json` or future object definition drafts。
+- Provide a debug preview mode or generated overlay image showing sprite bounds、foot point、collision、interaction area。
+- For Camp assets, the tool must be able to produce a side-by-side or per-asset preview that makes it obvious whether the collision is too high, too low, too wide, or blocking a gate opening。
+- Tool output may be used by the next task to tune `FixedTown` collisions, but this task should not silently rewrite all Camp collisions without review。
+
+Acceptance:
+
+- Tool can process at least one example for each required `asset_type`。
+- Tool returns structured `FootprintDraft` JSON with stable keys。
+- Tool can run against the current Camp asset set and write draft output under a review / artifacts path。
+- Tool can generate a readable preview overlay image for Camp collision review。
+- `entrance` supports multi-part collision and opening。
+- `interactable` separates collision and interaction area。
+- `decal` and `ground_tile` return collision disabled。
+- Draft output includes confidence、needs_review、reason、warnings。
+- Tool does not overwrite accepted object definitions without explicit confirmation。
+- Add smoke / fixture tests using existing assets, e.g. camp fence、dead tree、camp chest、dungeon entrance、NPC placeholder、road decal。
+
+禁止项:
+
+- 不把工具输出当作最终人工验收。
+- 不试图仅凭图片自动判断所有 gameplay intent。
+- 不要求在本任务中重做所有现有 object definitions。
+- 不把 decal / ground tile 误标为 blocker。
+- 不把 entrance 中间 opening 生成成实体 blocker。
+
 ## 后续建议顺序
 
 ```text
 TASK-030 Camp Visual Assembly And Gate Collision Pass
-TASK-031 First Outdoor Terrain Paint Pass
-TASK-032 Outdoor Walkable Shape And Pacing Follow-up
-TASK-033 First Outdoor Playable Loop Pass
-TASK-034 Quest Contract / First Quest Loop
-TASK-035 Dungeon Entrance Contract And Transition
+TASK-031 Asset Footprint Draft And Collision Preview Tool
+TASK-032 Camp Collision Tuning Pass
+TASK-033 First Outdoor Terrain Paint Pass
+TASK-034 Outdoor Walkable Shape And Pacing Follow-up
+TASK-035 First Outdoor Playable Loop Pass
+TASK-036 Quest Contract / First Quest Loop
+TASK-037 Dungeon Entrance Contract And Transition
 ```
 
 ## 暂停项

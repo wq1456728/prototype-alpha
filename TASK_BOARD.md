@@ -59,7 +59,7 @@ Camp / base 不走 procedural generator。Camp 是固定区域，价值在于安
 
 ### TASK-030: Camp Visual Assembly And Gate Collision Pass
 
-Status: todo
+Status: done
 
 Goal:
 
@@ -137,6 +137,7 @@ Acceptance:
 - 大门中间可以通过；大门两侧或门柱有碰撞。
 - 玩家不能从非大门位置随便穿出 Camp。
 - Camp 出口仍然连接 `GeneratedRegion` 的 wilderness start / town connection corridor，不被新增 fence / collision 堵住。
+- `GeneratedRegion` 的 transition chunk、boundary objects、combat chunk 起点和随机装饰不得覆盖或堵住 Camp gate opening；TownExitSocket 到 wilderness start 必须保持一条清楚、可走、可读的连续通路。
 - 关键 Camp prop 不遮挡玩家出生点、出口或主要交互点。
 - NPC / stash / waypoint / campfire / tent / supplies 都能在 scene tree 中定位，命名清楚。
 - `QuestGiverPlaceholder` 有轻量交互占位，但不做完整 quest module。
@@ -154,7 +155,57 @@ Acceptance:
 - 不因为素材还不是最终美术而阻塞第一版固定摆放。
 - 不删除用户手动调整过的 scene 内容；如果必须替换，先确认它属于旧 placeholder。
 
-Task agent status: not started
+Task agent status: done
+
+Task agent report:
+
+```text
+Task:
+TASK-030 Camp Visual Assembly And Gate Collision Pass
+
+Status:
+done
+
+Files read:
+- TASK_BOARD.md
+- scenes/world/main_world.tscn
+- scripts/world/main_world.gd
+- scenes/maps/camp_scene.tscn
+- scripts/maps/camp_scene.gd
+- tools/smoke_main_world_contract.gd
+- tools/smoke_camp_scene_contract.gd
+- scripts/physics/collision_layers.gd
+
+Files changed:
+- scripts/world/main_world.gd
+- tools/smoke_task30_camp_assembly.gd
+- TASK_BOARD.md
+
+Summary:
+- Replaced the rough `FixedTown` placeholder prop layout in `MainWorld` with the TASK-029 Camp asset set: wooden fence perimeter, gate side posts, tents, campfire, stash chest, waypoint marker, crate/barrel stack, palisade storage, trampled ground decals, and NPC placeholder.
+- Built the Camp as fixed layout code in `main_world.gd`; Camp remains outside procedural generation.
+- Added horizontal fence segments, rotated vertical fence segments, four corners, and a two-post gate. The gate center remains open while both sides collide.
+- Added first-pass collision for fence, gate posts, tents, stash, waypoint, campfire, palisade, supply stack, broken fence detail, and NPC placeholder.
+- Added lightweight `QuestGiverPlaceholder/InteractionArea` and a temporary hint label: `Clear the den outside the camp.`
+- Added `tools/smoke_task30_camp_assembly.gd` to validate key Camp nodes, fence orientation, interaction placeholder, gate passability, and side-boundary blocking.
+
+Verification:
+- `powershell -ExecutionPolicy Bypass -File tools\run_godot.ps1 --headless --path . --script res://tools/smoke_task30_camp_assembly.gd` PASS
+- `powershell -ExecutionPolicy Bypass -File tools\run_godot.ps1 --headless --path . --script res://tools/smoke_main_world_contract.gd` PASS
+- `powershell -ExecutionPolicy Bypass -File tools\run_godot.ps1 --headless --path . --script res://tools/smoke_task29_asset_inventory.gd` PASS
+
+Findings:
+- Current `FixedTown` is generated programmatically in `scripts/world/main_world.gd`, not instanced from `camp_scene.tscn`; keeping the Task30 layout there avoids two competing Camp sources.
+- Vertical wooden fences currently use the straight fence asset rotated by 90 degrees. This satisfies first-pass directional readability, but a dedicated vertical fence sprite would look cleaner.
+
+Risks:
+- This is still an agent-placed first pass. User visual review in the running scene is needed for exact spacing, collision feel, and final prop placement.
+- NPC interaction is deliberately only a placeholder; no quest state, reward, or dungeon-clear logic was added.
+- Some collision boxes are conservative first-pass shapes and may need hand tuning after visual inspection.
+
+Recommended next task:
+TASK-031 First Outdoor Terrain Paint Pass
+```
 
 ## 最近完成摘要
 

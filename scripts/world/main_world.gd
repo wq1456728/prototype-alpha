@@ -9,6 +9,20 @@ const TOWN_CAMERA_PADDING := 180.0
 const TOWN_EXIT_OPENING_WIDTH := 720.0
 const MAIN_WORLD_DYNAMIC_Z_OFFSET := 1200.0
 const FIXED_TOWN_STATIC_Z := -2600
+const CAMP_ASSETS := {
+	"wood_fence_straight": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png",
+	"wood_fence_corner": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_corner_96_a.png",
+	"wood_fence_broken": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_broken_96_a.png",
+	"wood_fence_gate_side": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_gate_side_96_a.png",
+	"palisade_wall": "res://assets/sprites/props/camp_01/prop_camp01_palisade_wall_96_a.png",
+	"tent": "res://assets/sprites/props/camp_01/prop_camp01_tent_128_a.png",
+	"campfire": "res://assets/sprites/props/camp_01/prop_camp01_campfire_64_a.png",
+	"stash_chest": "res://assets/sprites/props/camp_01/prop_camp01_stash_chest_64_a.png",
+	"crate_barrel_stack": "res://assets/sprites/props/camp_01/prop_camp01_crate_barrel_stack_96_a.png",
+	"waypoint_marker": "res://assets/sprites/props/camp_01/prop_camp01_waypoint_marker_96_a.png",
+	"quest_giver": "res://assets/sprites/npc/camp_01/npc_camp01_quest_giver_idle_64_a.png",
+	"trampled_ground": "res://assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png",
+}
 
 @export var randomize_generation_seed_on_ready := true
 
@@ -19,6 +33,7 @@ var town_spawn_marker: Marker2D
 var town_exit_socket: Marker2D
 var wilderness_start_socket: Marker2D
 var town_blockers_root: StaticBody2D
+var camp_interaction_label: Label
 
 
 func _ready() -> void:
@@ -52,32 +67,33 @@ func _build_fixed_town() -> void:
 	_add_town_rect(ground, "TownGround", MAIN_WORLD_TOWN_BOUNDS, Color(0.13, 0.115, 0.078, 1.0), -122)
 	_add_town_rect(ground, "TownTrampledCenter", Rect2(MAIN_WORLD_TOWN_BOUNDS.position + Vector2(360, 260), Vector2(820, 390)), Color(0.17, 0.142, 0.09, 1.0), -118)
 	_add_town_rect(ground, "TownExitRoad", Rect2(Vector2(_town_center_x() - 130, MAIN_WORLD_TOWN_BOUNDS.end.y - 260), Vector2(260, 420)), Color(0.19, 0.158, 0.102, 1.0), -117)
+	_add_ground_decal(ground, "CampTrampledGroundCenter", _camp_asset("trampled_ground"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(785, 470), 3.6)
+	_add_ground_decal(ground, "CampTrampledGroundStash", _camp_asset("trampled_ground"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1195, 490), 2.4)
 
 	var props := Node2D.new()
 	props.name = "Props"
 	props.y_sort_enabled = true
 	fixed_town.add_child(props)
-	_add_town_prop(props, "TownCampGate", _asset("camp_gate"), get_town_exit_socket_position() + Vector2(0, -72), 1.55)
-	_add_town_prop(props, "TownSignpost", _asset("route_sign_or_scout_marker"), get_town_exit_socket_position() + Vector2(170, -36), 1.25)
-	_add_town_prop(props, "TownSupplyCart", _asset("broken_cart"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1180, 450), 1.25)
-	_add_town_prop(props, "TownFenceWest", _asset("broken_fence_a"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(320, 150), 1.35)
-	_add_town_prop(props, "TownFenceEast", _asset("broken_fence_b"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(520, 150), 1.35)
-	_add_town_prop(props, "TownRock", _asset("rock_a"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1420, 640), 1.7)
-	_add_town_prop(props, "TownDeadTree", _asset("dead_tree_a"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(170, 520), 1.45)
+	_build_camp_fence(props)
+	_add_camp_prop_body(props, "CampTentNorthWest", _camp_asset("tent"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(410, 315), 1.15, "rect", Vector2(108, 44), Vector2(0, -10))
+	_add_camp_prop_body(props, "CampTentSouthWest", _camp_asset("tent"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(345, 610), 1.0, "rect", Vector2(98, 40), Vector2(0, -10))
+	_add_camp_prop_body(props, "CampSupplyStack", _camp_asset("crate_barrel_stack"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1170, 575), 1.15, "rect", Vector2(94, 44), Vector2(0, 0))
+	_add_camp_prop_body(props, "CampPalisadeStorage", _camp_asset("palisade_wall"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1290, 265), 1.0, "rect", Vector2(96, 34), Vector2(0, -8))
+	_add_camp_prop_body(props, "CampBrokenFenceDetail", _camp_asset("wood_fence_broken"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(575, 720), 1.1, "capsule_h", Vector2(98, 22), Vector2(0, 0))
 
 	var npc_root := Node2D.new()
 	npc_root.name = "NPCPlaceholders"
 	npc_root.y_sort_enabled = true
 	fixed_town.add_child(npc_root)
-	_add_placeholder_body(npc_root, "QuestGiverPlaceholder", MAIN_WORLD_TOWN_BOUNDS.position + Vector2(470, 470), Color(0.34, 0.29, 0.18, 1.0))
-	_add_placeholder_body(npc_root, "GuardPlaceholder", MAIN_WORLD_TOWN_BOUNDS.position + Vector2(720, 650), Color(0.26, 0.28, 0.22, 1.0))
+	_add_quest_giver_placeholder(npc_root, MAIN_WORLD_TOWN_BOUNDS.position + Vector2(605, 500))
 
 	var interactables := Node2D.new()
 	interactables.name = "Interactables"
 	interactables.y_sort_enabled = true
 	fixed_town.add_child(interactables)
-	_add_placeholder_body(interactables, "StashPlaceholder", MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1250, 520), Color(0.22, 0.14, 0.075, 1.0), Vector2(96, 62))
-	_add_town_prop(interactables, "WaypointPlaceholder", _asset("shrine_or_loot_marker"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1040, 350), 1.15)
+	_add_camp_prop_body(interactables, "StashPlaceholder", _camp_asset("stash_chest"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1180, 410), 1.25, "rect", Vector2(80, 32), Vector2(0, 0))
+	_add_camp_prop_body(interactables, "WaypointPlaceholder", _camp_asset("waypoint_marker"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(940, 375), 1.15, "circle", Vector2(54, 54), Vector2(0, 0))
+	_add_camp_prop_body(interactables, "CampfirePlaceholder", _camp_asset("campfire"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(800, 505), 1.25, "circle", Vector2(48, 48), Vector2(0, 0))
 
 	town_blockers_root = StaticBody2D.new()
 	town_blockers_root.name = "TownBounds"
@@ -271,6 +287,173 @@ func _add_town_prop(parent: Node, prop_name: String, texture: Texture2D, positio
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	parent.add_child(sprite)
 	return sprite
+
+
+func _build_camp_fence(parent: Node) -> void:
+	var left_x := MAIN_WORLD_TOWN_BOUNDS.position.x + 95.0
+	var right_x := MAIN_WORLD_TOWN_BOUNDS.end.x - 95.0
+	var top_y := MAIN_WORLD_TOWN_BOUNDS.position.y + 85.0
+	var bottom_y := MAIN_WORLD_TOWN_BOUNDS.end.y - 85.0
+	var gate_left_x := _town_center_x() - 145.0
+	var gate_right_x := _town_center_x() + 145.0
+	var horizontal_spacing := 116.0
+	var vertical_spacing := 116.0
+
+	_add_camp_prop_body(parent, "FenceCornerNorthWest", _camp_asset("wood_fence_corner"), Vector2(left_x, top_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6))
+	_add_camp_prop_body(parent, "FenceCornerNorthEast", _camp_asset("wood_fence_corner"), Vector2(right_x, top_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6), Vector2.ZERO, PI * 0.5)
+	_add_camp_prop_body(parent, "FenceCornerSouthWest", _camp_asset("wood_fence_corner"), Vector2(left_x, bottom_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6), Vector2.ZERO, -PI * 0.5)
+	_add_camp_prop_body(parent, "FenceCornerSouthEast", _camp_asset("wood_fence_corner"), Vector2(right_x, bottom_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6), Vector2.ZERO, PI)
+
+	var segment_index := 0
+	var x := left_x + horizontal_spacing
+	while x < right_x - horizontal_spacing:
+		_add_camp_prop_body(parent, "NorthFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, top_y), 1.22, "capsule_h", Vector2(112, 22), Vector2(0, 0))
+		segment_index += 1
+		x += horizontal_spacing
+
+	segment_index = 0
+	x = left_x + horizontal_spacing
+	while x < gate_left_x - 28.0:
+		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.22, "capsule_h", Vector2(112, 22), Vector2(0, 0))
+		segment_index += 1
+		x += horizontal_spacing
+	segment_index = 0
+	x = gate_right_x + 28.0
+	while x < right_x - horizontal_spacing:
+		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.22, "capsule_h", Vector2(112, 22), Vector2(0, 0))
+		segment_index += 1
+		x += horizontal_spacing
+
+	segment_index = 0
+	var y := top_y + vertical_spacing
+	while y < bottom_y - vertical_spacing:
+		_add_camp_prop_body(parent, "WestVerticalFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(left_x, y), 1.22, "capsule_v", Vector2(24, 112), Vector2(0, -2), Vector2.ZERO, PI * 0.5)
+		_add_camp_prop_body(parent, "EastVerticalFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(right_x, y), 1.22, "capsule_v", Vector2(24, 112), Vector2(0, -2), Vector2.ZERO, PI * 0.5)
+		segment_index += 1
+		y += vertical_spacing
+
+	_add_camp_prop_body(parent, "CampGateLeftPost", _camp_asset("wood_fence_gate_side"), Vector2(gate_left_x, bottom_y + 8.0), 1.08, "rect", Vector2(56, 74), Vector2(0, -8))
+	_add_camp_prop_body(parent, "CampGateRightPost", _camp_asset("wood_fence_gate_side"), Vector2(gate_right_x, bottom_y + 8.0), 1.08, "rect", Vector2(56, 74), Vector2(0, -8), Vector2.ZERO, PI)
+
+
+func _add_ground_decal(parent: Node, decal_name: String, texture: Texture2D, position: Vector2, scale_value: float) -> Sprite2D:
+	var sprite := _add_town_prop(parent, decal_name, texture, position, scale_value)
+	sprite.z_index = -116
+	sprite.modulate = Color(1, 1, 1, 0.86)
+	return sprite
+
+
+func _add_camp_prop_body(
+	parent: Node,
+	body_name: String,
+	texture: Texture2D,
+	foot_position: Vector2,
+	scale_value: float,
+	shape_type: String,
+	collision_size: Vector2,
+	collision_offset: Vector2,
+	sprite_offset: Vector2 = Vector2.ZERO,
+	sprite_rotation: float = 0.0
+) -> StaticBody2D:
+	var body := StaticBody2D.new()
+	body.name = body_name
+	body.global_position = foot_position
+	body.collision_layer = COLLISION_LAYERS.WORLD
+	body.collision_mask = 0
+	body.set_meta("camp_prop", true)
+	body.set_meta("collision_size", collision_size)
+	body.set_meta("collision_offset", collision_offset)
+	parent.add_child(body)
+
+	var shape_node := CollisionShape2D.new()
+	shape_node.name = "CollisionShape2D"
+	shape_node.position = collision_offset
+	match shape_type:
+		"circle":
+			var circle := CircleShape2D.new()
+			circle.radius = maxf(collision_size.x, collision_size.y) * 0.5
+			shape_node.shape = circle
+		"capsule_h":
+			var capsule_h := CapsuleShape2D.new()
+			capsule_h.radius = maxf(8.0, collision_size.y * 0.5)
+			capsule_h.height = maxf(collision_size.x, collision_size.y)
+			shape_node.rotation = PI * 0.5
+			shape_node.shape = capsule_h
+		"capsule_v":
+			var capsule_v := CapsuleShape2D.new()
+			capsule_v.radius = maxf(8.0, collision_size.x * 0.5)
+			capsule_v.height = maxf(collision_size.y, collision_size.x)
+			shape_node.shape = capsule_v
+		_:
+			var rectangle := RectangleShape2D.new()
+			rectangle.size = collision_size
+			shape_node.shape = rectangle
+	body.add_child(shape_node)
+
+	var sprite := Sprite2D.new()
+	sprite.name = "Sprite2D"
+	sprite.texture = texture
+	sprite.scale = Vector2(scale_value, scale_value)
+	sprite.rotation = sprite_rotation
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if texture != null:
+		var size := texture.get_size() * scale_value
+		if absf(sprite_rotation) > 0.01:
+			size = Vector2(size.y, size.x)
+		sprite.position = sprite_offset + Vector2(0, -size.y * 0.5)
+	else:
+		sprite.position = sprite_offset
+	body.add_child(sprite)
+	return body
+
+
+func _add_quest_giver_placeholder(parent: Node, position: Vector2) -> StaticBody2D:
+	var body := _add_camp_prop_body(parent, "QuestGiverPlaceholder", _camp_asset("quest_giver"), position, 1.25, "capsule_v", Vector2(34, 58), Vector2(0, -8), Vector2(0, 6))
+	var area := Area2D.new()
+	area.name = "InteractionArea"
+	area.collision_layer = 0
+	area.collision_mask = COLLISION_LAYERS.PLAYER
+	body.add_child(area)
+
+	var area_shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 110.0
+	area_shape.shape = circle
+	area.add_child(area_shape)
+	area.body_entered.connect(_on_quest_giver_body_entered)
+	area.body_exited.connect(_on_quest_giver_body_exited)
+
+	camp_interaction_label = Label.new()
+	camp_interaction_label.name = "QuestHintLabel"
+	camp_interaction_label.text = "Clear the den outside the camp."
+	camp_interaction_label.position = Vector2(-150, -138)
+	camp_interaction_label.visible = false
+	camp_interaction_label.add_theme_font_size_override("font_size", 18)
+	camp_interaction_label.add_theme_color_override("font_color", Color(0.92, 0.84, 0.58, 1.0))
+	camp_interaction_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	camp_interaction_label.add_theme_constant_override("shadow_offset_x", 2)
+	camp_interaction_label.add_theme_constant_override("shadow_offset_y", 2)
+	body.add_child(camp_interaction_label)
+	return body
+
+
+func _on_quest_giver_body_entered(body: Node2D) -> void:
+	if camp_interaction_label == null:
+		return
+	if body == player or body.is_in_group("player"):
+		camp_interaction_label.visible = true
+
+
+func _on_quest_giver_body_exited(body: Node2D) -> void:
+	if camp_interaction_label == null:
+		return
+	if body == player or body.is_in_group("player"):
+		camp_interaction_label.visible = false
+
+
+func _camp_asset(asset_key: String) -> Texture2D:
+	var path := str(CAMP_ASSETS.get(asset_key, ""))
+	return load(path) as Texture2D if not path.is_empty() else null
 
 
 func _add_placeholder_body(parent: Node, body_name: String, position: Vector2, color: Color, size: Vector2 = Vector2(64, 96)) -> StaticBody2D:

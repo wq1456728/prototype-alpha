@@ -6,7 +6,13 @@ const DISABLED_FILL_COLOR := Color(1.0, 0.35, 0.28, 0.12)
 const DISABLED_OUTLINE_COLOR := Color(1.0, 0.35, 0.28, 0.65)
 const BOUNDARY_EDGE_FILL_COLOR := Color(0.15, 1.0, 0.35, 0.10)
 const BOUNDARY_EDGE_OUTLINE_COLOR := Color(0.15, 1.0, 0.35, 0.55)
+const TOWN_BOUNDARY_LINE_COLOR := Color(1.0, 0.86, 0.18, 0.95)
+const TOWN_EXIT_LINE_COLOR := Color(1.0, 0.42, 0.18, 0.95)
+const WILDERNESS_START_LINE_COLOR := Color(0.34, 1.0, 0.52, 0.95)
+const CONNECTION_CORRIDOR_COLOR := Color(0.7, 0.56, 1.0, 0.14)
+const CONNECTION_CORRIDOR_OUTLINE := Color(0.76, 0.64, 1.0, 0.7)
 const OUTLINE_WIDTH := 2.0
+const REGION_LINE_WIDTH := 4.0
 
 
 func _ready() -> void:
@@ -24,6 +30,7 @@ func _draw() -> void:
 	var root := get_tree().current_scene
 	if root == null:
 		return
+	_draw_world_region_guides(root)
 	_draw_collision_shapes(root)
 
 
@@ -49,6 +56,47 @@ func _draw_collision_shape(shape_node: CollisionShape2D) -> void:
 		_draw_circle(shape_node, shape_node.shape as CircleShape2D, fill_color, outline_color)
 	elif shape_node.shape is CapsuleShape2D:
 		_draw_capsule(shape_node, shape_node.shape as CapsuleShape2D, fill_color, outline_color)
+
+
+func _draw_world_region_guides(root: Node) -> void:
+	if root.has_method("get_town_bounds_rect"):
+		var town_bounds: Rect2 = root.call("get_town_bounds_rect")
+		_draw_horizontal_guide(town_bounds.position.y, town_bounds.position.x, town_bounds.end.x, TOWN_BOUNDARY_LINE_COLOR)
+		_draw_horizontal_guide(town_bounds.end.y, town_bounds.position.x, town_bounds.end.x, TOWN_BOUNDARY_LINE_COLOR)
+		_draw_vertical_guide(town_bounds.position.x, town_bounds.position.y, town_bounds.end.y, TOWN_BOUNDARY_LINE_COLOR)
+		_draw_vertical_guide(town_bounds.end.x, town_bounds.position.y, town_bounds.end.y, TOWN_BOUNDARY_LINE_COLOR)
+	if root.has_method("get_town_exit_socket_position"):
+		var town_exit: Vector2 = root.call("get_town_exit_socket_position")
+		_draw_cross_guide(town_exit, TOWN_EXIT_LINE_COLOR, 72.0)
+	if root.has_method("get_wilderness_start_socket_position"):
+		var wilderness_start: Vector2 = root.call("get_wilderness_start_socket_position")
+		if wilderness_start != Vector2.ZERO:
+			_draw_cross_guide(wilderness_start, WILDERNESS_START_LINE_COLOR, 72.0)
+	if root.has_method("get_town_connection_corridor_rect"):
+		var corridor: Rect2 = root.call("get_town_connection_corridor_rect")
+		if corridor.size.x > 0.0 and corridor.size.y > 0.0:
+			var points := PackedVector2Array([
+				corridor.position,
+				Vector2(corridor.end.x, corridor.position.y),
+				corridor.end,
+				Vector2(corridor.position.x, corridor.end.y),
+			])
+			draw_colored_polygon(points, CONNECTION_CORRIDOR_COLOR)
+			points.append(corridor.position)
+			draw_polyline(points, CONNECTION_CORRIDOR_OUTLINE, OUTLINE_WIDTH)
+
+
+func _draw_horizontal_guide(y: float, left: float, right: float, color: Color) -> void:
+	draw_line(Vector2(left, y), Vector2(right, y), color, REGION_LINE_WIDTH)
+
+
+func _draw_vertical_guide(x: float, top: float, bottom: float, color: Color) -> void:
+	draw_line(Vector2(x, top), Vector2(x, bottom), color, REGION_LINE_WIDTH)
+
+
+func _draw_cross_guide(center: Vector2, color: Color, radius: float) -> void:
+	draw_line(center + Vector2(-radius, 0), center + Vector2(radius, 0), color, REGION_LINE_WIDTH)
+	draw_line(center + Vector2(0, -radius), center + Vector2(0, radius), color, REGION_LINE_WIDTH)
 
 
 func _draw_rectangle(shape_node: CollisionShape2D, rectangle: RectangleShape2D, fill_color: Color, outline_color: Color) -> void:

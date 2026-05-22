@@ -327,8 +327,8 @@ func _build_camp_fence(parent: Node) -> void:
 	var right_x := MAIN_WORLD_TOWN_BOUNDS.end.x - 95.0
 	var top_y := MAIN_WORLD_TOWN_BOUNDS.position.y + 85.0
 	var bottom_y := MAIN_WORLD_TOWN_BOUNDS.end.y - 85.0
-	var gate_left_x := _town_center_x() - 176.0
-	var gate_right_x := _town_center_x() + 196.0
+	var gate_left_x := _town_center_x() - 145.0
+	var gate_right_x := _town_center_x() + 145.0
 	var horizontal_spacing := 86.0
 	var vertical_spacing := 76.0
 	var horizontal_fence_collision := Vector2(77, 18)
@@ -343,18 +343,20 @@ func _build_camp_fence(parent: Node) -> void:
 
 	segment_index = 0
 	x = left_x + horizontal_spacing * 0.5
-	while x < gate_left_x - 128.0:
+	while x < gate_left_x - 116.0:
 		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 		segment_index += 1
 		x += horizontal_spacing
+	_add_camp_prop_body(parent, "SouthWestFenceGateJoin", _camp_asset("wood_fence_straight"), Vector2(gate_left_x - 74.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 
 	segment_index = 0
 	_add_camp_prop_body(parent, "SouthEastFenceGateJoin", _camp_asset("wood_fence_straight"), Vector2(gate_right_x + 74.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
-	x = gate_right_x + 74.0 + horizontal_spacing
+	x = gate_right_x + 160.0
 	while x < right_x - horizontal_spacing * 0.5:
 		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 		segment_index += 1
 		x += horizontal_spacing
+	_add_camp_prop_body(parent, "SouthEastFenceCornerJoin", _camp_asset("wood_fence_straight"), Vector2(right_x - 48.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 
 	segment_index = 0
 	var y := top_y + vertical_spacing * 0.5

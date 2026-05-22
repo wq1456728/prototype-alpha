@@ -23,6 +23,8 @@ func _run() -> void:
 		return
 	if not _validate_fence_orientation(scene):
 		return
+	if not _validate_gate_fence_joins(scene):
+		return
 	if not _validate_interaction_placeholder(scene):
 		return
 	if not _validate_visible_foot_alignment(scene):
@@ -46,6 +48,9 @@ func _validate_nodes(scene: Node) -> bool:
 		"FixedTown/Props/NorthFence00",
 		"FixedTown/Props/WestSideFence00",
 		"FixedTown/Props/EastSideFence00",
+		"FixedTown/Props/SouthWestFenceGateJoin",
+		"FixedTown/Props/SouthEastFenceGateJoin",
+		"FixedTown/Props/SouthEastFenceCornerJoin",
 		"FixedTown/Props/CampGateLeftPost",
 		"FixedTown/Props/CampGateRightPost",
 		"FixedTown/Props/CampTentNorthWest",
@@ -106,6 +111,32 @@ func _validate_fence_orientation(scene: Node) -> bool:
 	var north_capsule := north_shape.shape as CapsuleShape2D
 	if north_capsule.height > 82.0:
 		_fail("north_fence_collision_too_long=%.2f" % north_capsule.height)
+		return false
+	return true
+
+
+func _validate_gate_fence_joins(scene: Node) -> bool:
+	var left_gate := scene.get_node("FixedTown/Props/CampGateLeftPost") as Node2D
+	var right_gate := scene.get_node("FixedTown/Props/CampGateRightPost") as Node2D
+	var left_join := scene.get_node("FixedTown/Props/SouthWestFenceGateJoin") as Node2D
+	var right_join := scene.get_node("FixedTown/Props/SouthEastFenceGateJoin") as Node2D
+	var right_corner_join := scene.get_node("FixedTown/Props/SouthEastFenceCornerJoin") as Node2D
+	if left_gate == null or right_gate == null or left_join == null or right_join == null or right_corner_join == null:
+		_fail("missing_gate_join_node")
+		return false
+	var left_spacing := left_gate.global_position.x - left_join.global_position.x
+	var right_spacing := right_join.global_position.x - right_gate.global_position.x
+	if absf(left_spacing - right_spacing) > 4.0:
+		_fail("gate_join_asymmetry left=%.2f right=%.2f" % [left_spacing, right_spacing])
+		return false
+	if absf(left_gate.global_position.y - right_gate.global_position.y) > 1.0:
+		_fail("gate_posts_not_level")
+		return false
+	if absf(left_join.global_position.y - right_join.global_position.y) > 1.0:
+		_fail("gate_joins_not_level")
+		return false
+	if right_corner_join.global_position.x <= right_join.global_position.x:
+		_fail("south_east_corner_join_not_after_gate_join")
 		return false
 	return true
 

@@ -10,6 +10,7 @@ const TOWN_EXIT_OPENING_WIDTH := 720.0
 const TOWN_BOUNDARY_COLLISION_THICKNESS := 8.0
 const MAIN_WORLD_DYNAMIC_Z_OFFSET := 1200.0
 const FIXED_TOWN_STATIC_Z := -2600
+const CAMP_ALPHA_VISIBLE_THRESHOLD := 0.05
 const CAMP_ASSETS := {
 	"wood_fence_straight": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png",
 	"wood_fence_side": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_side_pixellab_64.png",
@@ -151,10 +152,10 @@ func _build_fixed_transition_chunk() -> void:
 
 	var start := get_town_exit_socket_position()
 	var end := get_camp_entrance_position()
-	var top := minf(start.y, end.y)
+	var top := minf(start.y, end.y) - 48.0
 	var bottom := maxf(start.y, end.y)
-	_add_town_rect(transition_chunk, "FixedTransitionRoad", Rect2(Vector2(start.x - 150, top), Vector2(300, bottom - top + 110)), Color(0.18, 0.15, 0.095, 1.0), -116)
-	_add_town_rect(transition_chunk, "FixedTransitionField", Rect2(Vector2(start.x - 420, top - 40), Vector2(840, bottom - top + 180)), Color(0.09, 0.108, 0.074, 0.72), -121)
+	_add_town_rect(transition_chunk, "FixedTransitionRoad", Rect2(Vector2(start.x - 180, top), Vector2(360, bottom - top + 130)), Color(0.18, 0.15, 0.095, 1.0), -116)
+	_add_town_rect(transition_chunk, "FixedTransitionField", Rect2(Vector2(start.x - 470, top - 56), Vector2(940, bottom - top + 210)), Color(0.09, 0.108, 0.074, 0.82), -121)
 
 	wilderness_start_socket = Marker2D.new()
 	wilderness_start_socket.name = "WildernessStartSocket"
@@ -326,8 +327,8 @@ func _build_camp_fence(parent: Node) -> void:
 	var right_x := MAIN_WORLD_TOWN_BOUNDS.end.x - 95.0
 	var top_y := MAIN_WORLD_TOWN_BOUNDS.position.y + 85.0
 	var bottom_y := MAIN_WORLD_TOWN_BOUNDS.end.y - 85.0
-	var gate_left_x := _town_center_x() - 145.0
-	var gate_right_x := _town_center_x() + 145.0
+	var gate_left_x := _town_center_x() - 176.0
+	var gate_right_x := _town_center_x() + 196.0
 	var horizontal_spacing := 86.0
 	var vertical_spacing := 76.0
 	var horizontal_fence_collision := Vector2(77, 18)
@@ -342,15 +343,14 @@ func _build_camp_fence(parent: Node) -> void:
 
 	segment_index = 0
 	x = left_x + horizontal_spacing * 0.5
-	while x < gate_left_x - 94.0:
+	while x < gate_left_x - 128.0:
 		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 		segment_index += 1
 		x += horizontal_spacing
-	_add_camp_prop_body(parent, "SouthWestFenceGateJoin", _camp_asset("wood_fence_straight"), Vector2(gate_left_x - 82.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 
 	segment_index = 0
-	_add_camp_prop_body(parent, "SouthEastFenceGateJoin", _camp_asset("wood_fence_straight"), Vector2(gate_right_x + 82.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
-	x = gate_right_x + 82.0 + horizontal_spacing
+	_add_camp_prop_body(parent, "SouthEastFenceGateJoin", _camp_asset("wood_fence_straight"), Vector2(gate_right_x + 74.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
+	x = gate_right_x + 74.0 + horizontal_spacing
 	while x < right_x - horizontal_spacing * 0.5:
 		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 		segment_index += 1
@@ -431,10 +431,7 @@ func _add_camp_prop_body(
 	sprite.flip_h = sprite_flip_h
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if texture != null:
-		var size := texture.get_size() * scale_value
-		if absf(sprite_rotation) > 0.01:
-			size = Vector2(size.y, size.x)
-		sprite.position = sprite_offset + Vector2(0, -size.y * 0.5)
+		sprite.position = sprite_offset + _sprite_visible_foot_offset(texture, scale_value, sprite_rotation)
 	else:
 		sprite.position = sprite_offset
 	body.add_child(sprite)
@@ -495,8 +492,7 @@ func _add_camp_animated_prop_body(
 	animated.scale = Vector2(scale_value, scale_value)
 	animated.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if not frames.is_empty() and frames[0] is Texture2D:
-		var size := (frames[0] as Texture2D).get_size() * scale_value
-		animated.position = sprite_offset + Vector2(0, -size.y * 0.5)
+		animated.position = sprite_offset + _sprite_visible_foot_offset(frames[0] as Texture2D, scale_value, 0.0)
 	else:
 		animated.position = sprite_offset
 	body.add_child(animated)
@@ -560,6 +556,36 @@ func _camp_animation_frames(asset_key: String) -> Array:
 		if texture != null:
 			frames.append(texture)
 	return frames
+
+
+func _sprite_visible_foot_offset(texture: Texture2D, scale_value: float, sprite_rotation: float) -> Vector2:
+	var visible := _texture_visible_bounds(texture)
+	var texture_size := texture.get_size()
+	var foot := Vector2(visible.position.x + visible.size.x * 0.5, visible.end.y)
+	var offset := (texture_size * 0.5 - foot) * scale_value
+	if absf(sprite_rotation) <= 0.01:
+		return offset
+	return offset.rotated(sprite_rotation)
+
+
+func _texture_visible_bounds(texture: Texture2D) -> Rect2:
+	var image := texture.get_image()
+	if image == null:
+		return Rect2(Vector2.ZERO, texture.get_size())
+	var min_x := image.get_width()
+	var min_y := image.get_height()
+	var max_x := -1
+	var max_y := -1
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a > CAMP_ALPHA_VISIBLE_THRESHOLD:
+				min_x = mini(min_x, x)
+				min_y = mini(min_y, y)
+				max_x = maxi(max_x, x)
+				max_y = maxi(max_y, y)
+	if max_x < min_x or max_y < min_y:
+		return Rect2(Vector2.ZERO, texture.get_size())
+	return Rect2(float(min_x), float(min_y), float(max_x - min_x + 1), float(max_y - min_y + 1))
 
 
 func _add_placeholder_body(parent: Node, body_name: String, position: Vector2, color: Color, size: Vector2 = Vector2(64, 96)) -> StaticBody2D:

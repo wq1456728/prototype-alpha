@@ -25,6 +25,8 @@ func _run() -> void:
 		return
 	if not _validate_interaction_placeholder(scene):
 		return
+	if not _validate_visible_foot_alignment(scene):
+		return
 	if not _validate_fixed_town_z_sort(scene):
 		return
 	if not _validate_gate_and_bounds_motion(scene):
@@ -189,6 +191,88 @@ func _validate_fixed_town_z_sort(scene: Node) -> bool:
 		_fail("fixed_town_z_order_not_collision_bottom_based stash=%d campfire=%d" % [stash.z_index, campfire.z_index])
 		return false
 	return true
+
+
+func _validate_visible_foot_alignment(scene: Node) -> bool:
+	for path in [
+		"FixedTown/Interactables/StashPlaceholder",
+		"FixedTown/Interactables/WaypointPlaceholder",
+		"FixedTown/Interactables/CampfireIdle",
+		"FixedTown/Props/CampSupplyStack",
+	]:
+		var body := scene.get_node(path) as Node2D
+		if body == null:
+			_fail("missing_alignment_target=%s" % path)
+			return false
+		var visual_bottom := _visual_bottom_y(body)
+		var collision_bottom := _collision_bottom_y(body)
+		if absf(visual_bottom - collision_bottom) > 2.0:
+			_fail("visible_collision_foot_mismatch path=%s visual=%.2f collision=%.2f" % [path, visual_bottom, collision_bottom])
+			return false
+	return true
+
+
+func _visual_bottom_y(body: Node2D) -> float:
+	var sprite := body.get_node_or_null("Sprite2D") as Sprite2D
+	if sprite != null and sprite.texture != null:
+		return _sprite_visible_bottom_y(sprite, sprite.texture)
+	var animated := body.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if animated != null and animated.sprite_frames != null:
+		var texture := animated.sprite_frames.get_frame_texture("idle", 0)
+		if texture != null:
+			return _sprite_visible_bottom_y(animated, texture)
+	return body.global_position.y
+
+
+func _sprite_visible_bottom_y(item: Node2D, texture: Texture2D) -> float:
+	var visible := _texture_visible_bounds(texture)
+	var half_size := texture.get_size() * 0.5
+	var local_bottom := Vector2(visible.position.x + visible.size.x * 0.5, visible.end.y) - half_size
+	return (item.global_transform * local_bottom).y
+
+
+func _texture_visible_bounds(texture: Texture2D) -> Rect2:
+	var image := texture.get_image()
+	if image == null:
+		return Rect2(Vector2.ZERO, texture.get_size())
+	var min_x := image.get_width()
+	var min_y := image.get_height()
+	var max_x := -1
+	var max_y := -1
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a > 0.05:
+				min_x = mini(min_x, x)
+				min_y = mini(min_y, y)
+				max_x = maxi(max_x, x)
+				max_y = maxi(max_y, y)
+	if max_x < min_x or max_y < min_y:
+		return Rect2(Vector2.ZERO, texture.get_size())
+	return Rect2(float(min_x), float(min_y), float(max_x - min_x + 1), float(max_y - min_y + 1))
+
+
+func _collision_bottom_y(body: Node2D) -> float:
+	var bottom := -INF
+	for child in body.get_children():
+		var shape_node := child as CollisionShape2D
+		if shape_node != null and shape_node.shape != null:
+			bottom = maxf(bottom, _shape_bottom_y(shape_node))
+	return bottom if bottom > -INF else body.global_position.y
+
+
+func _shape_bottom_y(shape_node: CollisionShape2D) -> float:
+	if shape_node.shape is RectangleShape2D:
+		var rectangle := shape_node.shape as RectangleShape2D
+		return shape_node.global_position.y + rectangle.size.y * 0.5
+	if shape_node.shape is CircleShape2D:
+		var circle := shape_node.shape as CircleShape2D
+		return shape_node.global_position.y + circle.radius
+	if shape_node.shape is CapsuleShape2D:
+		var capsule := shape_node.shape as CapsuleShape2D
+		if absf(shape_node.global_rotation) > 0.5:
+			return shape_node.global_position.y + capsule.radius
+		return shape_node.global_position.y + capsule.height * 0.5
+	return shape_node.global_position.y
 
 
 func _motion_is_clear(player: CharacterBody2D, from_position: Vector2, motion: Vector2) -> bool:

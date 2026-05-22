@@ -1,0 +1,1307 @@
+{
+	"drafts": [
+		{
+			"analysis": {
+				"confidence": 0.75,
+				"needs_review": true,
+				"reason": "uses orientation-aware continuous blocker footprint",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "camp_wood_fence_straight",
+			"asset_type": "barrier",
+			"collision": {
+				"enabled": true,
+				"height": 68.64,
+				"offset": {
+					"x": 0.0,
+					"y": -8.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 8.0,
+				"shape": "capsule",
+				"size": {
+					"x": 68.64,
+					"y": 16.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 48.0,
+					"y": 42.88
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -10.88
+				},
+				"visual_bounds": {
+					"h": 34.0,
+					"w": 78.0,
+					"x": 9.0,
+					"y": 15.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.75,
+				"needs_review": true,
+				"reason": "uses orientation-aware continuous blocker footprint",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "camp_wood_fence_vertical_rotated",
+			"asset_type": "barrier",
+			"collision": {
+				"enabled": true,
+				"height": 48.0,
+				"offset": {
+					"x": 0.0,
+					"y": -24.0
+				},
+				"orientation": "vertical",
+				"parts": [],
+				"radius": 13.26,
+				"shape": "capsule",
+				"size": {
+					"x": 26.52,
+					"y": 48.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 48.0,
+					"y": 42.88
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -10.88
+				},
+				"visual_bounds": {
+					"h": 34.0,
+					"w": 78.0,
+					"x": 9.0,
+					"y": 15.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.78,
+				"needs_review": true,
+				"reason": "uses orientation-aware continuous blocker footprint",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "camp_wood_fence_side_pixellab",
+			"asset_type": "barrier",
+			"collision": {
+				"enabled": true,
+				"height": 72.16,
+				"offset": {
+					"x": 0.0,
+					"y": -36.08
+				},
+				"orientation": "vertical",
+				"parts": [],
+				"radius": 9.0,
+				"shape": "capsule",
+				"size": {
+					"x": 18.0,
+					"y": 72.16
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_side_pixellab_64.png",
+			"image_size": {
+				"h": 96,
+				"w": 48
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 24.0,
+					"y": 76.16
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -28.16
+				},
+				"visual_bounds": {
+					"h": 88.0,
+					"w": 28.0,
+					"x": 10.0,
+					"y": 4.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.82,
+				"needs_review": true,
+				"reason": "uses orientation-aware continuous blocker footprint",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "camp_wood_fence_corner",
+			"asset_type": "barrier",
+			"collision": {
+				"enabled": true,
+				"height": 73.92,
+				"offset": {
+					"x": 0.0,
+					"y": -11.76
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 11.76,
+				"shape": "capsule",
+				"size": {
+					"x": 73.92,
+					"y": 23.52
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_corner_96_a.png",
+			"image_size": {
+				"h": 96,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 48.0,
+					"y": 74.88
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -26.88
+				},
+				"visual_bounds": {
+					"h": 84.0,
+					"w": 84.0,
+					"x": 6.0,
+					"y": 6.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.78,
+				"needs_review": true,
+				"reason": "uses two side blockers and preserves a central opening",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "camp_gate_side_post",
+			"asset_type": "entrance",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": 0.0
+				},
+				"opening": {
+					"center": {
+						"x": 0.0,
+						"y": 0.0
+					},
+					"size": {
+						"x": 28.0,
+						"y": 25.56
+					}
+				},
+				"orientation": "horizontal",
+				"parts": [
+					{
+						"enabled": true,
+						"id": "left_blocker",
+						"offset": {
+							"x": -23.0,
+							"y": -12.78
+						},
+						"orientation": "horizontal",
+						"parts": [],
+						"radius": 0,
+						"shape": "rect",
+						"size": {
+							"x": 18.0,
+							"y": 25.56
+						}
+					},
+					{
+						"enabled": true,
+						"id": "right_blocker",
+						"offset": {
+							"x": 23.0,
+							"y": -12.78
+						},
+						"orientation": "horizontal",
+						"parts": [],
+						"radius": 0,
+						"shape": "rect",
+						"size": {
+							"x": 18.0,
+							"y": 25.56
+						}
+					}
+				],
+				"radius": 0,
+				"shape": "parts",
+				"size": {
+					"x": 73.0,
+					"y": 25.56
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_gate_side_96_a.png",
+			"image_size": {
+				"h": 96,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -35.0
+				},
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 96.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 48.5,
+					"y": 78.32
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": -0.5,
+					"y": -30.32
+				},
+				"visual_bounds": {
+					"h": 71.0,
+					"w": 73.0,
+					"x": 12.0,
+					"y": 13.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.88,
+				"needs_review": true,
+				"reason": "uses the lower support band, avoiding tall visual canopy/top",
+				"warnings": []
+			},
+			"asset_id": "camp_tent",
+			"asset_type": "prop_tall",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -11.55
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 35.64,
+					"y": 23.1
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_tent_128_a.png",
+			"image_size": {
+				"h": 128,
+				"w": 128
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 63.5,
+					"y": 105.6
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -41.6
+				},
+				"visual_bounds": {
+					"h": 105.0,
+					"w": 99.0,
+					"x": 14.0,
+					"y": 9.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.87,
+				"needs_review": true,
+				"reason": "separates physical footprint from larger interaction area",
+				"warnings": []
+			},
+			"asset_id": "camp_stash_chest",
+			"asset_type": "interactable",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 39.2,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_stash_chest_64_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -22.4
+				},
+				"radius": 40.0,
+				"shape": "circle",
+				"size": {
+					"x": 80.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 32.0,
+					"y": 48.6
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -16.6
+				},
+				"visual_bounds": {
+					"h": 44.0,
+					"w": 56.0,
+					"x": 4.0,
+					"y": 9.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.87,
+				"needs_review": true,
+				"reason": "uses the lower visible band as a broad footprint",
+				"warnings": []
+			},
+			"asset_id": "camp_crate_barrel_stack",
+			"asset_type": "prop_low",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -12.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 51.12,
+					"y": 24.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_crate_barrel_stack_96_a.png",
+			"image_size": {
+				"h": 96,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 46.5,
+					"y": 77.5
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 1.5,
+					"y": -29.5
+				},
+				"visual_bounds": {
+					"h": 75.0,
+					"w": 71.0,
+					"x": 11.0,
+					"y": 10.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.79,
+				"needs_review": true,
+				"reason": "separates physical footprint from larger interaction area",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "camp_waypoint",
+			"asset_type": "interactable",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 35.0,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_waypoint_marker_96_a.png",
+			"image_size": {
+				"h": 96,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -22.4
+				},
+				"radius": 40.0,
+				"shape": "circle",
+				"size": {
+					"x": 80.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 48.0,
+					"y": 65.0
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -17.0
+				},
+				"visual_bounds": {
+					"h": 40.0,
+					"w": 50.0,
+					"x": 23.0,
+					"y": 29.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.85,
+				"needs_review": true,
+				"reason": "separates physical footprint from larger interaction area",
+				"warnings": []
+			},
+			"asset_id": "campfire",
+			"asset_type": "interactable",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 32.2,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_campfire_64_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -22.4
+				},
+				"radius": 40.0,
+				"shape": "circle",
+				"size": {
+					"x": 80.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 32.0,
+					"y": 51.4
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -19.4
+				},
+				"visual_bounds": {
+					"h": 46.0,
+					"w": 46.0,
+					"x": 9.0,
+					"y": 10.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.85,
+				"needs_review": true,
+				"reason": "separates physical footprint from larger interaction area",
+				"warnings": []
+			},
+			"asset_id": "campfire_pixellab_idle_frame0",
+			"asset_type": "interactable",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 28.0,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_0.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -22.4
+				},
+				"radius": 40.0,
+				"shape": "circle",
+				"size": {
+					"x": 80.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 32.0,
+					"y": 52.1
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -20.1
+				},
+				"visual_bounds": {
+					"h": 49.0,
+					"w": 40.0,
+					"x": 12.0,
+					"y": 8.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.84,
+				"needs_review": true,
+				"reason": "uses a small foot capsule near the lower visible body",
+				"warnings": []
+			},
+			"asset_id": "camp_quest_giver",
+			"asset_type": "character",
+			"collision": {
+				"enabled": true,
+				"height": 22.1,
+				"offset": {
+					"x": 0.0,
+					"y": -11.05
+				},
+				"orientation": "vertical",
+				"parts": [],
+				"radius": 7.0,
+				"shape": "capsule",
+				"size": {
+					"x": 14.0,
+					"y": 22.1
+				}
+			},
+			"image_path": "res://assets/sprites/npc/camp_01/npc_camp01_quest_giver_idle_64_a.png",
+			"image_size": {
+				"h": 96,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 31.5,
+					"y": 86.75
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -38.75
+				},
+				"visual_bounds": {
+					"h": 85.0,
+					"w": 33.0,
+					"x": 15.0,
+					"y": 6.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.78,
+				"needs_review": true,
+				"reason": "uses a small foot capsule near the lower visible body",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "camp_quest_giver_pixellab_idle_frame0",
+			"asset_type": "character",
+			"collision": {
+				"enabled": true,
+				"height": 18.0,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "vertical",
+				"parts": [],
+				"radius": 7.0,
+				"shape": "capsule",
+				"size": {
+					"x": 14.0,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_0.png",
+			"image_size": {
+				"h": 92,
+				"w": 92
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 46.5,
+					"y": 76.8
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": -0.5,
+					"y": -30.8
+				},
+				"visual_bounds": {
+					"h": 64.0,
+					"w": 27.0,
+					"x": 33.0,
+					"y": 16.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.78,
+				"needs_review": true,
+				"reason": "uses two side blockers and preserves a central opening",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "dungeon_entrance",
+			"asset_type": "entrance",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": 0.0
+				},
+				"opening": {
+					"center": {
+						"x": 0.0,
+						"y": 0.0
+					},
+					"size": {
+						"x": 37.8,
+						"y": 31.32
+					}
+				},
+				"orientation": "horizontal",
+				"parts": [
+					{
+						"enabled": true,
+						"id": "left_blocker",
+						"offset": {
+							"x": -31.5,
+							"y": -15.66
+						},
+						"orientation": "horizontal",
+						"parts": [],
+						"radius": 0,
+						"shape": "rect",
+						"size": {
+							"x": 25.2,
+							"y": 31.32
+						}
+					},
+					{
+						"enabled": true,
+						"id": "right_blocker",
+						"offset": {
+							"x": 31.5,
+							"y": -15.66
+						},
+						"orientation": "horizontal",
+						"parts": [],
+						"radius": 0,
+						"shape": "rect",
+						"size": {
+							"x": 25.2,
+							"y": 31.32
+						}
+					}
+				],
+				"radius": 0,
+				"shape": "parts",
+				"size": {
+					"x": 105.0,
+					"y": 31.32
+				}
+			},
+			"image_path": "res://assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_hollow_128.png",
+			"image_size": {
+				"h": 128,
+				"w": 128
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -35.0
+				},
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 96.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 63.5,
+					"y": 102.04
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -38.04
+				},
+				"visual_bounds": {
+					"h": 87.0,
+					"w": 105.0,
+					"x": 11.0,
+					"y": 22.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.81,
+				"needs_review": true,
+				"reason": "uses the lower support band, avoiding tall visual canopy/top",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "dead_tree",
+			"asset_type": "prop_tall",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 24.0,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/outdoor_01/prop_outdoor01_dead_tree_64_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 31.5,
+					"y": 47.12
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -15.12
+				},
+				"visual_bounds": {
+					"h": 36.0,
+					"w": 35.0,
+					"x": 14.0,
+					"y": 14.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.85,
+				"needs_review": true,
+				"reason": "uses the lower visible band as a broad footprint",
+				"warnings": []
+			},
+			"asset_id": "small_rock",
+			"asset_type": "prop_low",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -8.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 22.0,
+					"y": 16.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/outdoor_01/prop_outdoor01_rock_small_32_a.png",
+			"image_size": {
+				"h": 32,
+				"w": 32
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 16.0,
+					"y": 24.0
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -8.0
+				},
+				"visual_bounds": {
+					"h": 20.0,
+					"w": 26.0,
+					"x": 3.0,
+					"y": 6.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.88,
+				"needs_review": true,
+				"reason": "uses the lower visible band as a broad footprint",
+				"warnings": []
+			},
+			"asset_id": "broken_cart",
+			"asset_type": "prop_low",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -10.56
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 61.92,
+					"y": 21.12
+				}
+			},
+			"image_path": "res://assets/sprites/props/outdoor_01/prop_outdoor01_broken_cart_96.png",
+			"image_size": {
+				"h": 96,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 48.0,
+					"y": 77.4
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -29.4
+				},
+				"visual_bounds": {
+					"h": 66.0,
+					"w": 86.0,
+					"x": 5.0,
+					"y": 18.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.92,
+				"needs_review": true,
+				"reason": "decorative or ground asset defaults to no collision",
+				"warnings": []
+			},
+			"asset_id": "road_noise_decal",
+			"asset_type": "decal",
+			"collision": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"orientation": "none",
+				"parts": [],
+				"radius": 0,
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"image_path": "res://assets/sprites/decals/outdoor_01/decal_outdoor01_road_noise_64_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 33.0,
+					"y": 58.0
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": -1.0,
+					"y": -26.0
+				},
+				"visual_bounds": {
+					"h": 47.0,
+					"w": 8.0,
+					"x": 29.0,
+					"y": 11.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.92,
+				"needs_review": true,
+				"reason": "decorative or ground asset defaults to no collision",
+				"warnings": []
+			},
+			"asset_id": "grass_dead_tile",
+			"asset_type": "ground_tile",
+			"collision": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"orientation": "none",
+				"parts": [],
+				"radius": 0,
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"image_path": "res://assets/sprites/tiles/outdoor_01/tile_outdoor01_grass_dead_base_32_a.png",
+			"image_size": {
+				"h": 32,
+				"w": 32
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 16.0,
+					"y": 32.0
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -16.0
+				},
+				"visual_bounds": {
+					"h": 32.0,
+					"w": 32.0,
+					"x": 0.0,
+					"y": 0.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.84,
+				"needs_review": true,
+				"reason": "uses a small foot capsule near the lower visible body",
+				"warnings": []
+			},
+			"asset_id": "enemy_mummy",
+			"asset_type": "enemy",
+			"collision": {
+				"enabled": true,
+				"height": 18.0,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "vertical",
+				"parts": [],
+				"radius": 39.42,
+				"shape": "capsule",
+				"size": {
+					"x": 78.84,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/enemies/mummy/enemy_mummy_idle_side.png",
+			"image_size": {
+				"h": 64,
+				"w": 256
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 127.5,
+					"y": 58.3
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -26.3
+				},
+				"visual_bounds": {
+					"h": 34.0,
+					"w": 219.0,
+					"x": 18.0,
+					"y": 26.0
+				}
+			}
+		}
+	],
+	"generated_for": "TASK-031 Asset Footprint Draft And Collision Preview Tool",
+	"outputs": {
+		"json": "res://artifacts/task031_footprint_drafts/task031_camp_footprints.json",
+		"preview": "res://artifacts/task031_footprint_drafts/task031_camp_footprints_preview.png"
+	},
+	"schema": "FootprintDraftBatch.v1"
+}

@@ -1,4 +1,4 @@
-﻿# 任务板
+# 任务板
 
 这个文件是其他对话或 agent 的任务入口。它只保留当前任务、最近上下文和后续顺序；历史任务、通用规则和长期计划放在独立文档里。
 
@@ -221,7 +221,9 @@ TASK-031 Asset Footprint Draft And Collision Preview Tool
 
 ### TASK-031: Asset Footprint Draft And Collision Preview Tool
 
-Status: todo
+Status: done
+
+Task agent status: done
 
 Goal:
 
@@ -294,31 +296,31 @@ Recommended output: `FootprintDraft`
   "asset_type": "prop_low",
   "image_size": {"w": 96, "h": 96},
   "sprite": {
-    "visual_bounds": {"x": 4, "y": 18, "w": 88, "h": 66},
-    "foot_point": {"x": 48, "y": 78},
-    "sprite_offset": {"x": 0, "y": -30},
-    "sort_y_offset": 0
+	"visual_bounds": {"x": 4, "y": 18, "w": 88, "h": 66},
+	"foot_point": {"x": 48, "y": 78},
+	"sprite_offset": {"x": 0, "y": -30},
+	"sort_y_offset": 0
   },
   "collision": {
-    "enabled": true,
-    "shape": "rect",
-    "orientation": "horizontal",
-    "size": {"x": 82, "y": 18},
-    "radius": 0,
-    "offset": {"x": 0, "y": -9},
-    "parts": []
+	"enabled": true,
+	"shape": "rect",
+	"orientation": "horizontal",
+	"size": {"x": 82, "y": 18},
+	"radius": 0,
+	"offset": {"x": 0, "y": -9},
+	"parts": []
   },
   "interaction": {
-    "enabled": false,
-    "shape": "none",
-    "size": {"x": 0, "y": 0},
-    "offset": {"x": 0, "y": 0}
+	"enabled": false,
+	"shape": "none",
+	"size": {"x": 0, "y": 0},
+	"offset": {"x": 0, "y": 0}
   },
   "analysis": {
-    "confidence": 0.76,
-    "needs_review": true,
-    "reason": "prop_low uses lower visible band as footprint",
-    "warnings": []
+	"confidence": 0.76,
+	"needs_review": true,
+	"reason": "prop_low uses lower visible band as footprint",
+	"warnings": []
   }
 }
 ```
@@ -360,6 +362,53 @@ Acceptance:
 - Draft output includes confidence、needs_review、reason、warnings。
 - Tool does not overwrite accepted object definitions without explicit confirmation。
 - Add smoke / fixture tests using existing assets, e.g. camp fence、dead tree、camp chest、dungeon entrance、NPC placeholder、road decal。
+
+Report:
+
+```text
+Task:
+TASK-031 Asset Footprint Draft And Collision Preview Tool
+
+Status:
+done
+
+Files read:
+- TASK_BOARD.md
+- scripts/debug/collision_debug_overlay.gd
+- scripts/maps/procedural/map_object_definition.gd
+- scripts/maps/procedural/map_object_factory.gd
+- data/maps/map_object_defs.json
+
+Files changed:
+- scripts/tools/asset_footprint_draft_tool.gd
+- tools/smoke_asset_footprint_draft.gd
+- tools/generate_task31_footprint_review.gd
+- artifacts/task031_footprint_drafts/smoke_footprints.json
+- artifacts/task031_footprint_drafts/smoke_footprints_preview.png
+- artifacts/task031_footprint_drafts/task031_camp_footprints.json
+- artifacts/task031_footprint_drafts/task031_camp_footprints_preview.png
+- TASK_BOARD.md
+
+Summary:
+- Added AssetFootprintDraftTool to generate FootprintDraft JSON from PNG alpha bounds and asset_type.
+- Added type-specific draft behavior for character, enemy, prop_low, prop_tall, barrier, entrance, interactable, decal, and ground_tile.
+- Added multi-part entrance collision drafts with central opening, and separated interactable collision from interaction area.
+- Added preview sheet generation: green visual bounds, cyan collision, yellow interaction, and magenta foot point.
+- Added smoke fixture script and Camp/outdoor review generation script.
+
+Findings:
+- The tool is useful as a first draft and review aid, especially for Camp fence, tent, chest, waypoint, entrance, rocks, and dead tree assets.
+- Some confidence scores are intentionally low for barrier / entrance cases because gameplay intent still needs human review.
+- The generated output is stored under artifacts and does not overwrite accepted map object definitions.
+
+Risks:
+- Rotated in-scene assets still need orientation metadata; the source PNG alone cannot infer scene rotation.
+- Draft rectangles/capsules are approximate and should be reviewed before copying into map_object_defs.json or scene data.
+- Animated enemy sheets are treated as a single visible image; future enemy-specific tooling may need frame selection.
+
+Recommended next task:
+TASK-032 Camp Collision Tuning Pass
+```
 
 禁止项:
 

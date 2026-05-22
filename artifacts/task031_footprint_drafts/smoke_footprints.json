@@ -1,0 +1,590 @@
+{
+	"drafts": [
+		{
+			"analysis": {
+				"confidence": 0.84,
+				"needs_review": true,
+				"reason": "uses a small foot capsule near the lower visible body",
+				"warnings": []
+			},
+			"asset_id": "smoke_character",
+			"asset_type": "character",
+			"collision": {
+				"enabled": true,
+				"height": 22.1,
+				"offset": {
+					"x": 0.0,
+					"y": -11.05
+				},
+				"orientation": "vertical",
+				"parts": [],
+				"radius": 7.0,
+				"shape": "capsule",
+				"size": {
+					"x": 14.0,
+					"y": 22.1
+				}
+			},
+			"image_path": "res://assets/sprites/npc/camp_01/npc_camp01_quest_giver_idle_64_a.png",
+			"image_size": {
+				"h": 96,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 31.5,
+					"y": 86.75
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -38.75
+				},
+				"visual_bounds": {
+					"h": 85.0,
+					"w": 33.0,
+					"x": 15.0,
+					"y": 6.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.84,
+				"needs_review": true,
+				"reason": "uses a small foot capsule near the lower visible body",
+				"warnings": []
+			},
+			"asset_id": "smoke_enemy",
+			"asset_type": "enemy",
+			"collision": {
+				"enabled": true,
+				"height": 18.0,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "vertical",
+				"parts": [],
+				"radius": 39.42,
+				"shape": "capsule",
+				"size": {
+					"x": 78.84,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/enemies/mummy/enemy_mummy_idle_side.png",
+			"image_size": {
+				"h": 64,
+				"w": 256
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 127.5,
+					"y": 58.3
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -26.3
+				},
+				"visual_bounds": {
+					"h": 34.0,
+					"w": 219.0,
+					"x": 18.0,
+					"y": 26.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.85,
+				"needs_review": true,
+				"reason": "uses the lower visible band as a broad footprint",
+				"warnings": []
+			},
+			"asset_id": "smoke_prop_low",
+			"asset_type": "prop_low",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -8.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 22.0,
+					"y": 16.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/outdoor_01/prop_outdoor01_rock_small_32_a.png",
+			"image_size": {
+				"h": 32,
+				"w": 32
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 16.0,
+					"y": 24.0
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -8.0
+				},
+				"visual_bounds": {
+					"h": 20.0,
+					"w": 26.0,
+					"x": 3.0,
+					"y": 6.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.81,
+				"needs_review": true,
+				"reason": "uses the lower support band, avoiding tall visual canopy/top",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "smoke_prop_tall",
+			"asset_type": "prop_tall",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 24.0,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/outdoor_01/prop_outdoor01_dead_tree_64_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 31.5,
+					"y": 47.12
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -15.12
+				},
+				"visual_bounds": {
+					"h": 36.0,
+					"w": 35.0,
+					"x": 14.0,
+					"y": 14.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.75,
+				"needs_review": true,
+				"reason": "uses orientation-aware continuous blocker footprint",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "smoke_barrier",
+			"asset_type": "barrier",
+			"collision": {
+				"enabled": true,
+				"height": 68.64,
+				"offset": {
+					"x": 0.0,
+					"y": -8.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 8.0,
+				"shape": "capsule",
+				"size": {
+					"x": 68.64,
+					"y": 16.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 96
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 48.0,
+					"y": 42.88
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -10.88
+				},
+				"visual_bounds": {
+					"h": 34.0,
+					"w": 78.0,
+					"x": 9.0,
+					"y": 15.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.78,
+				"needs_review": true,
+				"reason": "uses two side blockers and preserves a central opening",
+				"warnings": [
+					"low confidence draft; requires visual review"
+				]
+			},
+			"asset_id": "smoke_entrance",
+			"asset_type": "entrance",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": 0.0
+				},
+				"opening": {
+					"center": {
+						"x": 0.0,
+						"y": 0.0
+					},
+					"size": {
+						"x": 37.8,
+						"y": 31.32
+					}
+				},
+				"orientation": "horizontal",
+				"parts": [
+					{
+						"enabled": true,
+						"id": "left_blocker",
+						"offset": {
+							"x": -31.5,
+							"y": -15.66
+						},
+						"orientation": "horizontal",
+						"parts": [],
+						"radius": 0,
+						"shape": "rect",
+						"size": {
+							"x": 25.2,
+							"y": 31.32
+						}
+					},
+					{
+						"enabled": true,
+						"id": "right_blocker",
+						"offset": {
+							"x": 31.5,
+							"y": -15.66
+						},
+						"orientation": "horizontal",
+						"parts": [],
+						"radius": 0,
+						"shape": "rect",
+						"size": {
+							"x": 25.2,
+							"y": 31.32
+						}
+					}
+				],
+				"radius": 0,
+				"shape": "parts",
+				"size": {
+					"x": 105.0,
+					"y": 31.32
+				}
+			},
+			"image_path": "res://assets/sprites/props/outdoor_01/prop_outdoor01_corrupted_hollow_128.png",
+			"image_size": {
+				"h": 128,
+				"w": 128
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -35.0
+				},
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 96.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 63.5,
+					"y": 102.04
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.5,
+					"y": -38.04
+				},
+				"visual_bounds": {
+					"h": 87.0,
+					"w": 105.0,
+					"x": 11.0,
+					"y": 22.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.87,
+				"needs_review": true,
+				"reason": "separates physical footprint from larger interaction area",
+				"warnings": []
+			},
+			"asset_id": "smoke_interactable",
+			"asset_type": "interactable",
+			"collision": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -9.0
+				},
+				"orientation": "horizontal",
+				"parts": [],
+				"radius": 0,
+				"shape": "rect",
+				"size": {
+					"x": 39.2,
+					"y": 18.0
+				}
+			},
+			"image_path": "res://assets/sprites/props/camp_01/prop_camp01_stash_chest_64_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": true,
+				"offset": {
+					"x": 0.0,
+					"y": -22.4
+				},
+				"radius": 40.0,
+				"shape": "circle",
+				"size": {
+					"x": 80.0,
+					"y": 70.0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 32.0,
+					"y": 48.6
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -16.6
+				},
+				"visual_bounds": {
+					"h": 44.0,
+					"w": 56.0,
+					"x": 4.0,
+					"y": 9.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.92,
+				"needs_review": true,
+				"reason": "decorative or ground asset defaults to no collision",
+				"warnings": []
+			},
+			"asset_id": "smoke_decal",
+			"asset_type": "decal",
+			"collision": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"orientation": "none",
+				"parts": [],
+				"radius": 0,
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"image_path": "res://assets/sprites/decals/outdoor_01/decal_outdoor01_road_noise_64_a.png",
+			"image_size": {
+				"h": 64,
+				"w": 64
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 33.0,
+					"y": 58.0
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": -1.0,
+					"y": -26.0
+				},
+				"visual_bounds": {
+					"h": 47.0,
+					"w": 8.0,
+					"x": 29.0,
+					"y": 11.0
+				}
+			}
+		},
+		{
+			"analysis": {
+				"confidence": 0.92,
+				"needs_review": true,
+				"reason": "decorative or ground asset defaults to no collision",
+				"warnings": []
+			},
+			"asset_id": "smoke_ground_tile",
+			"asset_type": "ground_tile",
+			"collision": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"orientation": "none",
+				"parts": [],
+				"radius": 0,
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"image_path": "res://assets/sprites/tiles/outdoor_01/tile_outdoor01_grass_dead_base_32_a.png",
+			"image_size": {
+				"h": 32,
+				"w": 32
+			},
+			"interaction": {
+				"enabled": false,
+				"offset": {
+					"x": 0,
+					"y": 0
+				},
+				"shape": "none",
+				"size": {
+					"x": 0,
+					"y": 0
+				}
+			},
+			"sprite": {
+				"foot_point": {
+					"x": 16.0,
+					"y": 32.0
+				},
+				"sort_y_offset": 0,
+				"sprite_offset": {
+					"x": 0.0,
+					"y": -16.0
+				},
+				"visual_bounds": {
+					"h": 32.0,
+					"w": 32.0,
+					"x": 0.0,
+					"y": 0.0
+				}
+			}
+		}
+	],
+	"schema": "FootprintDraftSmoke.v1"
+}

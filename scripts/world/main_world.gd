@@ -7,11 +7,12 @@ const TOWN_EXIT_OFFSET := Vector2(0, -70)
 const TOWN_SPAWN_OFFSET := Vector2(-430, 520)
 const TOWN_CAMERA_PADDING := 180.0
 const TOWN_EXIT_OPENING_WIDTH := 720.0
+const TOWN_BOUNDARY_COLLISION_THICKNESS := 8.0
 const MAIN_WORLD_DYNAMIC_Z_OFFSET := 1200.0
 const FIXED_TOWN_STATIC_Z := -2600
 const CAMP_ASSETS := {
 	"wood_fence_straight": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png",
-	"wood_fence_corner": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_corner_96_a.png",
+	"wood_fence_side": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_side_pixellab_64.png",
 	"wood_fence_broken": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_broken_96_a.png",
 	"wood_fence_gate_side": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_gate_side_96_a.png",
 	"palisade_wall": "res://assets/sprites/props/camp_01/prop_camp01_palisade_wall_96_a.png",
@@ -22,6 +23,21 @@ const CAMP_ASSETS := {
 	"waypoint_marker": "res://assets/sprites/props/camp_01/prop_camp01_waypoint_marker_96_a.png",
 	"quest_giver": "res://assets/sprites/npc/camp_01/npc_camp01_quest_giver_idle_64_a.png",
 	"trampled_ground": "res://assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png",
+}
+const CAMP_ANIMATION_ASSETS := {
+	"campfire_idle": [
+		"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_0.png",
+		"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_1.png",
+		"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_2.png",
+		"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_3.png",
+		"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_4.png",
+	],
+	"quest_giver_idle": [
+		"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_0.png",
+		"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_1.png",
+		"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_2.png",
+		"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_3.png",
+	],
 }
 
 @export var randomize_generation_seed_on_ready := true
@@ -93,16 +109,14 @@ func _build_fixed_town() -> void:
 	fixed_town.add_child(interactables)
 	_add_camp_prop_body(interactables, "StashPlaceholder", _camp_asset("stash_chest"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1180, 410), 1.25, "rect", Vector2(80, 32), Vector2(0, 0))
 	_add_camp_prop_body(interactables, "WaypointPlaceholder", _camp_asset("waypoint_marker"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(940, 375), 1.15, "circle", Vector2(54, 54), Vector2(0, 0))
-	_add_camp_prop_body(interactables, "CampfirePlaceholder", _camp_asset("campfire"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(800, 505), 1.25, "circle", Vector2(48, 48), Vector2(0, 0))
+	_add_camp_animated_prop_body(interactables, "CampfireIdle", _camp_animation_frames("campfire_idle"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(800, 505), 1.18, 6.0, "circle", Vector2(42, 42), Vector2(0, -2))
 
 	town_blockers_root = StaticBody2D.new()
 	town_blockers_root.name = "TownBounds"
 	town_blockers_root.collision_layer = COLLISION_LAYERS.WORLD
 	town_blockers_root.collision_mask = 0
 	fixed_town.add_child(town_blockers_root)
-	_add_town_bound_shape("North", Rect2(MAIN_WORLD_TOWN_BOUNDS.position - Vector2(0, 80), Vector2(MAIN_WORLD_TOWN_BOUNDS.size.x, 80)))
-	_add_town_bound_shape("West", Rect2(MAIN_WORLD_TOWN_BOUNDS.position - Vector2(80, 80), Vector2(80, MAIN_WORLD_TOWN_BOUNDS.size.y + 160)))
-	_add_town_bound_shape("East", Rect2(Vector2(MAIN_WORLD_TOWN_BOUNDS.end.x, MAIN_WORLD_TOWN_BOUNDS.position.y - 80), Vector2(80, MAIN_WORLD_TOWN_BOUNDS.size.y + 160)))
+	_add_town_thin_bounds()
 	_add_town_exit_opening_bounds()
 
 	town_spawn_marker = Marker2D.new()
@@ -296,39 +310,34 @@ func _build_camp_fence(parent: Node) -> void:
 	var bottom_y := MAIN_WORLD_TOWN_BOUNDS.end.y - 85.0
 	var gate_left_x := _town_center_x() - 145.0
 	var gate_right_x := _town_center_x() + 145.0
-	var horizontal_spacing := 116.0
-	var vertical_spacing := 116.0
-
-	_add_camp_prop_body(parent, "FenceCornerNorthWest", _camp_asset("wood_fence_corner"), Vector2(left_x, top_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6))
-	_add_camp_prop_body(parent, "FenceCornerNorthEast", _camp_asset("wood_fence_corner"), Vector2(right_x, top_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6), Vector2.ZERO, PI * 0.5)
-	_add_camp_prop_body(parent, "FenceCornerSouthWest", _camp_asset("wood_fence_corner"), Vector2(left_x, bottom_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6), Vector2.ZERO, -PI * 0.5)
-	_add_camp_prop_body(parent, "FenceCornerSouthEast", _camp_asset("wood_fence_corner"), Vector2(right_x, bottom_y), 1.05, "rect", Vector2(72, 36), Vector2(0, -6), Vector2.ZERO, PI)
+	var horizontal_spacing := 100.0
+	var vertical_spacing := 58.0
 
 	var segment_index := 0
-	var x := left_x + horizontal_spacing
-	while x < right_x - horizontal_spacing:
-		_add_camp_prop_body(parent, "NorthFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, top_y), 1.22, "capsule_h", Vector2(112, 22), Vector2(0, 0))
+	var x := left_x + horizontal_spacing * 0.5
+	while x < right_x:
+		_add_camp_prop_body(parent, "NorthFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, top_y), 1.12, "capsule_h", Vector2(98, 18), Vector2(0, 0))
 		segment_index += 1
 		x += horizontal_spacing
 
 	segment_index = 0
-	x = left_x + horizontal_spacing
-	while x < gate_left_x - 28.0:
-		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.22, "capsule_h", Vector2(112, 22), Vector2(0, 0))
+	x = left_x + horizontal_spacing * 0.5
+	while x < gate_left_x - 50.0:
+		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", Vector2(98, 18), Vector2(0, 0))
 		segment_index += 1
 		x += horizontal_spacing
 	segment_index = 0
-	x = gate_right_x + 28.0
-	while x < right_x - horizontal_spacing:
-		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.22, "capsule_h", Vector2(112, 22), Vector2(0, 0))
+	x = gate_right_x + 50.0
+	while x < right_x:
+		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", Vector2(98, 18), Vector2(0, 0))
 		segment_index += 1
 		x += horizontal_spacing
 
 	segment_index = 0
-	var y := top_y + vertical_spacing
-	while y < bottom_y - vertical_spacing:
-		_add_camp_prop_body(parent, "WestVerticalFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(left_x, y), 1.22, "capsule_v", Vector2(24, 112), Vector2(0, -2), Vector2.ZERO, PI * 0.5)
-		_add_camp_prop_body(parent, "EastVerticalFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(right_x, y), 1.22, "capsule_v", Vector2(24, 112), Vector2(0, -2), Vector2.ZERO, PI * 0.5)
+	var y := top_y + vertical_spacing * 0.5
+	while y < bottom_y:
+		_add_camp_prop_body(parent, "WestSideFence%02d" % segment_index, _camp_asset("wood_fence_side"), Vector2(left_x, y), 1.08, "capsule_v", Vector2(24, 86), Vector2(0, -2))
+		_add_camp_prop_body(parent, "EastSideFence%02d" % segment_index, _camp_asset("wood_fence_side"), Vector2(right_x, y), 1.08, "capsule_v", Vector2(24, 86), Vector2(0, -2))
 		segment_index += 1
 		y += vertical_spacing
 
@@ -407,8 +416,71 @@ func _add_camp_prop_body(
 	return body
 
 
+func _add_camp_animated_prop_body(
+	parent: Node,
+	body_name: String,
+	frames: Array,
+	foot_position: Vector2,
+	scale_value: float,
+	fps: float,
+	shape_type: String,
+	collision_size: Vector2,
+	collision_offset: Vector2,
+	sprite_offset: Vector2 = Vector2.ZERO
+) -> StaticBody2D:
+	var body := StaticBody2D.new()
+	body.name = body_name
+	body.global_position = foot_position
+	body.collision_layer = COLLISION_LAYERS.WORLD
+	body.collision_mask = 0
+	body.set_meta("camp_prop", true)
+	body.set_meta("collision_size", collision_size)
+	body.set_meta("collision_offset", collision_offset)
+	parent.add_child(body)
+
+	var shape_node := CollisionShape2D.new()
+	shape_node.name = "CollisionShape2D"
+	shape_node.position = collision_offset
+	match shape_type:
+		"circle":
+			var circle := CircleShape2D.new()
+			circle.radius = maxf(collision_size.x, collision_size.y) * 0.5
+			shape_node.shape = circle
+		"capsule_v":
+			var capsule_v := CapsuleShape2D.new()
+			capsule_v.radius = maxf(8.0, collision_size.x * 0.5)
+			capsule_v.height = maxf(collision_size.y, collision_size.x)
+			shape_node.shape = capsule_v
+		_:
+			var rectangle := RectangleShape2D.new()
+			rectangle.size = collision_size
+			shape_node.shape = rectangle
+	body.add_child(shape_node)
+
+	var animated := AnimatedSprite2D.new()
+	animated.name = "AnimatedSprite2D"
+	animated.sprite_frames = SpriteFrames.new()
+	animated.sprite_frames.add_animation("idle")
+	animated.sprite_frames.set_animation_speed("idle", fps)
+	animated.sprite_frames.set_animation_loop("idle", true)
+	for frame in frames:
+		var texture := frame as Texture2D
+		if texture != null:
+			animated.sprite_frames.add_frame("idle", texture)
+	animated.scale = Vector2(scale_value, scale_value)
+	animated.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if not frames.is_empty() and frames[0] is Texture2D:
+		var size := (frames[0] as Texture2D).get_size() * scale_value
+		animated.position = sprite_offset + Vector2(0, -size.y * 0.5)
+	else:
+		animated.position = sprite_offset
+	body.add_child(animated)
+	animated.play("idle")
+	return body
+
+
 func _add_quest_giver_placeholder(parent: Node, position: Vector2) -> StaticBody2D:
-	var body := _add_camp_prop_body(parent, "QuestGiverPlaceholder", _camp_asset("quest_giver"), position, 1.25, "capsule_v", Vector2(34, 58), Vector2(0, -8), Vector2(0, 6))
+	var body := _add_camp_animated_prop_body(parent, "QuestGiverPlaceholder", _camp_animation_frames("quest_giver_idle"), position, 0.95, 4.0, "capsule_v", Vector2(32, 46), Vector2(0, -12), Vector2(0, 4))
 	var area := Area2D.new()
 	area.name = "InteractionArea"
 	area.collision_layer = 0
@@ -456,6 +528,15 @@ func _camp_asset(asset_key: String) -> Texture2D:
 	return load(path) as Texture2D if not path.is_empty() else null
 
 
+func _camp_animation_frames(asset_key: String) -> Array:
+	var frames := []
+	for path in CAMP_ANIMATION_ASSETS.get(asset_key, []):
+		var texture := load(str(path)) as Texture2D
+		if texture != null:
+			frames.append(texture)
+	return frames
+
+
 func _add_placeholder_body(parent: Node, body_name: String, position: Vector2, color: Color, size: Vector2 = Vector2(64, 96)) -> StaticBody2D:
 	var body := StaticBody2D.new()
 	body.name = body_name
@@ -490,14 +571,27 @@ func _add_town_bound_shape(shape_name: String, rect: Rect2) -> void:
 	town_blockers_root.add_child(shape)
 
 
+func _add_town_thin_bounds() -> void:
+	var left_x := MAIN_WORLD_TOWN_BOUNDS.position.x + 95.0
+	var right_x := MAIN_WORLD_TOWN_BOUNDS.end.x - 95.0
+	var top_y := MAIN_WORLD_TOWN_BOUNDS.position.y + 85.0
+	var bottom_y := MAIN_WORLD_TOWN_BOUNDS.end.y - 85.0
+	var t := TOWN_BOUNDARY_COLLISION_THICKNESS
+	_add_town_bound_shape("NorthThin", Rect2(Vector2(left_x, top_y - t * 0.5), Vector2(right_x - left_x, t)))
+	_add_town_bound_shape("WestThin", Rect2(Vector2(left_x - t * 0.5, top_y), Vector2(t, bottom_y - top_y)))
+	_add_town_bound_shape("EastThin", Rect2(Vector2(right_x - t * 0.5, top_y), Vector2(t, bottom_y - top_y)))
+
+
 func _add_town_exit_opening_bounds() -> void:
 	var opening := get_town_exit_opening_rect()
-	var south_y := MAIN_WORLD_TOWN_BOUNDS.end.y
-	var thickness := 80.0
-	var left_width := maxf(0.0, opening.position.x - MAIN_WORLD_TOWN_BOUNDS.position.x)
-	var right_x := opening.end.x
-	var right_width := maxf(0.0, MAIN_WORLD_TOWN_BOUNDS.end.x - right_x)
+	var left_x := MAIN_WORLD_TOWN_BOUNDS.position.x + 95.0
+	var right_x := MAIN_WORLD_TOWN_BOUNDS.end.x - 95.0
+	var south_y := MAIN_WORLD_TOWN_BOUNDS.end.y - 85.0
+	var thickness := TOWN_BOUNDARY_COLLISION_THICKNESS
+	var left_width := maxf(0.0, opening.position.x - left_x)
+	var east_segment_x := opening.end.x
+	var right_width := maxf(0.0, right_x - east_segment_x)
 	if left_width > 0.0:
-		_add_town_bound_shape("SouthWest", Rect2(Vector2(MAIN_WORLD_TOWN_BOUNDS.position.x, south_y), Vector2(left_width, thickness)))
+		_add_town_bound_shape("SouthWestThin", Rect2(Vector2(left_x, south_y - thickness * 0.5), Vector2(left_width, thickness)))
 	if right_width > 0.0:
-		_add_town_bound_shape("SouthEast", Rect2(Vector2(right_x, south_y), Vector2(right_width, thickness)))
+		_add_town_bound_shape("SouthEastThin", Rect2(Vector2(east_segment_x, south_y - thickness * 0.5), Vector2(right_width, thickness)))

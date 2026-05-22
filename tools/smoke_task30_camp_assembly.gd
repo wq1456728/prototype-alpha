@@ -39,22 +39,22 @@ func _validate_nodes(scene: Node) -> bool:
 	for path in [
 		"FixedTown",
 		"FixedTown/Ground/CampTrampledGroundCenter",
-		"FixedTown/Props/FenceCornerNorthWest",
-		"FixedTown/Props/FenceCornerSouthEast",
 		"FixedTown/Props/NorthFence00",
-		"FixedTown/Props/WestVerticalFence00",
-		"FixedTown/Props/EastVerticalFence00",
+		"FixedTown/Props/WestSideFence00",
+		"FixedTown/Props/EastSideFence00",
 		"FixedTown/Props/CampGateLeftPost",
 		"FixedTown/Props/CampGateRightPost",
 		"FixedTown/Props/CampTentNorthWest",
 		"FixedTown/Props/CampSupplyStack",
 		"FixedTown/Props/CampPalisadeStorage",
 		"FixedTown/NPCPlaceholders/QuestGiverPlaceholder",
+		"FixedTown/NPCPlaceholders/QuestGiverPlaceholder/AnimatedSprite2D",
 		"FixedTown/NPCPlaceholders/QuestGiverPlaceholder/InteractionArea",
 		"FixedTown/NPCPlaceholders/QuestGiverPlaceholder/QuestHintLabel",
 		"FixedTown/Interactables/StashPlaceholder",
 		"FixedTown/Interactables/WaypointPlaceholder",
-		"FixedTown/Interactables/CampfirePlaceholder",
+		"FixedTown/Interactables/CampfireIdle",
+		"FixedTown/Interactables/CampfireIdle/AnimatedSprite2D",
 		"FixedTown/TownBounds",
 		"FixedTown/TownSpawn",
 		"FixedTown/TownExitSocket",
@@ -63,17 +63,33 @@ func _validate_nodes(scene: Node) -> bool:
 		if scene.get_node_or_null(path) == null:
 			_fail("missing_node=%s" % path)
 			return false
+	for removed_path in [
+		"FixedTown/Props/FenceCornerNorthWest",
+		"FixedTown/Props/FenceCornerSouthEast",
+		"FixedTown/Props/WestVerticalFence00",
+		"FixedTown/Props/EastVerticalFence00",
+		"FixedTown/Interactables/CampfirePlaceholder",
+	]:
+		if scene.get_node_or_null(removed_path) != null:
+			_fail("legacy_node_still_present=%s" % removed_path)
+			return false
 	return true
 
 
 func _validate_fence_orientation(scene: Node) -> bool:
 	var north_sprite := scene.get_node("FixedTown/Props/NorthFence00/Sprite2D") as Sprite2D
-	var west_sprite := scene.get_node("FixedTown/Props/WestVerticalFence00/Sprite2D") as Sprite2D
+	var west_sprite := scene.get_node("FixedTown/Props/WestSideFence00/Sprite2D") as Sprite2D
 	if north_sprite == null or west_sprite == null:
 		_fail("missing_fence_sprite")
 		return false
-	if absf(west_sprite.rotation - north_sprite.rotation) < 0.5:
-		_fail("vertical_fence_not_rotated north=%.2f west=%.2f" % [north_sprite.rotation, west_sprite.rotation])
+	if absf(west_sprite.rotation) > 0.01:
+		_fail("side_fence_should_not_be_rotated rotation=%.2f" % west_sprite.rotation)
+		return false
+	if west_sprite.texture == null or not west_sprite.texture.resource_path.contains("wood_fence_side_pixellab"):
+		_fail("side_fence_not_using_pixellab_asset path=%s" % (west_sprite.texture.resource_path if west_sprite.texture != null else "<null>"))
+		return false
+	if north_sprite.texture == west_sprite.texture:
+		_fail("side_fence_reused_front_fence_texture")
 		return false
 	return true
 
@@ -89,6 +105,14 @@ func _validate_interaction_placeholder(scene: Node) -> bool:
 	var label := scene.get_node("FixedTown/NPCPlaceholders/QuestGiverPlaceholder/QuestHintLabel") as Label
 	if label == null or not label.text.contains("Clear the den"):
 		_fail("quest_hint_label_bad")
+		return false
+	var npc_idle := scene.get_node("FixedTown/NPCPlaceholders/QuestGiverPlaceholder/AnimatedSprite2D") as AnimatedSprite2D
+	if npc_idle == null or npc_idle.sprite_frames == null or npc_idle.sprite_frames.get_frame_count("idle") < 4:
+		_fail("npc_idle_animation_missing")
+		return false
+	var campfire_idle := scene.get_node("FixedTown/Interactables/CampfireIdle/AnimatedSprite2D") as AnimatedSprite2D
+	if campfire_idle == null or campfire_idle.sprite_frames == null or campfire_idle.sprite_frames.get_frame_count("idle") < 5:
+		_fail("campfire_idle_animation_missing")
 		return false
 	return true
 

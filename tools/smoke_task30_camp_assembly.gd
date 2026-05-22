@@ -3,6 +3,7 @@ extends SceneTree
 const COLLISION_LAYERS := preload("res://scripts/physics/collision_layers.gd")
 
 const SCENE_PATH := "res://scenes/world/main_world.tscn"
+const CAMP_LAYOUT_PATH := "res://data/maps/camp_01_layout.json"
 
 
 func _initialize() -> void:
@@ -10,6 +11,8 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	if not _validate_camp_layout_config():
+		return
 	var error := change_scene_to_file(SCENE_PATH)
 	if error != OK:
 		_fail("scene_load=%s" % error)
@@ -39,6 +42,28 @@ func _run() -> void:
 		scene.get_node("FixedTown/Props").get_child_count(),
 	])
 	quit(0)
+
+
+func _validate_camp_layout_config() -> bool:
+	var file := FileAccess.open(CAMP_LAYOUT_PATH, FileAccess.READ)
+	if file == null:
+		_fail("missing_camp_layout_config=%s" % CAMP_LAYOUT_PATH)
+		return false
+	var parsed = JSON.parse_string(file.get_as_text())
+	if not (parsed is Dictionary):
+		_fail("invalid_camp_layout_config")
+		return false
+	for key in ["bounds", "assets", "animations", "fence", "props", "npcs", "interactables"]:
+		if not parsed.has(key):
+			_fail("camp_layout_missing_key=%s" % key)
+			return false
+	if (parsed.get("props", []) as Array).is_empty():
+		_fail("camp_layout_props_empty")
+		return false
+	if (parsed.get("interactables", []) as Array).is_empty():
+		_fail("camp_layout_interactables_empty")
+		return false
+	return true
 
 
 func _validate_nodes(scene: Node) -> bool:

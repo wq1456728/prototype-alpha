@@ -1,0 +1,84 @@
+{
+	"id": "camp_01",
+	"bounds": {"x": 960, "y": -940, "w": 1660, "h": 920},
+	"spawn_offset": [-430, 520],
+	"exit_offset": [0, -70],
+	"exit_opening_width": 720,
+	"camera_padding": 180,
+	"boundary_collision_thickness": 8,
+	"assets": {
+		"wood_fence_straight": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_straight_96_a.png",
+		"wood_fence_side": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_side_pixellab_64.png",
+		"wood_fence_broken": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_broken_96_a.png",
+		"wood_fence_gate_side": "res://assets/sprites/props/camp_01/prop_camp01_wood_fence_gate_side_96_a.png",
+		"palisade_wall": "res://assets/sprites/props/camp_01/prop_camp01_palisade_wall_96_a.png",
+		"tent": "res://assets/sprites/props/camp_01/prop_camp01_tent_128_a.png",
+		"campfire": "res://assets/sprites/props/camp_01/prop_camp01_campfire_64_a.png",
+		"stash_chest": "res://assets/sprites/props/camp_01/prop_camp01_stash_chest_64_a.png",
+		"crate_barrel_stack": "res://assets/sprites/props/camp_01/prop_camp01_crate_barrel_stack_96_a.png",
+		"waypoint_marker": "res://assets/sprites/props/camp_01/prop_camp01_waypoint_marker_96_a.png",
+		"quest_giver": "res://assets/sprites/npc/camp_01/npc_camp01_quest_giver_idle_64_a.png",
+		"trampled_ground": "res://assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png"
+	},
+	"animations": {
+		"campfire_idle": [
+			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_0.png",
+			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_1.png",
+			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_2.png",
+			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_3.png",
+			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_4.png"
+		],
+		"quest_giver_idle": [
+			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_0.png",
+			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_1.png",
+			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_2.png",
+			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_3.png"
+		]
+	},
+	"ground_rects": [
+		{"id": "TownGround", "use_bounds": true, "color": [0.13, 0.115, 0.078, 1.0], "z": -122},
+		{"id": "TownTrampledCenter", "rect": {"x": 1320, "y": -680, "w": 820, "h": 390}, "color": [0.17, 0.142, 0.09, 1.0], "z": -118},
+		{"id": "TownExitRoad", "rect": {"x": 1660, "y": -280, "w": 260, "h": 420}, "color": [0.19, 0.158, 0.102, 1.0], "z": -117}
+	],
+	"ground_decals": [
+		{"id": "CampTrampledGroundCenter", "asset": "trampled_ground", "position": [1745, -470], "scale": 3.6},
+		{"id": "CampTrampledGroundStash", "asset": "trampled_ground", "position": [2155, -450], "scale": 2.4}
+	],
+	"fence": {
+		"left_x_offset": 95,
+		"right_x_offset": -95,
+		"top_y_offset": 85,
+		"bottom_y_offset": -85,
+		"gate_left_offset_from_center": -145,
+		"gate_right_offset_from_center": 145,
+		"horizontal_spacing": 86,
+		"vertical_spacing": 76,
+		"horizontal_collision": {"shape": "capsule_h", "size": [77, 18], "offset": [0, -9]},
+		"vertical_collision": {"shape": "capsule_v", "size": [19, 78], "offset": [0, -39]},
+		"gate_collision": {"shape": "rect", "size": [42, 32], "offset": [0, -16]},
+		"horizontal_scale": 1.12,
+		"vertical_scale": 1.08,
+		"gate_scale": 1.08,
+		"south_west_stop_before_gate": 116,
+		"south_west_gate_join_offset": -74,
+		"south_east_gate_join_offset": 74,
+		"south_east_loop_start_offset": 160,
+		"south_east_corner_join_offset": -48,
+		"gate_y_offset": 8
+	},
+	"props": [
+		{"id": "CampTentNorthWest", "asset": "tent", "position": [1370, -625], "scale": 1.15, "collision": {"shape": "rect", "size": [41, 27], "offset": [0, -13]}},
+		{"id": "CampTentSouthWest", "asset": "tent", "position": [1305, -330], "scale": 1.0, "collision": {"shape": "rect", "size": [36, 23], "offset": [0, -12]}},
+		{"id": "CampSupplyStack", "asset": "crate_barrel_stack", "position": [2130, -365], "scale": 1.15, "collision": {"shape": "rect", "size": [59, 28], "offset": [0, -14]}},
+		{"id": "CampPalisadeStorage", "asset": "palisade_wall", "position": [2250, -675], "scale": 1.0, "collision": {"shape": "capsule_h", "size": [78, 18], "offset": [0, -9]}},
+		{"id": "CampBrokenFenceDetail", "asset": "wood_fence_broken", "position": [1535, -220], "scale": 1.1, "collision": {"shape": "capsule_h", "size": [76, 18], "offset": [0, -9]}}
+	],
+	"npcs": [
+		{"id": "QuestGiverPlaceholder", "type": "quest_giver", "position": [1565, -440], "scale": 0.95, "fps": 4.0, "collision": {"shape": "capsule_v", "size": [32, 46], "offset": [0, -12]}, "sprite_offset": [0, 4], "hint": "Clear the den outside the camp.", "hint_position": [-150, -138]}
+	],
+	"interactables": [
+		{"id": "StashPlaceholder", "asset": "stash_chest", "position": [2140, -530], "scale": 1.25, "collision": {"shape": "rect", "size": [49, 23], "offset": [0, -11]}},
+		{"id": "WaypointPlaceholder", "asset": "waypoint_marker", "position": [1900, -565], "scale": 1.15, "collision": {"shape": "rect", "size": [40, 21], "offset": [0, -10]}},
+		{"id": "CampfireIdle", "animation": "campfire_idle", "position": [1760, -435], "scale": 1.18, "fps": 6.0, "collision": {"shape": "rect", "size": [33, 21], "offset": [0, -11]}}
+	]
+}

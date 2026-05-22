@@ -129,23 +129,40 @@ func _build_camp_modules(parent: Node, target: String) -> void:
 		if module_config.is_empty() or str(module_config.get("target", "")) != target:
 			continue
 		match str(module_config.get("placement_mode", "explicit")):
-			"camp_fence_loop":
-				_build_camp_fence(parent, module_config)
-			_:
+			"explicit":
 				_build_explicit_object_module(parent, module_config)
+			_:
+				push_warning("MainWorld: unsupported object module placement_mode=%s id=%s" % [str(module_config.get("placement_mode", "")), str(module_config.get("id", ""))])
 
 
 func _build_explicit_object_module(parent: Node, module_config: Dictionary) -> void:
+	var item_index := 0
 	for entry in module_config.get("items", []):
 		var item_config := entry as Dictionary
 		if item_config.is_empty():
 			continue
-		if str(item_config.get("type", "")) == "quest_giver":
-			_add_quest_giver_placeholder_from_config(parent, item_config)
-		elif item_config.has("animation"):
-			_add_camp_animated_prop_from_config(parent, item_config)
+		var resolved_config := _resolve_module_item_config(module_config, item_config, item_index)
+		if str(resolved_config.get("type", "")) == "quest_giver":
+			_add_quest_giver_placeholder_from_config(parent, resolved_config)
+		elif resolved_config.has("animation"):
+			_add_camp_animated_prop_from_config(parent, resolved_config)
 		else:
-			_add_camp_prop_from_config(parent, item_config)
+			_add_camp_prop_from_config(parent, resolved_config)
+		item_index += 1
+
+
+func _resolve_module_item_config(module_config: Dictionary, item_config: Dictionary, item_index: int) -> Dictionary:
+	var resolved := {}
+	var defaults = module_config.get("defaults", {})
+	if defaults is Dictionary:
+		resolved = defaults.duplicate(true)
+	for key in item_config.keys():
+		resolved[key] = item_config[key]
+	if not resolved.has("id"):
+		var prefix := str(resolved.get("id_prefix", module_config.get("id", "Object")))
+		var digits := int(resolved.get("id_digits", 2))
+		resolved["id"] = "%s%s" % [prefix, str(item_index).pad_zeros(digits)]
+	return resolved
 
 
 func _add_camp_prop_from_config(parent: Node, prop_config: Dictionary) -> StaticBody2D:
@@ -354,18 +371,10 @@ func _camp_terrain() -> Dictionary:
 	return terrain if terrain is Dictionary else {}
 
 
-func _camp_fence_module() -> Dictionary:
-	for entry in camp_layout.get("object_modules", []):
-		var module_config := entry as Dictionary
-		if not module_config.is_empty() and str(module_config.get("placement_mode", "")) == "camp_fence_loop":
-			return module_config
-	return {}
-
-
-func _camp_fence_params() -> Dictionary:
-	var module_config := _camp_fence_module()
-	var params = module_config.get("params", {})
-	return params if params is Dictionary else {}
+func _camp_boundary() -> Dictionary:
+	var terrain := _camp_terrain()
+	var boundary = terrain.get("boundary", {})
+	return boundary if boundary is Dictionary else {}
 
 
 func _vector2_from_array(value, fallback := Vector2.ZERO) -> Vector2:
@@ -446,63 +455,6 @@ func _add_town_prop(parent: Node, prop_name: String, texture: Texture2D, positio
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	parent.add_child(sprite)
 	return sprite
-
-
-func _build_camp_fence(parent: Node, module_config: Dictionary) -> void:
-	var fence = module_config.get("params", {}) as Dictionary
-	var module_assets = module_config.get("assets", {}) as Dictionary
-	var horizontal_asset := str(module_assets.get("horizontal", "wood_fence_straight"))
-	var vertical_asset := str(module_assets.get("vertical", "wood_fence_side"))
-	var gate_asset := str(module_assets.get("gate", "wood_fence_gate_side"))
-	var left_x := camp_bounds.position.x + float(fence.get("left_x_offset", 95.0))
-	var right_x := camp_bounds.end.x + float(fence.get("right_x_offset", -95.0))
-	var top_y := camp_bounds.position.y + float(fence.get("top_y_offset", 85.0))
-	var bottom_y := camp_bounds.end.y + float(fence.get("bottom_y_offset", -85.0))
-	var gate_left_x := _town_center_x() + float(fence.get("gate_left_offset_from_center", -145.0))
-	var gate_right_x := _town_center_x() + float(fence.get("gate_right_offset_from_center", 145.0))
-	var horizontal_spacing := float(fence.get("horizontal_spacing", 86.0))
-	var vertical_spacing := float(fence.get("vertical_spacing", 76.0))
-	var horizontal_collision := _collision_from_config(fence.get("horizontal_collision", {}), "capsule_h", Vector2(77, 18), Vector2(0, -9))
-	var vertical_collision := _collision_from_config(fence.get("vertical_collision", {}), "capsule_v", Vector2(19, 78), Vector2(0, -39))
-	var gate_collision := _collision_from_config(fence.get("gate_collision", {}), "rect", Vector2(42, 32), Vector2(0, -16))
-	var horizontal_scale := float(fence.get("horizontal_scale", 1.12))
-	var vertical_scale := float(fence.get("vertical_scale", 1.08))
-	var gate_scale := float(fence.get("gate_scale", 1.08))
-
-	var segment_index := 0
-	var x := left_x + horizontal_spacing * 0.5
-	while x < right_x - horizontal_spacing * 0.5:
-		_add_camp_prop_body(parent, "NorthFence%02d" % segment_index, _camp_asset(horizontal_asset), Vector2(x, top_y), horizontal_scale, str(horizontal_collision.get("shape", "capsule_h")), horizontal_collision.get("size", Vector2.ZERO), horizontal_collision.get("offset", Vector2.ZERO))
-		segment_index += 1
-		x += horizontal_spacing
-
-	segment_index = 0
-	x = left_x + horizontal_spacing * 0.5
-	while x < gate_left_x - float(fence.get("south_west_stop_before_gate", 116.0)):
-		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset(horizontal_asset), Vector2(x, bottom_y), horizontal_scale, str(horizontal_collision.get("shape", "capsule_h")), horizontal_collision.get("size", Vector2.ZERO), horizontal_collision.get("offset", Vector2.ZERO))
-		segment_index += 1
-		x += horizontal_spacing
-	_add_camp_prop_body(parent, "SouthWestFenceGateJoin", _camp_asset(horizontal_asset), Vector2(gate_left_x + float(fence.get("south_west_gate_join_offset", -74.0)), bottom_y), horizontal_scale, str(horizontal_collision.get("shape", "capsule_h")), horizontal_collision.get("size", Vector2.ZERO), horizontal_collision.get("offset", Vector2.ZERO))
-
-	segment_index = 0
-	_add_camp_prop_body(parent, "SouthEastFenceGateJoin", _camp_asset(horizontal_asset), Vector2(gate_right_x + float(fence.get("south_east_gate_join_offset", 74.0)), bottom_y), horizontal_scale, str(horizontal_collision.get("shape", "capsule_h")), horizontal_collision.get("size", Vector2.ZERO), horizontal_collision.get("offset", Vector2.ZERO))
-	x = gate_right_x + float(fence.get("south_east_loop_start_offset", 160.0))
-	while x < right_x - horizontal_spacing * 0.5:
-		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset(horizontal_asset), Vector2(x, bottom_y), horizontal_scale, str(horizontal_collision.get("shape", "capsule_h")), horizontal_collision.get("size", Vector2.ZERO), horizontal_collision.get("offset", Vector2.ZERO))
-		segment_index += 1
-		x += horizontal_spacing
-	_add_camp_prop_body(parent, "SouthEastFenceCornerJoin", _camp_asset(horizontal_asset), Vector2(right_x + float(fence.get("south_east_corner_join_offset", -48.0)), bottom_y), horizontal_scale, str(horizontal_collision.get("shape", "capsule_h")), horizontal_collision.get("size", Vector2.ZERO), horizontal_collision.get("offset", Vector2.ZERO))
-
-	segment_index = 0
-	var y := top_y + vertical_spacing * 0.5
-	while y < bottom_y:
-		_add_camp_prop_body(parent, "WestSideFence%02d" % segment_index, _camp_asset(vertical_asset), Vector2(left_x, y), vertical_scale, str(vertical_collision.get("shape", "capsule_v")), vertical_collision.get("size", Vector2.ZERO), vertical_collision.get("offset", Vector2.ZERO))
-		_add_camp_prop_body(parent, "EastSideFence%02d" % segment_index, _camp_asset(vertical_asset), Vector2(right_x, y), vertical_scale, str(vertical_collision.get("shape", "capsule_v")), vertical_collision.get("size", Vector2.ZERO), vertical_collision.get("offset", Vector2.ZERO))
-		segment_index += 1
-		y += vertical_spacing
-
-	_add_camp_prop_body(parent, "CampGateLeftPost", _camp_asset(gate_asset), Vector2(gate_left_x, bottom_y + float(fence.get("gate_y_offset", 8.0))), gate_scale, str(gate_collision.get("shape", "rect")), gate_collision.get("size", Vector2.ZERO), gate_collision.get("offset", Vector2.ZERO))
-	_add_camp_prop_body(parent, "CampGateRightPost", _camp_asset(gate_asset), Vector2(gate_right_x, bottom_y + float(fence.get("gate_y_offset", 8.0))), gate_scale, str(gate_collision.get("shape", "rect")), gate_collision.get("size", Vector2.ZERO), gate_collision.get("offset", Vector2.ZERO), Vector2.ZERO, 0.0, true)
 
 
 func _add_ground_decal(parent: Node, decal_name: String, texture: Texture2D, position: Vector2, scale_value: float) -> Sprite2D:
@@ -786,11 +738,11 @@ func _add_town_bound_shape(shape_name: String, rect: Rect2) -> void:
 
 
 func _add_town_thin_bounds() -> void:
-	var fence := _camp_fence_params()
-	var left_x := camp_bounds.position.x + float(fence.get("left_x_offset", 95.0))
-	var right_x := camp_bounds.end.x + float(fence.get("right_x_offset", -95.0))
-	var top_y := camp_bounds.position.y + float(fence.get("top_y_offset", 85.0))
-	var bottom_y := camp_bounds.end.y + float(fence.get("bottom_y_offset", -85.0))
+	var boundary := _camp_boundary()
+	var left_x := camp_bounds.position.x + float(boundary.get("left_x_offset", 95.0))
+	var right_x := camp_bounds.end.x + float(boundary.get("right_x_offset", -95.0))
+	var top_y := camp_bounds.position.y + float(boundary.get("top_y_offset", 85.0))
+	var bottom_y := camp_bounds.end.y + float(boundary.get("bottom_y_offset", -85.0))
 	var t := town_boundary_collision_thickness
 	_add_town_bound_shape("NorthThin", Rect2(Vector2(left_x, top_y - t * 0.5), Vector2(right_x - left_x, t)))
 	_add_town_bound_shape("WestThin", Rect2(Vector2(left_x - t * 0.5, top_y), Vector2(t, bottom_y - top_y)))
@@ -799,10 +751,10 @@ func _add_town_thin_bounds() -> void:
 
 func _add_town_exit_opening_bounds() -> void:
 	var opening := get_town_exit_opening_rect()
-	var fence := _camp_fence_params()
-	var left_x := camp_bounds.position.x + float(fence.get("left_x_offset", 95.0))
-	var right_x := camp_bounds.end.x + float(fence.get("right_x_offset", -95.0))
-	var south_y := camp_bounds.end.y + float(fence.get("bottom_y_offset", -85.0))
+	var boundary := _camp_boundary()
+	var left_x := camp_bounds.position.x + float(boundary.get("left_x_offset", 95.0))
+	var right_x := camp_bounds.end.x + float(boundary.get("right_x_offset", -95.0))
+	var south_y := camp_bounds.end.y + float(boundary.get("bottom_y_offset", -85.0))
 	var thickness := town_boundary_collision_thickness
 	var left_width := maxf(0.0, opening.position.x - left_x)
 	var east_segment_x := opening.end.x

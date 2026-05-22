@@ -7,6 +7,12 @@
 		"exit_opening_width": 720,
 		"camera_padding": 180,
 		"boundary_collision_thickness": 8,
+		"boundary": {
+			"left_x_offset": 95,
+			"right_x_offset": -95,
+			"top_y_offset": 85,
+			"bottom_y_offset": -85
+		},
 		"ground_rects": [
 			{"id": "TownGround", "use_bounds": true, "color": [0.13, 0.115, 0.078, 1.0], "z": -122},
 			{"id": "TownTrampledCenter", "rect": {"x": 1320, "y": -680, "w": 820, "h": 390}, "color": [0.17, 0.142, 0.09, 1.0], "z": -118},
@@ -48,42 +54,111 @@
 	},
 	"object_modules": [
 		{
-			"id": "camp_fence",
+			"id": "camp_north_fences",
 			"target": "props",
-			"placement_mode": "camp_fence_loop",
-			"assets": {
-				"horizontal": "wood_fence_straight",
-				"vertical": "wood_fence_side",
-				"gate": "wood_fence_gate_side"
+			"placement_mode": "explicit",
+			"defaults": {
+				"id_prefix": "NorthFence",
+				"id_digits": 2,
+				"asset": "wood_fence_straight",
+				"scale": 1.12,
+				"collision": {"shape": "capsule_h", "size": [77, 18], "offset": [0, -9]}
 			},
-			"params": {
-				"left_x_offset": 95,
-				"right_x_offset": -95,
-				"top_y_offset": 85,
-				"bottom_y_offset": -85,
-				"gate_left_offset_from_center": -145,
-				"gate_right_offset_from_center": 145,
-				"horizontal_spacing": 86,
-				"vertical_spacing": 76,
-				"horizontal_collision": {"shape": "capsule_h", "size": [77, 18], "offset": [0, -9]},
-				"vertical_collision": {"shape": "capsule_v", "size": [19, 78], "offset": [0, -39]},
-				"gate_collision": {"shape": "rect", "size": [42, 32], "offset": [0, -16]},
-				"horizontal_scale": 1.12,
-				"vertical_scale": 1.08,
-				"gate_scale": 1.08,
-				"south_west_stop_before_gate": 116,
-				"south_west_gate_join_offset": -74,
-				"south_east_gate_join_offset": 74,
-				"south_east_loop_start_offset": 160,
-				"south_east_corner_join_offset": -48,
-				"gate_y_offset": 8
-			}
+			"items": [
+				{"position": [1098, -855]}, {"position": [1184, -855]}, {"position": [1270, -855]}, {"position": [1356, -855]},
+				{"position": [1442, -855]}, {"position": [1528, -855]}, {"position": [1614, -855]}, {"position": [1700, -855]},
+				{"position": [1786, -855]}, {"position": [1872, -855]}, {"position": [1958, -855]}, {"position": [2044, -855]},
+				{"position": [2130, -855]}, {"position": [2216, -855]}, {"position": [2302, -855]}, {"position": [2388, -855]},
+				{"position": [2474, -855]}
+			]
+		},
+		{
+			"id": "camp_south_west_fences",
+			"target": "props",
+			"placement_mode": "explicit",
+			"defaults": {
+				"id_prefix": "SouthWestFence",
+				"id_digits": 2,
+				"asset": "wood_fence_straight",
+				"scale": 1.12,
+				"collision": {"shape": "capsule_h", "size": [77, 18], "offset": [0, -9]}
+			},
+			"items": [
+				{"position": [1098, -105]}, {"position": [1184, -105]}, {"position": [1270, -105]},
+				{"position": [1356, -105]}, {"position": [1442, -105]}, {"position": [1528, -105]},
+				{"id": "SouthWestFenceGateJoin", "position": [1571, -105]}
+			]
+		},
+		{
+			"id": "camp_south_east_fences",
+			"target": "props",
+			"placement_mode": "explicit",
+			"defaults": {
+				"id_prefix": "SouthEastFence",
+				"id_digits": 2,
+				"asset": "wood_fence_straight",
+				"scale": 1.12,
+				"collision": {"shape": "capsule_h", "size": [77, 18], "offset": [0, -9]}
+			},
+			"items": [
+				{"id": "SouthEastFenceGateJoin", "position": [2009, -105]},
+				{"position": [2095, -105]}, {"position": [2181, -105]}, {"position": [2267, -105]},
+				{"position": [2353, -105]}, {"position": [2439, -105]},
+				{"id": "SouthEastFenceCornerJoin", "position": [2477, -105]}
+			]
+		},
+		{
+			"id": "camp_west_side_fences",
+			"target": "props",
+			"placement_mode": "explicit",
+			"defaults": {
+				"id_prefix": "WestSideFence",
+				"id_digits": 2,
+				"asset": "wood_fence_side",
+				"scale": 1.08,
+				"collision": {"shape": "capsule_v", "size": [19, 78], "offset": [0, -39]}
+			},
+			"items": [
+				{"position": [1055, -817]}, {"position": [1055, -741]}, {"position": [1055, -665]}, {"position": [1055, -589]},
+				{"position": [1055, -513]}, {"position": [1055, -437]}, {"position": [1055, -361]}, {"position": [1055, -285]},
+				{"position": [1055, -209]}, {"position": [1055, -133]}
+			]
+		},
+		{
+			"id": "camp_east_side_fences",
+			"target": "props",
+			"placement_mode": "explicit",
+			"defaults": {
+				"id_prefix": "EastSideFence",
+				"id_digits": 2,
+				"asset": "wood_fence_side",
+				"scale": 1.08,
+				"collision": {"shape": "capsule_v", "size": [19, 78], "offset": [0, -39]}
+			},
+			"items": [
+				{"position": [2525, -817]}, {"position": [2525, -741]}, {"position": [2525, -665]}, {"position": [2525, -589]},
+				{"position": [2525, -513]}, {"position": [2525, -437]}, {"position": [2525, -361]}, {"position": [2525, -285]},
+				{"position": [2525, -209]}, {"position": [2525, -133]}
+			]
+		},
+		{
+			"id": "camp_gate_posts",
+			"target": "props",
+			"placement_mode": "explicit",
+			"defaults": {
+				"asset": "wood_fence_gate_side",
+				"scale": 1.08,
+				"collision": {"shape": "rect", "size": [42, 32], "offset": [0, -16]}
+			},
+			"items": [
+				{"id": "CampGateLeftPost", "position": [1645, -97]},
+				{"id": "CampGateRightPost", "position": [1935, -97], "flip_h": true}
+			]
 		},
 		{
 			"id": "camp_props",
 			"target": "props",
 			"placement_mode": "explicit",
-			"assets": ["tent", "crate_barrel_stack", "palisade_wall", "wood_fence_broken"],
 			"items": [
 				{"id": "CampTentNorthWest", "asset": "tent", "position": [1370, -625], "scale": 1.15, "collision": {"shape": "rect", "size": [41, 27], "offset": [0, -13]}},
 				{"id": "CampTentSouthWest", "asset": "tent", "position": [1305, -330], "scale": 1.0, "collision": {"shape": "rect", "size": [36, 23], "offset": [0, -12]}},
@@ -96,8 +171,6 @@
 			"id": "camp_npcs",
 			"target": "npcs",
 			"placement_mode": "explicit",
-			"assets": ["quest_giver"],
-			"animations": ["quest_giver_idle"],
 			"items": [
 				{"id": "QuestGiverPlaceholder", "type": "quest_giver", "animation": "quest_giver_idle", "position": [1565, -440], "scale": 0.95, "fps": 4.0, "collision": {"shape": "capsule_v", "size": [32, 46], "offset": [0, -12]}, "sprite_offset": [0, 4], "hint": "Clear the den outside the camp.", "hint_position": [-150, -138]}
 			]
@@ -106,8 +179,6 @@
 			"id": "camp_interactables",
 			"target": "interactables",
 			"placement_mode": "explicit",
-			"assets": ["stash_chest", "waypoint_marker", "campfire"],
-			"animations": ["campfire_idle"],
 			"items": [
 				{"id": "StashPlaceholder", "asset": "stash_chest", "position": [2140, -530], "scale": 1.25, "collision": {"shape": "rect", "size": [49, 23], "offset": [0, -11]}},
 				{"id": "WaypointPlaceholder", "asset": "waypoint_marker", "position": [1900, -565], "scale": 1.15, "collision": {"shape": "rect", "size": [40, 21], "offset": [0, -10]}},

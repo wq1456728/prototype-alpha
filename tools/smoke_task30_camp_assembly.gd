@@ -66,7 +66,6 @@ func _validate_camp_layout_config() -> bool:
 		_fail("camp_layout_modules_empty")
 		return false
 	var required_modes := {
-		"camp_fence_loop": false,
 		"explicit": false,
 	}
 	var required_targets := {
@@ -87,6 +86,8 @@ func _validate_camp_layout_config() -> bool:
 		if mode == "explicit" and (module_config.get("items", []) as Array).is_empty():
 			_fail("camp_layout_explicit_module_empty=%s" % str(module_config.get("id", "")))
 			return false
+	if not _validate_auto_id_module(modules):
+		return false
 	for target in required_targets:
 		if not bool(required_targets[target]):
 			_fail("camp_layout_missing_target=%s" % target)
@@ -96,6 +97,28 @@ func _validate_camp_layout_config() -> bool:
 			_fail("camp_layout_missing_mode=%s" % mode)
 			return false
 	return true
+
+
+func _validate_auto_id_module(modules: Array) -> bool:
+	for entry in modules:
+		var module_config := entry as Dictionary
+		if module_config.is_empty() or str(module_config.get("id", "")) != "camp_north_fences":
+			continue
+		var defaults := module_config.get("defaults", {}) as Dictionary
+		if str(defaults.get("id_prefix", "")) != "NorthFence":
+			_fail("camp_layout_auto_id_prefix_missing")
+			return false
+		var items := module_config.get("items", []) as Array
+		if items.is_empty():
+			_fail("camp_layout_auto_id_items_empty")
+			return false
+		var first := items[0] as Dictionary
+		if first.has("id"):
+			_fail("camp_layout_auto_id_item_should_not_have_manual_id")
+			return false
+		return true
+	_fail("camp_layout_auto_id_module_missing")
+	return false
 
 
 func _validate_nodes(scene: Node) -> bool:

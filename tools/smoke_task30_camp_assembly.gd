@@ -53,16 +53,48 @@ func _validate_camp_layout_config() -> bool:
 	if not (parsed is Dictionary):
 		_fail("invalid_camp_layout_config")
 		return false
-	for key in ["bounds", "assets", "animations", "fence", "props", "npcs", "interactables"]:
+	for key in ["terrain", "asset_library", "animation_library", "object_modules"]:
 		if not parsed.has(key):
 			_fail("camp_layout_missing_key=%s" % key)
 			return false
-	if (parsed.get("props", []) as Array).is_empty():
-		_fail("camp_layout_props_empty")
+	var terrain := parsed.get("terrain", {}) as Dictionary
+	if terrain.is_empty() or not terrain.has("bounds") or not terrain.has("ground_rects"):
+		_fail("camp_layout_terrain_incomplete")
 		return false
-	if (parsed.get("interactables", []) as Array).is_empty():
-		_fail("camp_layout_interactables_empty")
+	var modules := parsed.get("object_modules", []) as Array
+	if modules.is_empty():
+		_fail("camp_layout_modules_empty")
 		return false
+	var required_modes := {
+		"camp_fence_loop": false,
+		"explicit": false,
+	}
+	var required_targets := {
+		"props": false,
+		"npcs": false,
+		"interactables": false,
+	}
+	for entry in modules:
+		var module_config := entry as Dictionary
+		if module_config.is_empty():
+			continue
+		var target := str(module_config.get("target", ""))
+		var mode := str(module_config.get("placement_mode", ""))
+		if required_targets.has(target):
+			required_targets[target] = true
+		if required_modes.has(mode):
+			required_modes[mode] = true
+		if mode == "explicit" and (module_config.get("items", []) as Array).is_empty():
+			_fail("camp_layout_explicit_module_empty=%s" % str(module_config.get("id", "")))
+			return false
+	for target in required_targets:
+		if not bool(required_targets[target]):
+			_fail("camp_layout_missing_target=%s" % target)
+			return false
+	for mode in required_modes:
+		if not bool(required_modes[mode]):
+			_fail("camp_layout_missing_mode=%s" % mode)
+			return false
 	return true
 
 

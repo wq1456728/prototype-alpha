@@ -91,11 +91,11 @@ func _build_fixed_town() -> void:
 	props.y_sort_enabled = true
 	fixed_town.add_child(props)
 	_build_camp_fence(props)
-	_add_camp_prop_body(props, "CampTentNorthWest", _camp_asset("tent"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(410, 315), 1.15, "rect", Vector2(108, 44), Vector2(0, -10))
-	_add_camp_prop_body(props, "CampTentSouthWest", _camp_asset("tent"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(345, 610), 1.0, "rect", Vector2(98, 40), Vector2(0, -10))
-	_add_camp_prop_body(props, "CampSupplyStack", _camp_asset("crate_barrel_stack"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1170, 575), 1.15, "rect", Vector2(94, 44), Vector2(0, 0))
-	_add_camp_prop_body(props, "CampPalisadeStorage", _camp_asset("palisade_wall"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1290, 265), 1.0, "rect", Vector2(96, 34), Vector2(0, -8))
-	_add_camp_prop_body(props, "CampBrokenFenceDetail", _camp_asset("wood_fence_broken"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(575, 720), 1.1, "capsule_h", Vector2(98, 22), Vector2(0, 0))
+	_add_camp_prop_body(props, "CampTentNorthWest", _camp_asset("tent"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(410, 315), 1.15, "rect", Vector2(41, 27), Vector2(0, -13))
+	_add_camp_prop_body(props, "CampTentSouthWest", _camp_asset("tent"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(345, 610), 1.0, "rect", Vector2(36, 23), Vector2(0, -12))
+	_add_camp_prop_body(props, "CampSupplyStack", _camp_asset("crate_barrel_stack"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1170, 575), 1.15, "rect", Vector2(59, 28), Vector2(0, -14))
+	_add_camp_prop_body(props, "CampPalisadeStorage", _camp_asset("palisade_wall"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1290, 265), 1.0, "capsule_h", Vector2(78, 18), Vector2(0, -9))
+	_add_camp_prop_body(props, "CampBrokenFenceDetail", _camp_asset("wood_fence_broken"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(575, 720), 1.1, "capsule_h", Vector2(76, 18), Vector2(0, -9))
 
 	var npc_root := Node2D.new()
 	npc_root.name = "NPCPlaceholders"
@@ -107,9 +107,9 @@ func _build_fixed_town() -> void:
 	interactables.name = "Interactables"
 	interactables.y_sort_enabled = true
 	fixed_town.add_child(interactables)
-	_add_camp_prop_body(interactables, "StashPlaceholder", _camp_asset("stash_chest"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1180, 410), 1.25, "rect", Vector2(80, 32), Vector2(0, 0))
-	_add_camp_prop_body(interactables, "WaypointPlaceholder", _camp_asset("waypoint_marker"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(940, 375), 1.15, "circle", Vector2(54, 54), Vector2(0, 0))
-	_add_camp_animated_prop_body(interactables, "CampfireIdle", _camp_animation_frames("campfire_idle"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(800, 505), 1.18, 6.0, "circle", Vector2(42, 42), Vector2(0, -2))
+	_add_camp_prop_body(interactables, "StashPlaceholder", _camp_asset("stash_chest"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(1180, 410), 1.25, "rect", Vector2(49, 23), Vector2(0, -11))
+	_add_camp_prop_body(interactables, "WaypointPlaceholder", _camp_asset("waypoint_marker"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(940, 375), 1.15, "rect", Vector2(40, 21), Vector2(0, -10))
+	_add_camp_animated_prop_body(interactables, "CampfireIdle", _camp_animation_frames("campfire_idle"), MAIN_WORLD_TOWN_BOUNDS.position + Vector2(800, 505), 1.18, 6.0, "rect", Vector2(33, 21), Vector2(0, -11))
 
 	town_blockers_root = StaticBody2D.new()
 	town_blockers_root.name = "TownBounds"
@@ -133,6 +133,7 @@ func _build_fixed_town() -> void:
 	gameplay_bounds.name = "GameplayBounds"
 	gameplay_bounds.set_meta("rect", MAIN_WORLD_TOWN_BOUNDS)
 	fixed_town.add_child(gameplay_bounds)
+	_update_fixed_town_z_indices()
 
 
 func _collect_generated_children() -> void:
@@ -191,6 +192,11 @@ func _apply_first_outdoor_runtime_scale() -> void:
 		camera.limit_top = int(MAIN_WORLD_TOWN_BOUNDS.position.y - TOWN_CAMERA_PADDING)
 		camera.limit_right = int(maxf(layout.map_size.x, MAIN_WORLD_TOWN_BOUNDS.end.x + TOWN_CAMERA_PADDING))
 		camera.limit_bottom = int(layout.map_size.y)
+
+
+func _update_world_entity_z_indices() -> void:
+	super._update_world_entity_z_indices()
+	_update_fixed_town_z_indices()
 
 
 func get_town_spawn_position() -> Vector2:
@@ -280,6 +286,18 @@ func _apply_absolute_z_index(item: CanvasItem, sort_y: float) -> void:
 	item.z_index = clampi(int(round(sort_y + MAIN_WORLD_DYNAMIC_Z_OFFSET)), -4095, 4095)
 
 
+func _update_fixed_town_z_indices() -> void:
+	if fixed_town == null:
+		return
+	for root_path in ["Props", "NPCPlaceholders", "Interactables"]:
+		var root := fixed_town.get_node_or_null(root_path)
+		if root == null:
+			continue
+		for node in root.get_children():
+			if node is Node2D and node is CanvasItem:
+				_apply_absolute_z_index(node as CanvasItem, _collision_sort_y(node as Node2D))
+
+
 func _add_town_rect(parent: Node, rect_name: String, rect: Rect2, color: Color, z: int) -> ColorRect:
 	var node := ColorRect.new()
 	node.name = rect_name
@@ -310,39 +328,44 @@ func _build_camp_fence(parent: Node) -> void:
 	var bottom_y := MAIN_WORLD_TOWN_BOUNDS.end.y - 85.0
 	var gate_left_x := _town_center_x() - 145.0
 	var gate_right_x := _town_center_x() + 145.0
-	var horizontal_spacing := 100.0
-	var vertical_spacing := 58.0
+	var horizontal_spacing := 86.0
+	var vertical_spacing := 76.0
+	var horizontal_fence_collision := Vector2(77, 18)
+	var horizontal_fence_offset := Vector2(0, -9)
 
 	var segment_index := 0
 	var x := left_x + horizontal_spacing * 0.5
-	while x < right_x:
-		_add_camp_prop_body(parent, "NorthFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, top_y), 1.12, "capsule_h", Vector2(98, 18), Vector2(0, 0))
+	while x < right_x - horizontal_spacing * 0.5:
+		_add_camp_prop_body(parent, "NorthFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, top_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 		segment_index += 1
 		x += horizontal_spacing
 
 	segment_index = 0
 	x = left_x + horizontal_spacing * 0.5
-	while x < gate_left_x - 50.0:
-		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", Vector2(98, 18), Vector2(0, 0))
+	while x < gate_left_x - 94.0:
+		_add_camp_prop_body(parent, "SouthWestFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 		segment_index += 1
 		x += horizontal_spacing
+	_add_camp_prop_body(parent, "SouthWestFenceGateJoin", _camp_asset("wood_fence_straight"), Vector2(gate_left_x - 82.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
+
 	segment_index = 0
-	x = gate_right_x + 50.0
-	while x < right_x:
-		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", Vector2(98, 18), Vector2(0, 0))
+	_add_camp_prop_body(parent, "SouthEastFenceGateJoin", _camp_asset("wood_fence_straight"), Vector2(gate_right_x + 82.0, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
+	x = gate_right_x + 82.0 + horizontal_spacing
+	while x < right_x - horizontal_spacing * 0.5:
+		_add_camp_prop_body(parent, "SouthEastFence%02d" % segment_index, _camp_asset("wood_fence_straight"), Vector2(x, bottom_y), 1.12, "capsule_h", horizontal_fence_collision, horizontal_fence_offset)
 		segment_index += 1
 		x += horizontal_spacing
 
 	segment_index = 0
 	var y := top_y + vertical_spacing * 0.5
 	while y < bottom_y:
-		_add_camp_prop_body(parent, "WestSideFence%02d" % segment_index, _camp_asset("wood_fence_side"), Vector2(left_x, y), 1.08, "capsule_v", Vector2(24, 86), Vector2(0, -2))
-		_add_camp_prop_body(parent, "EastSideFence%02d" % segment_index, _camp_asset("wood_fence_side"), Vector2(right_x, y), 1.08, "capsule_v", Vector2(24, 86), Vector2(0, -2))
+		_add_camp_prop_body(parent, "WestSideFence%02d" % segment_index, _camp_asset("wood_fence_side"), Vector2(left_x, y), 1.08, "capsule_v", Vector2(19, 78), Vector2(0, -39))
+		_add_camp_prop_body(parent, "EastSideFence%02d" % segment_index, _camp_asset("wood_fence_side"), Vector2(right_x, y), 1.08, "capsule_v", Vector2(19, 78), Vector2(0, -39))
 		segment_index += 1
 		y += vertical_spacing
 
-	_add_camp_prop_body(parent, "CampGateLeftPost", _camp_asset("wood_fence_gate_side"), Vector2(gate_left_x, bottom_y + 8.0), 1.08, "rect", Vector2(56, 74), Vector2(0, -8))
-	_add_camp_prop_body(parent, "CampGateRightPost", _camp_asset("wood_fence_gate_side"), Vector2(gate_right_x, bottom_y + 8.0), 1.08, "rect", Vector2(56, 74), Vector2(0, -8), Vector2.ZERO, PI)
+	_add_camp_prop_body(parent, "CampGateLeftPost", _camp_asset("wood_fence_gate_side"), Vector2(gate_left_x, bottom_y + 8.0), 1.08, "rect", Vector2(42, 32), Vector2(0, -16))
+	_add_camp_prop_body(parent, "CampGateRightPost", _camp_asset("wood_fence_gate_side"), Vector2(gate_right_x, bottom_y + 8.0), 1.08, "rect", Vector2(42, 32), Vector2(0, -16), Vector2.ZERO, 0.0, true)
 
 
 func _add_ground_decal(parent: Node, decal_name: String, texture: Texture2D, position: Vector2, scale_value: float) -> Sprite2D:
@@ -362,7 +385,8 @@ func _add_camp_prop_body(
 	collision_size: Vector2,
 	collision_offset: Vector2,
 	sprite_offset: Vector2 = Vector2.ZERO,
-	sprite_rotation: float = 0.0
+	sprite_rotation: float = 0.0,
+	sprite_flip_h: bool = false
 ) -> StaticBody2D:
 	var body := StaticBody2D.new()
 	body.name = body_name
@@ -404,6 +428,7 @@ func _add_camp_prop_body(
 	sprite.texture = texture
 	sprite.scale = Vector2(scale_value, scale_value)
 	sprite.rotation = sprite_rotation
+	sprite.flip_h = sprite_flip_h
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if texture != null:
 		var size := texture.get_size() * scale_value

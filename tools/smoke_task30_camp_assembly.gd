@@ -25,6 +25,8 @@ func _run() -> void:
 		return
 	if not _validate_interaction_placeholder(scene):
 		return
+	if not _validate_fixed_town_z_sort(scene):
+		return
 	if not _validate_gate_and_bounds_motion(scene):
 		return
 
@@ -91,6 +93,18 @@ func _validate_fence_orientation(scene: Node) -> bool:
 	if north_sprite.texture == west_sprite.texture:
 		_fail("side_fence_reused_front_fence_texture")
 		return false
+	var right_gate := scene.get_node("FixedTown/Props/CampGateRightPost/Sprite2D") as Sprite2D
+	if right_gate == null or not right_gate.flip_h or absf(right_gate.rotation) > 0.01:
+		_fail("right_gate_should_be_mirrored_not_rotated")
+		return false
+	var north_shape := scene.get_node("FixedTown/Props/NorthFence00/CollisionShape2D") as CollisionShape2D
+	if north_shape == null or not (north_shape.shape is CapsuleShape2D):
+		_fail("north_fence_collision_missing_capsule")
+		return false
+	var north_capsule := north_shape.shape as CapsuleShape2D
+	if north_capsule.height > 82.0:
+		_fail("north_fence_collision_too_long=%.2f" % north_capsule.height)
+		return false
 	return true
 
 
@@ -113,6 +127,22 @@ func _validate_interaction_placeholder(scene: Node) -> bool:
 	var campfire_idle := scene.get_node("FixedTown/Interactables/CampfireIdle/AnimatedSprite2D") as AnimatedSprite2D
 	if campfire_idle == null or campfire_idle.sprite_frames == null or campfire_idle.sprite_frames.get_frame_count("idle") < 5:
 		_fail("campfire_idle_animation_missing")
+		return false
+	var stash_shape := scene.get_node("FixedTown/Interactables/StashPlaceholder/CollisionShape2D") as CollisionShape2D
+	if stash_shape == null or not (stash_shape.shape is RectangleShape2D):
+		_fail("stash_collision_missing_rect")
+		return false
+	var stash_rect := stash_shape.shape as RectangleShape2D
+	if stash_shape.position.y >= -2.0 or stash_rect.size.x > 58.0 or stash_rect.size.y > 28.0:
+		_fail("stash_collision_not_using_footprint size=%s offset=%s" % [str(stash_rect.size), str(stash_shape.position)])
+		return false
+	var campfire_shape := scene.get_node("FixedTown/Interactables/CampfireIdle/CollisionShape2D") as CollisionShape2D
+	if campfire_shape == null or not (campfire_shape.shape is RectangleShape2D):
+		_fail("campfire_collision_missing_rect")
+		return false
+	var campfire_rect := campfire_shape.shape as RectangleShape2D
+	if campfire_shape.position.y >= -2.0 or campfire_rect.size.x > 42.0 or campfire_rect.size.y > 26.0:
+		_fail("campfire_collision_not_using_footprint size=%s offset=%s" % [str(campfire_rect.size), str(campfire_shape.position)])
 		return false
 	return true
 
@@ -139,6 +169,24 @@ func _validate_gate_and_bounds_motion(scene: Node) -> bool:
 		return false
 	if _motion_is_clear(player, scene.call("get_town_spawn_position"), Vector2(900, 0)):
 		_fail("east_bounds_not_blocking")
+		return false
+	return true
+
+
+func _validate_fixed_town_z_sort(scene: Node) -> bool:
+	var stash := scene.get_node("FixedTown/Interactables/StashPlaceholder") as CanvasItem
+	var campfire := scene.get_node("FixedTown/Interactables/CampfireIdle") as CanvasItem
+	var npc := scene.get_node("FixedTown/NPCPlaceholders/QuestGiverPlaceholder") as CanvasItem
+	if stash == null or campfire == null or npc == null:
+		_fail("missing_z_sort_targets")
+		return false
+	if stash.z_as_relative or campfire.z_as_relative or npc.z_as_relative:
+		_fail("fixed_town_dynamic_items_should_use_absolute_z")
+		return false
+	var stash_body := stash as Node2D
+	var campfire_body := campfire as Node2D
+	if stash_body != null and campfire_body != null and stash_body.global_position.y < campfire_body.global_position.y and stash.z_index >= campfire.z_index:
+		_fail("fixed_town_z_order_not_collision_bottom_based stash=%d campfire=%d" % [stash.z_index, campfire.z_index])
 		return false
 	return true
 

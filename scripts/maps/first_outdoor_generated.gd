@@ -9,6 +9,7 @@ const OBJECT_FACTORY_SCRIPT := preload("res://scripts/maps/procedural/map_object
 const BOUNDARY_PASS_SCRIPT := preload("res://scripts/maps/procedural/generated_boundary_pass.gd")
 const ITEM_DATABASE := preload("res://scripts/items/item_database.gd")
 const OUTDOOR_COLLISION := preload("res://scripts/physics/outdoor_collision.gd")
+const NATIVE_WANG_TERRAIN_BUILDER_SCRIPT := preload("res://scripts/terrain/native_wang_terrain_builder.gd")
 
 const FIRST_OUTDOOR_CONFIG_PATH := "res://data/maps/first_outdoor_map.json"
 const CAMP_SCENE_PATH := "res://scenes/maps/camp_scene.tscn"
@@ -20,6 +21,11 @@ const OUTDOOR_PLAYER_SPRITE_SCALE := Vector2(1.9, 1.9)
 const DEFAULT_PROP_SCALE := 1.45
 const SMALL_PROP_SCALE := 1.25
 const LARGE_PROP_SCALE := 1.75
+const TERRAIN_VISIBLE_PADDING := 720.0
+const ROAD_SAMPLE_SPACING := 44.0
+const ROAD_RIBBON_WIDTH := 92.0
+const ROAD_EDGE_WIDTH := 18.0
+const ROAD_JITTER := 14.0
 
 @export var generation_seed := 24001
 
@@ -28,6 +34,12 @@ var config_data := {}
 var layout: GeneratedMapLayout
 var validation_result := {}
 var visuals_root: Node2D
+var ground_base_layer: Node2D
+var terrain_overlay_layer: Node2D
+var road_layer: Node2D
+var decal_layer: Node2D
+var outer_buffer_layer: Node2D
+var boundary_visual_layer: Node2D
 var props_root: Node2D
 var boundary_root: Node2D
 var debug_overlay_root: Node2D
@@ -46,6 +58,7 @@ var object_catalog
 var object_factory
 var boundary_pass
 var boundary_payload := {}
+var native_wang_terrain_builder: NativeWangTerrainBuilder
 
 
 func _ready() -> void:
@@ -102,9 +115,11 @@ func _generate_layout() -> void:
 
 
 func _build_generated_world() -> void:
+	native_wang_terrain_builder = NATIVE_WANG_TERRAIN_BUILDER_SCRIPT.new()
 	visuals_root = Node2D.new()
 	visuals_root.name = "FirstOutdoorVisuals"
 	add_child(visuals_root)
+	_build_terrain_visual_layers()
 
 	boundary_root = Node2D.new()
 	boundary_root.name = "FirstOutdoorBlockers"
@@ -123,7 +138,6 @@ func _build_generated_world() -> void:
 	object_factory = OBJECT_FACTORY_SCRIPT.new()
 	object_factory.setup(object_catalog, props_root, boundary_root)
 
-	_add_background_rect("OutdoorCanvas", Rect2(Vector2.ZERO, layout.map_size), Color(0.075, 0.09, 0.075, 1.0), -140)
 	_add_layout_ground()
 	_add_layout_boundaries()
 	_add_layout_markers()
@@ -133,51 +147,87 @@ func _build_generated_world() -> void:
 	_place_player_at_spawn()
 
 
+func _build_terrain_visual_layers() -> void:
+	outer_buffer_layer = _add_visual_layer("OuterBufferLayer", -145)
+	ground_base_layer = _add_visual_layer("GroundBaseLayer", -140)
+	terrain_overlay_layer = _add_visual_layer("TerrainOverlayLayer", -126)
+	road_layer = _add_visual_layer("RoadLayer", -116)
+	decal_layer = _add_visual_layer("DecalLayer", -110)
+	boundary_visual_layer = _add_visual_layer("BoundaryLayer", -132)
+
+
+func _add_visual_layer(layer_name: String, z_index: int) -> Node2D:
+	var layer := Node2D.new()
+	layer.name = layer_name
+	layer.z_index = z_index
+	visuals_root.add_child(layer)
+	return layer
+
+
 func _add_layout_ground() -> void:
-	for corridor in layout.corridors:
-		var rect: Rect2 = corridor.get("rect", Rect2())
-		_add_tiled_rect(rect.grow(28.0), _asset("ground_tileset"), Rect2(32, 0, TILE_SIZE, TILE_SIZE), str(corridor.get("id", "")))
+	var visible_bounds := _terrain_visible_bounds()
+	_add_native_wang_outdoor_ground(visible_bounds)
+
+
+func _add_native_wang_outdoor_ground(visible_bounds: Rect2) -> void:
+	var builder: NativeWangTerrainBuilder = _native_wang_builder()
+	var layer: TileMapLayer = builder.create_layer("NativeWangTerrainLayer", -139)
+	ground_base_layer.add_child(layer)
+	var dirt_cells: Array[Vector2i] = []
+	for cell in builder.cells_for_rect(visible_bounds):
+		var center: Vector2 = builder.cell_center(cell)
+		if _is_native_wang_outdoor_dirt(center):
+			dirt_cells.append(cell)
+	builder.paint_rect(layer, visible_bounds, dirt_cells)
+
+
+func _is_native_wang_outdoor_dirt(point: Vector2) -> bool:
+	var start_anchor := layout.find_anchor_by_type("start")
+	if not start_anchor.is_empty():
+		var start_position: Vector2 = start_anchor.get("position", Vector2.ZERO)
+		var top_connector := [Vector2(start_position.x, 0.0), start_position]
+		if point.y <= start_position.y and _distance_to_polyline(point, top_connector) <= ROAD_RIBBON_WIDTH * 0.72:
+			return true
+	var main_points := _route_points_for_types(["start", "first_contact", "road", "fork", "elite_pressure", "required_exit"])
+	if _distance_to_polyline(point, main_points) <= ROAD_RIBBON_WIDTH * 0.72:
+		return true
+	var fork_zone := _find_zone_by_type("fork")
+	var branch_zone := _find_zone_by_type("required_branch")
+	if not fork_zone.is_empty() and not branch_zone.is_empty():
+		var branch_points := [
+			Rect2(fork_zone.get("rect", Rect2())).get_center(),
+			Rect2(branch_zone.get("rect", Rect2())).get_center(),
+		]
+		if _distance_to_polyline(point, branch_points) <= ROAD_RIBBON_WIDTH * 0.54:
+			return true
 	for zone in layout.zones:
 		var rect: Rect2 = zone.get("rect", Rect2())
 		var zone_type := str(zone.get("type", ""))
-		var color := Color(0.115, 0.13, 0.095, 0.98)
-		if zone_type == "start":
-			color = Color(0.14, 0.13, 0.095, 1.0)
-		elif zone_type == "required_branch":
-			color = Color(0.095, 0.105, 0.08, 1.0)
-		elif zone_type == "elite_pressure":
-			color = Color(0.105, 0.09, 0.075, 1.0)
-		elif zone_type == "required_exit":
-			color = Color(0.09, 0.105, 0.088, 1.0)
-		_add_background_rect("Zone_%s" % str(zone.get("id", "")), rect, color, -125)
-		if zone_type == "required_branch" or zone_type == "elite_pressure":
-			_add_tiled_rect(rect.grow(-32.0), _asset("corrupted_ground"), Rect2(0, 0, TILE_SIZE, TILE_SIZE), "Corrupted_%s" % str(zone.get("id", "")))
+		if zone_type in ["start", "first_contact", "road", "fork", "optional_pocket", "elite_pressure"]:
+			if _point_in_soft_rect(point, rect.grow(-rect.size.length() * 0.02)):
+				return true
+	return false
+
+
+func _terrain_visible_bounds() -> Rect2:
+	return Rect2(Vector2.ZERO, layout.map_size)
+
+
+func _route_points_for_types(zone_types: Array) -> Array:
+	var points := []
+	for zone_type in zone_types:
+		var zone := _find_zone_by_type(str(zone_type))
+		if zone.is_empty():
+			continue
+		points.append(Rect2(zone.get("rect", Rect2())).get_center())
+	return points
 
 
 func _add_layout_boundaries() -> void:
-	for blocker in layout.blockers:
-		var rect: Rect2 = blocker.get("rect", Rect2())
-		var blocker_id := str(blocker.get("id", ""))
-		var source := str(blocker.get("source", ""))
-		var parts := _split_rect_for_connection_openings(rect, source)
-		for index in range(parts.size()):
-			var part: Rect2 = parts[index]
-			if part.size.x <= 0.0 or part.size.y <= 0.0:
-				continue
-			var part_id := blocker_id if parts.size() == 1 else "%s_part_%02d" % [blocker_id, index]
-			_add_blocker_rect(part_id, part, source)
-	for visual in layout.boundary_visuals:
-		var rect: Rect2 = visual.get("rect", Rect2())
-		var visual_id := str(visual.get("id", ""))
-		var source := str(visual.get("source", ""))
-		var parts := _split_rect_for_connection_openings(rect, source)
-		for index in range(parts.size()):
-			var part: Rect2 = parts[index]
-			if part.size.x <= 0.0 or part.size.y <= 0.0:
-				continue
-			var part_id := visual_id if parts.size() == 1 else "%s_part_%02d" % [visual_id, index]
-			_add_background_rect(part_id, part, Color(0.045, 0.065, 0.045, 1.0), -132)
-			boundary_visual_count += 1
+	# Runtime uses the generated contour boundary pass for blocking and visuals.
+	# The older full-map edge rectangles created broad invisible walls at the
+	# camp join, so keep them out of the playable scene.
+	return
 
 
 func _split_rect_for_connection_openings(rect: Rect2, source: String) -> Array:
@@ -245,6 +295,7 @@ func _connection_opening_rect_for_source(source: String) -> Rect2:
 func _add_generated_boundary_pass() -> void:
 	boundary_pass = BOUNDARY_PASS_SCRIPT.new()
 	boundary_payload = boundary_pass.generate(layout, config_data.get("boundary_style", {}), object_factory, generation_seed)
+	boundary_visual_count = Array(boundary_payload.get("boundary_objects", [])).size()
 	var validation: Dictionary = boundary_pass.validate(int(config_data.get("boundary_style", {}).get("max_gap_cells", 2)))
 	if not bool(validation.get("ok", false)):
 		push_warning("FirstOutdoor boundary pass validation: %s" % str(validation.get("errors", [])))
@@ -380,7 +431,9 @@ func _refresh_factory_payload_cache() -> void:
 func _add_layout_markers() -> void:
 	var start_zone := _find_zone_by_type("start")
 	var start_anchor := layout.find_anchor_by_type("start")
-	var spawn_position: Vector2 = start_anchor.get("position", start_zone.get("rect", Rect2()).get_center())
+	var camp_entrance_anchor := layout.find_anchor_by_type("camp_entrance")
+	var start_position: Vector2 = start_anchor.get("position", start_zone.get("rect", Rect2()).get_center())
+	var spawn_position: Vector2 = camp_entrance_anchor.get("position", Vector2(start_position.x, 0.0))
 	_add_route_marker("CampSpawn", spawn_position)
 	_add_route_marker("CampEntrance", spawn_position)
 	_add_route_marker("CampEntranceSpawn", spawn_position)
@@ -658,7 +711,7 @@ func get_camera_zoom() -> Vector2:
 	return camera.zoom if camera != null else Vector2.ZERO
 
 
-func _add_background_rect(rect_name: String, rect: Rect2, color: Color, z_index: int) -> ColorRect:
+func _add_background_rect(rect_name: String, rect: Rect2, color: Color, z_index: int, parent: Node = null) -> ColorRect:
 	var color_rect := ColorRect.new()
 	color_rect.name = rect_name
 	color_rect.position = rect.position
@@ -666,18 +719,20 @@ func _add_background_rect(rect_name: String, rect: Rect2, color: Color, z_index:
 	color_rect.color = color
 	color_rect.z_index = z_index
 	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visuals_root.add_child(color_rect)
+	var target_parent := parent if parent != null else visuals_root
+	target_parent.add_child(color_rect)
 	return color_rect
 
 
-func _add_tiled_rect(rect: Rect2, texture: Texture2D, region: Rect2, node_name: String) -> void:
+func _add_tiled_rect(rect: Rect2, texture: Texture2D, region: Rect2, node_name: String, parent: Node = null, z_index := -112, modulate := Color.WHITE) -> void:
 	if texture == null:
-		_add_background_rect("TileFallback_%s" % node_name, rect, Color(0.16, 0.14, 0.1, 1.0), -118)
+		_add_background_rect("TileFallback_%s" % node_name, rect, Color(0.16, 0.14, 0.1, 1.0), z_index, parent)
 		return
 	var tile_root := Node2D.new()
 	tile_root.name = node_name
-	tile_root.z_index = -112
-	visuals_root.add_child(tile_root)
+	tile_root.z_index = z_index
+	var target_parent := parent if parent != null else visuals_root
+	target_parent.add_child(tile_root)
 	var tile_texture := _make_atlas_texture(texture, region)
 	var start_x := int(floor(rect.position.x / TILE_SIZE) * TILE_SIZE)
 	var start_y := int(floor(rect.position.y / TILE_SIZE) * TILE_SIZE)
@@ -690,7 +745,121 @@ func _add_tiled_rect(rect: Rect2, texture: Texture2D, region: Rect2, node_name: 
 			tile.centered = false
 			tile.position = Vector2(x, y)
 			tile.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			tile.modulate = modulate
 			tile_root.add_child(tile)
+
+
+func _terrain_keys(prefix: String) -> Array:
+	return [
+		_asset("%s_a" % prefix),
+		_asset("%s_b" % prefix),
+		_asset("%s_c" % prefix),
+		_asset("%s_d" % prefix),
+	].filter(func(texture): return texture != null)
+
+
+func _add_variant_texture_rect(rect: Rect2, textures: Array, node_name: String, parent: Node = null, z_index := -140, modulate := Color.WHITE) -> void:
+	if textures.is_empty():
+		_add_background_rect("TileFallback_%s" % node_name, rect, Color(0.09, 0.105, 0.073, 1.0), z_index, parent)
+		return
+	var tile_size := int(maxf(16.0, (textures[0] as Texture2D).get_width()))
+	var tile_root := Node2D.new()
+	tile_root.name = node_name
+	tile_root.z_index = z_index
+	var target_parent := parent if parent != null else visuals_root
+	target_parent.add_child(tile_root)
+	var start_x := int(floor(rect.position.x / float(tile_size)) * tile_size)
+	var start_y := int(floor(rect.position.y / float(tile_size)) * tile_size)
+	var end_x := int(ceil(rect.end.x / float(tile_size)) * tile_size)
+	var end_y := int(ceil(rect.end.y / float(tile_size)) * tile_size)
+	for y in range(start_y, end_y, tile_size):
+		for x in range(start_x, end_x, tile_size):
+			var tile := Sprite2D.new()
+			var variant_index := int(abs((x / tile_size) * 37 + (y / tile_size) * 19 + generation_seed)) % textures.size()
+			tile.texture = textures[variant_index] as Texture2D
+			tile.centered = false
+			tile.position = Vector2(x, y)
+			tile.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			tile.modulate = modulate
+			tile_root.add_child(tile)
+
+
+func _add_soft_patch_grid(rect: Rect2, texture: Texture2D, node_name: String, parent: Node, z_index: int, spacing: float, modulate := Color.WHITE) -> void:
+	if texture == null:
+		return
+	var patch_root := Node2D.new()
+	patch_root.name = node_name
+	patch_root.z_index = z_index
+	parent.add_child(patch_root)
+	var start_x := int(floor(rect.position.x / spacing) * spacing)
+	var start_y := int(floor(rect.position.y / spacing) * spacing)
+	var end_x := int(ceil(rect.end.x / spacing) * spacing)
+	var end_y := int(ceil(rect.end.y / spacing) * spacing)
+	for y in range(start_y, end_y, int(spacing)):
+		for x in range(start_x, end_x, int(spacing)):
+			var offset := Vector2(
+				sin(float(x) * 0.019 + float(y) * 0.007 + float(generation_seed % 113)) * spacing * 0.18,
+				cos(float(y) * 0.017 + float(x) * 0.011 + float(generation_seed % 71)) * spacing * 0.18
+			)
+			var patch := Sprite2D.new()
+			patch.texture = texture
+			patch.position = Vector2(x, y) + offset + Vector2(spacing * 0.5, spacing * 0.5)
+			patch.rotation = sin(float(x + y) * 0.013) * 0.12
+			patch.scale = Vector2.ONE * (0.78 + fposmod(float(x * 3 + y * 5), 17.0) / 100.0)
+			patch.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			patch.modulate = modulate
+			patch_root.add_child(patch)
+
+
+func _add_sprite_to_layer(parent: Node, sprite_name: String, texture: Texture2D, position: Vector2, z_index: int, scale := Vector2.ONE, flip_h := false) -> Sprite2D:
+	var sprite := Sprite2D.new()
+	sprite.name = sprite_name
+	sprite.texture = texture
+	sprite.position = position
+	sprite.z_index = z_index
+	sprite.scale = scale
+	sprite.flip_h = flip_h
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if texture == null:
+		sprite.visible = false
+	parent.add_child(sprite)
+	return sprite
+
+
+func _native_wang_builder() -> NativeWangTerrainBuilder:
+	if native_wang_terrain_builder == null:
+		native_wang_terrain_builder = NATIVE_WANG_TERRAIN_BUILDER_SCRIPT.new()
+	return native_wang_terrain_builder
+
+
+func _distance_to_polyline(point: Vector2, points: Array) -> float:
+	if points.size() < 2:
+		return INF
+	var best := INF
+	for index in range(points.size() - 1):
+		best = minf(best, _distance_to_segment(point, points[index], points[index + 1]))
+	return best
+
+
+func _distance_to_segment(point: Vector2, start: Vector2, end: Vector2) -> float:
+	var segment := end - start
+	var length_squared := segment.length_squared()
+	if length_squared <= 0.001:
+		return point.distance_to(start)
+	var t := clampf((point - start).dot(segment) / length_squared, 0.0, 1.0)
+	return point.distance_to(start + segment * t)
+
+
+func _point_in_soft_rect(point: Vector2, rect: Rect2) -> bool:
+	if rect.size == Vector2.ZERO:
+		return false
+	var center := rect.get_center()
+	var radius := rect.size * 0.5
+	if radius.x <= 0.0 or radius.y <= 0.0:
+		return false
+	var normalized := Vector2((point.x - center.x) / radius.x, (point.y - center.y) / radius.y)
+	var wobble := sin(point.x * 0.011 + point.y * 0.017 + float(generation_seed % 83)) * 0.12
+	return normalized.length_squared() <= 1.0 + wobble
 
 
 func _place_defined_prop(prop_name: String, object_def: String, foot_position: Vector2, tags: Array = []) -> Dictionary:

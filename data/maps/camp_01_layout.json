@@ -1,9 +1,9 @@
 {
 	"id": "camp_01",
 	"terrain": {
-		"bounds": {"x": 960, "y": -940, "w": 1660, "h": 920},
+		"bounds": {"x": 960, "y": -940, "w": 1660, "h": 835},
 		"spawn_offset": [-430, 520],
-		"exit_offset": [0, -70],
+		"exit_offset": [0, 0],
 		"exit_opening_width": 720,
 		"camera_padding": 180,
 		"boundary_collision_thickness": 8,
@@ -38,19 +38,8 @@
 		"trampled_ground": "res://assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png"
 	},
 	"animation_library": {
-		"campfire_idle": [
-			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_0.png",
-			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_1.png",
-			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_2.png",
-			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_3.png",
-			"res://assets/sprites/props/camp_01/campfire_idle_pixellab/frame_4.png"
-		],
-		"quest_giver_idle": [
-			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_0.png",
-			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_1.png",
-			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_2.png",
-			"res://assets/sprites/npc/camp_01/quest_giver_idle_pixellab/frame_3.png"
-		]
+		"campfire_idle": "res://assets/animations/props/camp_01/campfire_idle.tres",
+		"quest_giver_idle": "res://assets/animations/npc/camp_01/quest_giver_idle.tres"
 	},
 	"object_modules": [
 		{
@@ -85,8 +74,7 @@
 			},
 			"items": [
 				{"position": [1098, -105]}, {"position": [1184, -105]}, {"position": [1270, -105]},
-				{"position": [1356, -105]}, {"position": [1442, -105]}, {"position": [1528, -105]},
-				{"id": "SouthWestFenceGateJoin", "position": [1571, -105]}
+				{"position": [1356, -105]}, {"position": [1442, -105]}, {"position": [1528, -105]}
 			]
 		},
 		{
@@ -151,7 +139,7 @@
 				"collision": {"shape": "rect", "size": [42, 32], "offset": [0, -16]}
 			},
 			"items": [
-				{"id": "CampGateLeftPost", "position": [1645, -97]},
+				{"id": "CampGateLeftPost", "position": [1597, -97]},
 				{"id": "CampGateRightPost", "position": [1935, -97], "flip_h": true}
 			]
 		},

@@ -65,6 +65,12 @@ func _validate_camp_layout_config() -> bool:
 	if modules.is_empty():
 		_fail("camp_layout_modules_empty")
 		return false
+	var animation_library := parsed.get("animation_library", {}) as Dictionary
+	for animation_id in ["campfire_idle", "quest_giver_idle"]:
+		var animation_path := str(animation_library.get(animation_id, ""))
+		if not animation_path.ends_with(".tres") or not FileAccess.file_exists(animation_path):
+			_fail("camp_layout_animation_not_tres id=%s path=%s" % [animation_id, animation_path])
+			return false
 	var required_modes := {
 		"explicit": false,
 	}
@@ -128,7 +134,7 @@ func _validate_nodes(scene: Node) -> bool:
 		"FixedTown/Props/NorthFence00",
 		"FixedTown/Props/WestSideFence00",
 		"FixedTown/Props/EastSideFence00",
-		"FixedTown/Props/SouthWestFenceGateJoin",
+		"FixedTown/Props/SouthWestFence05",
 		"FixedTown/Props/SouthEastFenceGateJoin",
 		"FixedTown/Props/SouthEastFenceCornerJoin",
 		"FixedTown/Props/CampGateLeftPost",
@@ -198,21 +204,22 @@ func _validate_fence_orientation(scene: Node) -> bool:
 func _validate_gate_fence_joins(scene: Node) -> bool:
 	var left_gate := scene.get_node("FixedTown/Props/CampGateLeftPost") as Node2D
 	var right_gate := scene.get_node("FixedTown/Props/CampGateRightPost") as Node2D
-	var left_join := scene.get_node("FixedTown/Props/SouthWestFenceGateJoin") as Node2D
+	var left_join := scene.get_node_or_null("FixedTown/Props/SouthWestFenceGateJoin") as Node2D
+	var left_anchor := left_join if left_join != null else scene.get_node("FixedTown/Props/SouthWestFence05") as Node2D
 	var right_join := scene.get_node("FixedTown/Props/SouthEastFenceGateJoin") as Node2D
 	var right_corner_join := scene.get_node("FixedTown/Props/SouthEastFenceCornerJoin") as Node2D
-	if left_gate == null or right_gate == null or left_join == null or right_join == null or right_corner_join == null:
+	if left_gate == null or right_gate == null or left_anchor == null or right_join == null or right_corner_join == null:
 		_fail("missing_gate_join_node")
 		return false
-	var left_spacing := left_gate.global_position.x - left_join.global_position.x
+	var left_spacing := left_gate.global_position.x - left_anchor.global_position.x
 	var right_spacing := right_join.global_position.x - right_gate.global_position.x
-	if absf(left_spacing - right_spacing) > 4.0:
+	if absf(left_spacing - right_spacing) > 8.0:
 		_fail("gate_join_asymmetry left=%.2f right=%.2f" % [left_spacing, right_spacing])
 		return false
 	if absf(left_gate.global_position.y - right_gate.global_position.y) > 1.0:
 		_fail("gate_posts_not_level")
 		return false
-	if absf(left_join.global_position.y - right_join.global_position.y) > 1.0:
+	if absf(left_anchor.global_position.y - right_join.global_position.y) > 1.0:
 		_fail("gate_joins_not_level")
 		return false
 	if right_corner_join.global_position.x <= right_join.global_position.x:

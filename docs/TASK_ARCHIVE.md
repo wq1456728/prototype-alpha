@@ -661,4 +661,76 @@ Risks / Required Follow-up:
 - `root_stain_decal` and `dark_crack_decal` currently share the same generated source image under different filenames；acceptable for first pass, but should split into distinct art later if repetition is visible。
 - Camp support assets are not yet assembled into the fixed town; this is now `TASK-030`。
 
+## TASK-030: Camp Visual Assembly And Gate Collision Pass
+
+Status: done
+
+Task agent status: done
+
+Audit / User Review:
+
+- 2026-05-23 用户人工复审：到 TASK-030 为止的主结构基本可接受。
+- Camp 已从 rough placeholder 推进到可读的固定基地第一版，但后续仍需要用户肉眼审查 exact spacing、collision feel 和 prop placement。
+
+Result:
+
+- 在 persistent `MainWorld` 的 `FixedTown` 中装配 Camp 视觉：wooden fence perimeter、gate side posts、tent、campfire、stash chest、waypoint marker、crate/barrel stack、palisade storage、trampled ground decals、NPC placeholder。
+- Camp 保持固定布局，不进入 procedural generator。
+- Gate center 保持可通过，两侧 gate / fence 有碰撞。
+- 增加轻量 `QuestGiverPlaceholder/InteractionArea` 和临时提示文本。
+- 增加 `tools/smoke_task30_camp_assembly.gd`，覆盖 Camp 关键节点、fence orientation、interaction placeholder、gate passability 和 side-boundary blocking。
+
+Files changed:
+
+- `scripts/world/main_world.gd`
+- `tools/smoke_task30_camp_assembly.gd`
+- `TASK_BOARD.md`
+
+Validation:
+
+- `tools/smoke_task30_camp_assembly.gd` passed through Godot wrapper。
+- `tools/smoke_main_world_contract.gd` passed through Godot wrapper。
+- `tools/smoke_task29_asset_inventory.gd` passed through Godot wrapper。
+
+Risks / Required Follow-up:
+
+- Vertical wooden fences currently use rotated straight fence asset；可读但不是最终专用 vertical fence。
+- NPC interaction 仍只是 placeholder，不包含 quest state、reward 或 dungeon clear 条件。
+- 部分 collision boxes 是 conservative first pass，需要人工审查后微调。
+
+## TASK-031: Asset Footprint Draft And Collision Preview Tool
+
+Status: done
+
+Task agent status: done
+
+Result:
+
+- 新增 `AssetFootprintDraftTool`，从 PNG alpha bounds 和 `asset_type` 生成 `FootprintDraft` JSON。
+- 支持类型：`character`、`enemy`、`prop_low`、`prop_tall`、`barrier`、`entrance`、`interactable`、`decal`、`ground_tile`。
+- 支持 entrance 多段 blocker + central opening。
+- 支持 interactable collision 与 interaction area 分离。
+- 支持 preview sheet：visual bounds、collision、interaction、foot point。
+- 输出 artifact，不自动覆盖 accepted object definitions。
+
+Files changed:
+
+- `scripts/tools/asset_footprint_draft_tool.gd`
+- `tools/smoke_asset_footprint_draft.gd`
+- `tools/generate_task31_footprint_review.gd`
+- `artifacts/task031_footprint_drafts/*`
+- `TASK_BOARD.md`
+
+Validation:
+
+- `tools/smoke_asset_footprint_draft.gd` passed。
+- Footprint review artifacts generated under `artifacts/task031_footprint_drafts/`。
+
+Risks / Required Follow-up:
+
+- 工具输出是 draft，不是最终人工验收。
+- Rotated in-scene assets still need orientation metadata；source PNG alone cannot infer scene rotation。
+- Animated enemy sheets are treated as a single visible image；future enemy-specific tooling may need frame selection。
+
+
 

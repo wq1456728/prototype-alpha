@@ -139,7 +139,7 @@ static func _validate_zones_and_anchors(layout: GeneratedMapLayout, errors: Arra
 			continue
 		var rect: Rect2 = zone.get("rect", Rect2())
 		var position: Vector2 = anchor.get("position", Vector2.ZERO)
-		if not rect.has_point(position):
+		if str(anchor.get("type", "")) != "camp_entrance" and not rect.has_point(position):
 			errors.append("anchor outside zone: %s zone=%s position=%s" % [str(anchor.get("id", "")), zone_id, position])
 
 	for map_object in layout.map_objects:

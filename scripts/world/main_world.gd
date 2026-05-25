@@ -12,6 +12,7 @@ const CAMP_ALPHA_VISIBLE_THRESHOLD := 0.05
 var camp_layout := {}
 var camp_assets := {}
 var camp_animation_assets := {}
+var camp_world_offset := Vector2(10.0, 105.0)
 var camp_bounds := Rect2(Vector2(960, -940), Vector2(1660, 920))
 var town_spawn_offset := Vector2(-430, 520)
 var town_exit_offset := Vector2(0, -70)
@@ -103,13 +104,16 @@ func _build_fixed_town() -> void:
 
 
 func _build_camp_ground(parent: Node) -> void:
+	var native_ground_added := _add_native_camp_ground(parent)
 	var terrain := _camp_terrain()
-	for entry in terrain.get("ground_rects", []):
-		var rect_config := entry as Dictionary
-		if rect_config.is_empty():
-			continue
-		var rect := camp_bounds if bool(rect_config.get("use_bounds", false)) else _rect_from_dict(rect_config.get("rect", {}), Rect2())
-		_add_town_rect(parent, str(rect_config.get("id", "GroundRect")), rect, _color_from_array(rect_config.get("color", [1.0, 1.0, 1.0, 1.0])), int(rect_config.get("z", 0)))
+	if not native_ground_added:
+		for entry in terrain.get("ground_rects", []):
+			var rect_config := entry as Dictionary
+			if rect_config.is_empty():
+				continue
+			var rect := camp_bounds if bool(rect_config.get("use_bounds", false)) else _rect_from_dict(rect_config.get("rect", {}), Rect2())
+			var color := _color_from_array(rect_config.get("color", [1.0, 1.0, 1.0, 1.0]))
+			_add_town_rect(parent, str(rect_config.get("id", "GroundRect")), rect, color, int(rect_config.get("z", 0)))
 	for entry in terrain.get("ground_decals", []):
 		var decal_config := entry as Dictionary
 		if decal_config.is_empty():
@@ -118,9 +122,39 @@ func _build_camp_ground(parent: Node) -> void:
 			parent,
 			str(decal_config.get("id", "GroundDecal")),
 			_camp_asset(str(decal_config.get("asset", ""))),
-			_vector2_from_array(decal_config.get("position", [0, 0])),
+			_camp_world_position(decal_config.get("position", [0, 0])),
 			float(decal_config.get("scale", 1.0))
 		)
+
+
+func _add_native_camp_ground(parent: Node) -> bool:
+	if not ResourceLoader.exists(NativeWangTerrainBuilder.ATLAS_PATH):
+		return false
+	var builder: NativeWangTerrainBuilder = _native_wang_builder()
+	var layer: TileMapLayer = builder.create_layer("NativeWangCampTerrainLayer", -123)
+	parent.add_child(layer)
+	var dirt_cells: Array[Vector2i] = []
+	var visual_bounds := _camp_ground_visual_bounds()
+	var inner := camp_bounds.grow(-120.0)
+	var exit_road := Rect2(Vector2(_town_center_x() - 170.0, camp_bounds.position.y + 520.0), Vector2(340.0, camp_bounds.size.y * 0.58))
+	var stash_wear := Rect2(Vector2(1980.0, -620.0), Vector2(360.0, 340.0))
+	for cell in builder.cells_for_rect(visual_bounds):
+		var center: Vector2 = builder.cell_center(cell)
+		if inner.has_point(center) or exit_road.has_point(center) or stash_wear.has_point(center):
+			dirt_cells.append(cell)
+	builder.paint_rect(layer, visual_bounds, dirt_cells)
+	return true
+
+
+func _camp_ground_visual_bounds() -> Rect2:
+	var left := 0.0
+	var top := camp_bounds.position.y - 360.0
+	var right := camp_bounds.end.x + 480.0
+	var bottom := 0.0
+	return Rect2(
+		Vector2(left, top),
+		Vector2(right - left, bottom - top)
+	)
 
 
 func _build_camp_modules(parent: Node, target: String) -> void:
@@ -171,7 +205,7 @@ func _add_camp_prop_from_config(parent: Node, prop_config: Dictionary) -> Static
 		parent,
 		str(prop_config.get("id", "CampProp")),
 		_camp_asset(str(prop_config.get("asset", ""))),
-		_vector2_from_array(prop_config.get("position", [0, 0])),
+		_camp_world_position(prop_config.get("position", [0, 0])),
 		float(prop_config.get("scale", 1.0)),
 		str(collision.get("shape", "rect")),
 		collision.get("size", Vector2.ZERO),
@@ -187,8 +221,8 @@ func _add_camp_animated_prop_from_config(parent: Node, prop_config: Dictionary) 
 	return _add_camp_animated_prop_body(
 		parent,
 		str(prop_config.get("id", "AnimatedCampProp")),
-		_camp_animation_frames(str(prop_config.get("animation", ""))),
-		_vector2_from_array(prop_config.get("position", [0, 0])),
+		_camp_sprite_frames(str(prop_config.get("animation", "")), float(prop_config.get("fps", 6.0))),
+		_camp_world_position(prop_config.get("position", [0, 0])),
 		float(prop_config.get("scale", 1.0)),
 		float(prop_config.get("fps", 6.0)),
 		str(collision.get("shape", "rect")),
@@ -212,11 +246,7 @@ func _build_fixed_transition_chunk() -> void:
 	generated_region.add_child(transition_chunk)
 
 	var start := get_town_exit_socket_position()
-	var end := get_camp_entrance_position()
-	var top := minf(start.y, end.y) - 48.0
-	var bottom := maxf(start.y, end.y)
-	_add_town_rect(transition_chunk, "FixedTransitionRoad", Rect2(Vector2(start.x - 180, top), Vector2(360, bottom - top + 130)), Color(0.18, 0.15, 0.095, 1.0), -116)
-	_add_town_rect(transition_chunk, "FixedTransitionField", Rect2(Vector2(start.x - 470, top - 56), Vector2(940, bottom - top + 210)), Color(0.09, 0.108, 0.074, 0.82), -121)
+	var end := start
 
 	wilderness_start_socket = Marker2D.new()
 	wilderness_start_socket.name = "WildernessStartSocket"
@@ -235,7 +265,7 @@ func _build_fixed_transition_chunk() -> void:
 
 	var gameplay_bounds := Node2D.new()
 	gameplay_bounds.name = "GameplayBounds"
-	gameplay_bounds.set_meta("rect", Rect2(Vector2(start.x - 420, top - 40), Vector2(840, bottom - top + 180)))
+	gameplay_bounds.set_meta("rect", Rect2(start - Vector2(96.0, 96.0), Vector2(192.0, 192.0)))
 	transition_chunk.add_child(gameplay_bounds)
 
 
@@ -291,7 +321,7 @@ func get_wilderness_start_socket_position() -> Vector2:
 func get_town_connection_corridor_rect() -> Rect2:
 	var start := get_town_exit_socket_position()
 	var end := get_wilderness_start_socket_position()
-	var center_width := 360.0
+	var center_width := 160.0
 	var left := minf(start.x, end.x) - center_width * 0.5
 	var right := maxf(start.x, end.x) + center_width * 0.5
 	var top := minf(start.y, end.y) - 96.0
@@ -357,6 +387,7 @@ func _load_camp_layout() -> void:
 	camp_layout = parsed
 	var terrain := _camp_terrain()
 	camp_bounds = _rect_from_dict(terrain.get("bounds", {}), camp_bounds)
+	camp_bounds.position += camp_world_offset
 	town_spawn_offset = _vector2_from_array(terrain.get("spawn_offset", [town_spawn_offset.x, town_spawn_offset.y]), town_spawn_offset)
 	town_exit_offset = _vector2_from_array(terrain.get("exit_offset", [town_exit_offset.x, town_exit_offset.y]), town_exit_offset)
 	town_camera_padding = float(terrain.get("camera_padding", town_camera_padding))
@@ -383,6 +414,10 @@ func _vector2_from_array(value, fallback := Vector2.ZERO) -> Vector2:
 	if value is Dictionary:
 		return Vector2(float(value.get("x", fallback.x)), float(value.get("y", fallback.y)))
 	return fallback
+
+
+func _camp_world_position(value, fallback := Vector2.ZERO) -> Vector2:
+	return _vector2_from_array(value, fallback) + camp_world_offset
 
 
 func _rect_from_dict(value, fallback: Rect2) -> Rect2:
@@ -530,7 +565,7 @@ func _add_camp_prop_body(
 func _add_camp_animated_prop_body(
 	parent: Node,
 	body_name: String,
-	frames: Array,
+	sprite_frames: SpriteFrames,
 	foot_position: Vector2,
 	scale_value: float,
 	fps: float,
@@ -570,18 +605,16 @@ func _add_camp_animated_prop_body(
 
 	var animated := AnimatedSprite2D.new()
 	animated.name = "AnimatedSprite2D"
-	animated.sprite_frames = SpriteFrames.new()
-	animated.sprite_frames.add_animation("idle")
-	animated.sprite_frames.set_animation_speed("idle", fps)
-	animated.sprite_frames.set_animation_loop("idle", true)
-	for frame in frames:
-		var texture := frame as Texture2D
-		if texture != null:
-			animated.sprite_frames.add_frame("idle", texture)
+	animated.sprite_frames = sprite_frames if sprite_frames != null else SpriteFrames.new()
+	if not animated.sprite_frames.has_animation("idle"):
+		animated.sprite_frames.add_animation("idle")
+		animated.sprite_frames.set_animation_speed("idle", fps)
+		animated.sprite_frames.set_animation_loop("idle", true)
 	animated.scale = Vector2(scale_value, scale_value)
 	animated.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	if not frames.is_empty() and frames[0] is Texture2D:
-		animated.position = sprite_offset + _sprite_visible_foot_offset(frames[0] as Texture2D, scale_value, 0.0)
+	var first_texture := animated.sprite_frames.get_frame_texture("idle", 0) if animated.sprite_frames.get_frame_count("idle") > 0 else null
+	if first_texture != null:
+		animated.position = sprite_offset + _sprite_visible_foot_offset(first_texture, scale_value, 0.0)
 	else:
 		animated.position = sprite_offset
 	body.add_child(animated)
@@ -590,7 +623,7 @@ func _add_camp_animated_prop_body(
 
 
 func _add_quest_giver_placeholder(parent: Node, position: Vector2) -> StaticBody2D:
-	var body := _add_camp_animated_prop_body(parent, "QuestGiverPlaceholder", _camp_animation_frames("quest_giver_idle"), position, 0.95, 4.0, "capsule_v", Vector2(32, 46), Vector2(0, -12), Vector2(0, 4))
+	var body := _add_camp_animated_prop_body(parent, "QuestGiverPlaceholder", _camp_sprite_frames("quest_giver_idle", 4.0), position, 0.95, 4.0, "capsule_v", Vector2(32, 46), Vector2(0, -12), Vector2(0, 4))
 	_configure_quest_giver_interaction(body, "Clear the den outside the camp.", Vector2(-150, -138))
 	return body
 
@@ -600,8 +633,8 @@ func _add_quest_giver_placeholder_from_config(parent: Node, npc_config: Dictiona
 	var body := _add_camp_animated_prop_body(
 		parent,
 		str(npc_config.get("id", "QuestGiverPlaceholder")),
-		_camp_animation_frames(str(npc_config.get("animation", "quest_giver_idle"))),
-		_vector2_from_array(npc_config.get("position", [0, 0])),
+		_camp_sprite_frames(str(npc_config.get("animation", "quest_giver_idle")), float(npc_config.get("fps", 4.0))),
+		_camp_world_position(npc_config.get("position", [0, 0])),
 		float(npc_config.get("scale", 0.95)),
 		float(npc_config.get("fps", 4.0)),
 		str(collision.get("shape", "capsule_v")),
@@ -664,13 +697,22 @@ func _camp_asset(asset_key: String) -> Texture2D:
 	return load(path) as Texture2D if not path.is_empty() else null
 
 
-func _camp_animation_frames(asset_key: String) -> Array:
-	var frames := []
-	for path in camp_animation_assets.get(asset_key, []):
-		var texture := load(str(path)) as Texture2D
-		if texture != null:
-			frames.append(texture)
-	return frames
+func _camp_sprite_frames(asset_key: String, fallback_fps := 6.0) -> SpriteFrames:
+	var animation_entry = camp_animation_assets.get(asset_key)
+	if animation_entry is String:
+		var loaded := load(str(animation_entry)) as SpriteFrames
+		if loaded != null:
+			return loaded
+	var sprite_frames := SpriteFrames.new()
+	sprite_frames.add_animation("idle")
+	sprite_frames.set_animation_speed("idle", fallback_fps)
+	sprite_frames.set_animation_loop("idle", true)
+	if animation_entry is Array:
+		for path in animation_entry:
+			var texture := load(str(path)) as Texture2D
+			if texture != null:
+				sprite_frames.add_frame("idle", texture)
+	return sprite_frames
 
 
 func _sprite_visible_foot_offset(texture: Texture2D, scale_value: float, sprite_rotation: float) -> Vector2:
@@ -750,16 +792,8 @@ func _add_town_thin_bounds() -> void:
 
 
 func _add_town_exit_opening_bounds() -> void:
-	var opening := get_town_exit_opening_rect()
-	var boundary := _camp_boundary()
-	var left_x := camp_bounds.position.x + float(boundary.get("left_x_offset", 95.0))
-	var right_x := camp_bounds.end.x + float(boundary.get("right_x_offset", -95.0))
-	var south_y := camp_bounds.end.y + float(boundary.get("bottom_y_offset", -85.0))
-	var thickness := town_boundary_collision_thickness
-	var left_width := maxf(0.0, opening.position.x - left_x)
-	var east_segment_x := opening.end.x
-	var right_width := maxf(0.0, right_x - east_segment_x)
-	if left_width > 0.0:
-		_add_town_bound_shape("SouthWestThin", Rect2(Vector2(left_x, south_y - thickness * 0.5), Vector2(left_width, thickness)))
-	if right_width > 0.0:
-		_add_town_bound_shape("SouthEastThin", Rect2(Vector2(east_segment_x, south_y - thickness * 0.5), Vector2(right_width, thickness)))
+	# The south edge is already blocked by fence and gate prop collisions.
+	# Do not add a broad hidden wall here; it reads as an invisible barrier
+	# under the fence in collision debug and makes the camp/outdoor join harder
+	# to reason about.
+	return

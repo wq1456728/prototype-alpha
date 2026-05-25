@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://2c6jcq3omkdo"]
+
+[ext_resource type="Script" uid="uid://dd7qaprlcdla" path="res://scripts/dev/terrain_tilemap_test.gd" id="1_qop2d"]
+
+[node name="TerrainTilemapTest" type="Node2D" unique_id=1838443066]
+script = ExtResource("1_qop2d")
+
+[node name="GroundBaseTileMapLayer" type="TileMapLayer" parent="." unique_id=1259853475]
+
+[node name="DirtRoadTileMapLayer" type="TileMapLayer" parent="." unique_id=1032128324]
+
+[node name="TerrainOverlayTileMapLayer" type="TileMapLayer" parent="." unique_id=1892963391]
+
+[node name="DecalPreviewLayer" type="Node2D" parent="." unique_id=1113327951]
+
+[node name="PropPreviewLayer" type="Node2D" parent="." unique_id=1983610011]

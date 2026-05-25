@@ -19,6 +19,8 @@ func _run() -> void:
 	var scene := current_scene
 	if not _validate_contract(scene):
 		return
+	if not _validate_terrain_layers(scene):
+		return
 	if not _validate_enemy_variety(scene):
 		return
 	if not await _validate_player_can_move_toward_wilderness(scene):
@@ -100,6 +102,63 @@ func _validate_contract(scene: Node) -> bool:
 	if not _validate_town_connection_motion(scene):
 		return false
 	return true
+
+
+func _validate_terrain_layers(scene: Node) -> bool:
+	var required_paths := [
+		"GeneratedRegion/FirstOutdoorVisuals",
+		"GeneratedRegion/FirstOutdoorVisuals/GroundBaseLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/GroundBaseLayer/NativeWangTerrainLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/TerrainOverlayLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/RoadLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/DecalLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/OuterBufferLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/BoundaryLayer",
+		"FixedTown/Ground/NativeWangCampTerrainLayer",
+		"GeneratedRegion/TransitionChunk",
+		"GeneratedRegion/TransitionChunk/WildernessStartSocket",
+	]
+	for path in required_paths:
+		if scene.get_node_or_null(path) == null:
+			_fail("missing_terrain_layer=%s" % path)
+			return false
+
+	var paint_paths := [
+		"GeneratedRegion/FirstOutdoorVisuals/GroundBaseLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/TerrainOverlayLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/RoadLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/DecalLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/OuterBufferLayer",
+	]
+	for path in paint_paths:
+		var node := scene.get_node_or_null(path)
+		if node == null:
+			continue
+		if _has_collision_shape(node):
+			_fail("terrain_layer_has_collision=%s" % path)
+			return false
+	for path in [
+		"FixedTown/Ground/NativeWangCampTerrainLayer",
+		"GeneratedRegion/FirstOutdoorVisuals/GroundBaseLayer/NativeWangTerrainLayer",
+	]:
+		var layer := scene.get_node_or_null(path) as TileMapLayer
+		if layer == null:
+			_fail("native_wang_layer_missing=%s" % path)
+			return false
+		if layer.get_used_cells().is_empty():
+			_fail("native_wang_layer_empty=%s" % path)
+			return false
+
+	return true
+
+
+func _has_collision_shape(node: Node) -> bool:
+	if node is CollisionShape2D:
+		return true
+	for child in node.get_children():
+		if _has_collision_shape(child):
+			return true
+	return false
 
 
 func _validate_enemy_variety(scene: Node) -> bool:

@@ -92,21 +92,21 @@ Current read after TASK-029 asset follow-up:
 
 ## TASK-029 Frozen Inventory
 
-`accepted` 仍只表示用户明确确认。下面新补入的素材全部标为 `available`，供后续 `TASK-031` terrain paint / Camp polish 使用。
+`accepted` 仍只表示用户明确确认。下面新补入的素材全部标为 `available`，供后续 `TASK-032` terrain paint / Camp polish 使用。
 
-| ID | Priority | Use case | Asset type | Required form | Size | Transparency | Naming pattern | Current path | Fallback path | Status | Blocks TASK-031 | Owner / next action |
+| ID | Priority | Use case | Asset type | Required form | Size | Transparency | Naming pattern | Current path | Fallback path | Status | Blocks TASK-032 | Owner / next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `grass_dead_base` | P0 | outdoor base ground | terrain | single tile / tileset | 32x32 | no | `tile_outdoor01_grass_dead_base_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_grass_dead_base_32_a.png` | `assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png` | available | no | user review visual quality |
 | `dirt_base` | P0 | dry dirt field / camp floor | terrain | tileset fallback | 32x32 | no | `tileset_outdoor01_ground_32.png` | `assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png` | none | placeholder | no | replace with dedicated tile later |
 | `mud_trampled_base` | P0 | trampled camp / pressure areas | terrain/decal | decal first pass | 64x64 | yes | `decal_camp01_trampled_ground_64_a.png` | `assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png` | none | available | no | user review visual quality |
-| `dirt_road_center` | P0 | readable road spine | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_center_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_center_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_center_32_b.png` | none | available | no | TASK-031 integrate into paint rules |
-| `dirt_road_edge_blend` | P0 | road edge into field | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_edge_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_edge_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_edge_32_b.png` | none | available | no | TASK-031 integrate into paint rules |
-| `dirt_road_corner_blend` | P0 | road bends / forks | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_corner_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_corner_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_corner_32_b.png` | none | available | no | TASK-031 integrate into paint rules |
-| `dirt_road_end_fade` | P0 | road end / fade into field | terrain | single tile | 32x32 | no | `tile_outdoor01_dirt_road_end_fade_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_end_fade_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
+| `dirt_road_center` | P0 | readable road spine | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_center_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_center_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_center_32_b.png` | none | available | no | TASK-032 integrate into paint rules |
+| `dirt_road_edge_blend` | P0 | road edge into field | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_edge_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_edge_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_edge_32_b.png` | none | available | no | TASK-032 integrate into paint rules |
+| `dirt_road_corner_blend` | P0 | road bends / forks | terrain | single tile variations | 32x32 | no | `tile_outdoor01_dirt_road_corner_32_<variant>.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_corner_32_a.png`, `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_corner_32_b.png` | none | available | no | TASK-032 integrate into paint rules |
+| `dirt_road_end_fade` | P0 | road end / fade into field | terrain | single tile | 32x32 | no | `tile_outdoor01_dirt_road_end_fade_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_road_end_fade_32_a.png` | none | available | no | TASK-032 integrate into paint rules |
 | `road_noise_decal` | P0 | break up road repetition | decal | transparent PNG | 64x64 | yes | `decal_outdoor01_road_noise_64_a.png` | `assets/sprites/decals/outdoor_01/decal_outdoor01_road_noise_64_a.png` | none | available | no | use sparingly in terrain paint |
-| `grass_to_dirt_transition` | P0 | soft field to dirt edge | terrain | single transition tile | 32x32 | no | `tile_outdoor01_grass_to_dirt_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_grass_to_dirt_blend_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
-| `dirt_to_corruption_blend` | P0 | corrupted approach | terrain | single transition tile | 32x32 | no | `tile_outdoor01_dirt_to_corruption_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_to_corruption_blend_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
-| `corruption_edge_blend` | P0 | irregular corruption edge | terrain | single transition tile | 32x32 | no | `tile_outdoor01_corruption_edge_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_corruption_edge_blend_32_a.png` | none | available | no | TASK-031 integrate into paint rules |
+| `grass_to_dirt_transition` | P0 | soft field to dirt edge | terrain | single transition tile | 32x32 | no | `tile_outdoor01_grass_to_dirt_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_grass_to_dirt_blend_32_a.png` | none | available | no | TASK-032 integrate into paint rules |
+| `dirt_to_corruption_blend` | P0 | corrupted approach | terrain | single transition tile | 32x32 | no | `tile_outdoor01_dirt_to_corruption_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_dirt_to_corruption_blend_32_a.png` | none | available | no | TASK-032 integrate into paint rules |
+| `corruption_edge_blend` | P0 | irregular corruption edge | terrain | single transition tile | 32x32 | no | `tile_outdoor01_corruption_edge_blend_32_a.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_corruption_edge_blend_32_a.png` | none | available | no | TASK-032 integrate into paint rules |
 | `corrupted_ground_patch` | P0 | infected ground patch | terrain | single tile | 64x32 | mixed | `tile_outdoor01_corrupted_ground_32.png` | `assets/sprites/tiles/outdoor_01/tile_outdoor01_corrupted_ground_32.png` | none | placeholder | no | replace with better patch later |
 | `root_stain_decal` | P0 | corruption detail | decal | transparent PNG | 64x64 | yes | `decal_outdoor01_root_stain_64_a.png` | `assets/sprites/decals/outdoor_01/decal_outdoor01_root_stain_64_a.png` | none | available | no | user review visual quality |
 | `dark_crack_decal` | P0 | corruption detail | decal | transparent PNG | 64x64 | yes | `decal_outdoor01_dark_crack_64_a.png` | `assets/sprites/decals/outdoor_01/decal_outdoor01_dark_crack_64_a.png` | none | available | no | currently shares source generation with root stain |
@@ -132,11 +132,71 @@ Current read after TASK-029 asset follow-up:
 | `npc_placeholder` | P1 | neutral quest giver stand-in | sprite | transparent PNG | 64x96 | yes | `npc_camp01_quest_giver_idle_64_a.png` | `assets/sprites/npc/camp_01/npc_camp01_quest_giver_idle_64_a.png` | ColorRect placeholder | available | no | replace with animated NPC later |
 | `camp_trampled_ground_decal` | P1 | camp floor wear | decal | transparent PNG | 64x64 | yes | `decal_camp01_trampled_ground_64_a.png` | `assets/sprites/decals/outdoor_01/decal_camp01_trampled_ground_64_a.png` | none | available | no | scatter under camp props |
 
+### TASK-032 Redo Terrain Addendum
+
+`TASK-032` 复审后，原 road / ground tile 不能作为主地表继续使用。问题不是 32x32 尺寸，而是相邻 tile 的边缘图案、明暗和纹理方向不一致，重复后会形成明显方块边界。
+
+#### FrameRonin Tile47 Prototype Candidate
+
+用户指定优先检查 `systemchester/FrameRonin`。已找到一组可用于 `Tile47` / blob autotile 原型的地图 atlas，并先接入独立 prototype 场景：
+
+```text
+prototype scene: scenes/dev/terrain_tilemap_test.tscn
+smoke: tools/smoke_task32_terrain_tilemap_test.gd
+preview artifact: artifacts/task32_terrain_tilemap_test_preview.png
+tile47 helper: scripts/terrain/blob_tile47.gd
+cell query helper: scripts/terrain/terrain_cell_field.gd
+source URL: https://github.com/systemchester/FrameRonin
+format: blob / Tile47-like atlas
+atlas layout: 3 columns x 24 rows
+tile size: 24x24, not 32x32
+mapping note: 8-neighbor mask -> atlas index, based on FrameRonin blobTerrain.ts / map.html logic
+license: no explicit project asset license found in the repository; prototype-only until license is clarified
+```
+
+Copied project paths:
+
+```text
+assets/sprites/terrain/frameronin/blob/frame_004.png
+assets/sprites/terrain/frameronin/blob/frame_004X1.png
+assets/sprites/terrain/frameronin/tileg/frame_004.png
+assets/sprites/terrain/frameronin/tiler/frame_004.png
+assets/sprites/terrain/frameronin/tiler/frame_007.png
+```
+
+Current recommendation:
+
+```text
+use for prototype: yes
+promote to final MainWorld terrain: not yet
+reason: format is useful and proves the TileMapLayer / blob-mask workflow, but colors are too bright and source license is unclear.
+next: user visual review of prototype, then either recolor / replace with licensed dark-fantasy-compatible Tile47 assets before MainWorld integration.
+```
+
+下面新增素材是本地 procedural 生成，没有外部 license 依赖；状态为 `available`，等待用户肉眼确认后才能升级为 `accepted`。
+
+| ID | Use case | Current path | Status | Source / license note |
+| --- | --- | --- | --- | --- |
+| `terrain_dead_grass_a/b/c/d` | main outdoor dead grass base, edge-compatible variants | `assets/sprites/terrain/generated/terrain_outdoor01_dead_grass_seamless_64_<variant>.png` | available | local procedural generation; project-owned |
+| `terrain_dark_grass_a/b/c/d` | outer buffer / darker grass base, edge-compatible variants | `assets/sprites/terrain/generated/terrain_outdoor01_dark_grass_seamless_64_<variant>.png` | available | local procedural generation; project-owned |
+| `terrain_dirt_a/b/c/d` | dry dirt base, edge-compatible variants | `assets/sprites/terrain/generated/terrain_outdoor01_dirt_seamless_64_<variant>.png` | available | local procedural generation; project-owned |
+| `terrain_dirt_soft_patch` | soft transparent dirt/trampled overlay | `assets/sprites/terrain/generated/terrain_outdoor01_dirt_soft_patch_128_a.png` | available | local procedural generation; project-owned |
+| `terrain_grass_edge_soft_patch` | soft grass transition overlay | `assets/sprites/terrain/generated/terrain_outdoor01_grass_edge_soft_patch_128_a.png` | available | local procedural generation; project-owned |
+| `terrain_trampled_soft_patch` | road / foot-worn overlay patch | `assets/sprites/terrain/generated/terrain_outdoor01_trampled_soft_patch_128_a.png` | available | local procedural generation; project-owned |
+
+Rejected for main terrain path:
+
+| ID | Reason |
+| --- | --- |
+| `tileset_outdoor01_ground_32.png` / `grass_dead_base` | usable as placeholder only; too visibly tiled for main `GroundBaseLayer` |
+| `dirt_road_center`, `dirt_road_edge_blend`, `dirt_road_corner_blend`, `dirt_road_end_fade` | rejected as primary road rendering; reads as a chain of square road tiles |
+| `grass_to_dirt_transition`, `dirt_to_corruption_blend`, `corruption_edge_blend` | rejected as primary transition rendering; hard tile edges are too visible |
+
 ## TASK-027 P0 Audit
 
-This table is the current source for TASK-027 reporting. `blocker_for_task_030` means the missing or placeholder quality will directly weaken the first terrain paint pass.
+This table is the current source for TASK-027 reporting. `blocker_for_task_032` means the missing or placeholder quality will directly weaken the first terrain paint pass.
 
-| ID | Status | current_path / current_fallback | blocker_for_task_030 | note |
+| ID | Status | current_path / current_fallback | blocker_for_task_032 | note |
 | --- | --- | --- | --- | --- |
 | `grass_dead_base` | placeholder | `assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png` | no | usable as rough base, but needs better variation later |
 | `dirt_base` | placeholder | `assets/sprites/tiles/outdoor_01/tileset_outdoor01_ground_32.png` | no | usable as rough base, not a real road vocabulary |
@@ -314,7 +374,6 @@ Task agent:
 2. Use available assets immediately for Camp rough layout.
 3. Mark each P0 asset as available / placeholder / missing / accepted.
 4. Do not implement terrain paint in TASK-029.
-5. Later TASK-031 will integrate terrain paint into generated outdoor.
+5. Later TASK-032 will integrate terrain paint into generated outdoor.
 ```
-
 

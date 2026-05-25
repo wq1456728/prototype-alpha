@@ -36,13 +36,15 @@ static func _generate_main_path(layout: GeneratedMapLayout, config: MapGeneratio
 		var target_y := config.map_margin + y_step * float(index)
 		var center_x := previous_center.x + rng.randf_range(-config.route_x_jitter, config.route_x_jitter)
 		if index == 0:
-			center_x = config.map_size.x * 0.5 + rng.randf_range(-180.0, 180.0)
+			center_x = config.map_size.x * 0.5
 		center_x = clamp(center_x, config.map_margin + zone_size.x * 0.5, config.map_size.x - config.map_margin - zone_size.x * 0.5)
 		var center := Vector2(center_x, target_y)
 		var rect := Rect2(center - zone_size * 0.5, zone_size)
 		var zone_id := "main_%02d_%s" % [index, zone_type]
 		layout.add_zone(zone_id, zone_type, config.get_template_id(zone_type, rng), rect, config.get_zone_label(zone_type))
 		_add_zone_anchors(layout, zone_id, zone_type, rect, index, main_count)
+		if zone_type == "start":
+			_add_start_edge_connection(layout, config, zone_id, rect)
 		_add_zone_placeholders(layout, config, rng, zone_id, zone_type, rect, index)
 
 		if index > 0:
@@ -51,6 +53,17 @@ static func _generate_main_path(layout: GeneratedMapLayout, config: MapGeneratio
 		zone_ids.append(zone_id)
 		previous_center = center
 	return zone_ids
+
+
+static func _add_start_edge_connection(layout: GeneratedMapLayout, config: MapGenerationConfig, zone_id: String, rect: Rect2) -> void:
+	var center := rect.get_center()
+	var width := config.corridor_width
+	var bottom := maxf(center.y, width)
+	layout.add_corridor(
+		"corridor_camp_entrance_to_start",
+		Rect2(Vector2(center.x - width * 0.5, 0.0), Vector2(width, bottom)),
+		"connection_camp_entrance_to_%s" % zone_id
+	)
 
 
 static func _generate_required_branch(layout: GeneratedMapLayout, config: MapGenerationConfig, rng: RandomNumberGenerator, main_zone_ids: Array) -> void:
@@ -124,6 +137,7 @@ static func _find_main_zone_id_by_type(layout: GeneratedMapLayout, main_zone_ids
 static func _add_zone_anchors(layout: GeneratedMapLayout, zone_id: String, zone_type: String, rect: Rect2, index: int, main_count: int) -> void:
 	if zone_type == "start":
 		layout.add_anchor("anchor_start", "start", rect.get_center(), true, zone_id)
+		layout.add_anchor("anchor_camp_entrance", "camp_entrance", Vector2(rect.get_center().x, 0.0), true, zone_id)
 	else:
 		layout.add_anchor("anchor_%s_entry" % zone_id, "entry", rect.get_center() + Vector2(0.0, -rect.size.y * 0.28), false, zone_id)
 
